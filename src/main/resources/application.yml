@@ -1,7 +1,7 @@
 # application.yml (공통)
 spring:
   application:
-    name: PrefAudit
+    name: WebTest
   jackson:
     time-zone: UTC
   jpa:

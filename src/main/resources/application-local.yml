@@ -1,0 +1,21 @@
+# application-local.yml
+spring:
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:55432/webtest
+    username: dev
+    password: dev1234
+    driver-class-name: org.postgresql.Driver  # ← 명시!
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 2000
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc.time_zone: UTC
+logging:
+  level:
+    root: INFO

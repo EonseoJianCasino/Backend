@@ -1,5 +1,7 @@
 package com.test.webtest.domain.test.dto;
 
-public class CreateTestRequest {
+import jakarta.validation.constraints.NotBlank;
 
-}
+public record CreateTestRequest (
+        @NotBlank String url
+) {}

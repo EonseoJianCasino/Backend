@@ -1,0 +1,26 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:16
+    container_name: webtest-db
+    environment:
+      POSTGRES_DB: webtest           # ✅ 생성할 DB 이름
+      POSTGRES_USER: dev             # ✅ 생성할 유저명
+      POSTGRES_PASSWORD: dev1234     # ✅ 유저 비밀번호
+    ports:
+      - "55432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DB_HOST: db
+      DB_PORT: 5432
+volumes:
+  db-data:
