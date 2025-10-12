@@ -13,7 +13,7 @@ public final class UrlNormalizer {
             String host = u.getHost();
             String h  = host.toLowerCase();
             return h.startsWith("www.") ? h.substring(4) : h;
-        } catch(Exception e) {
+        } catch(IllegalArgumentException e) {
             return "";
         }
     }

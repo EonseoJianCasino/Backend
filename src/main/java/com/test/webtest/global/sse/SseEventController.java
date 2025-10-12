@@ -1,23 +1,22 @@
 package com.test.webtest.global.sse;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.concurrent.CompletableFuture;
-
-
 @RestController
 @RequestMapping("/api/tests")
+@RequiredArgsConstructor
 public class SseEventController {
-    @GetMapping("/{id}/events")
-    public SseEmitter stream(@PathVariable String id) {
-        SseEmitter emitter = new SseEmitter(60L * 60 * 1000);
-        CompletableFuture.runAsync(() -> {
-            try{
-                emitter.send(SseEmitter.event().name("ping").data("ok"));
 
-            } catch (Exception ignore){}
-        });
+    private final SseEmitterManager manager;
+    private final SseEventPublisher publisher;
+
+    @GetMapping("/{id}/events")
+    public SseEmitter stream(@PathVariable("id") String testId) {
+        SseEmitter emitter = manager.register(testId);
+        // 최초 연결 즉시 핑
+        publisher.ping(testId);
         return emitter;
     }
 }
