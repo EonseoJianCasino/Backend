@@ -4,9 +4,9 @@ services:
     image: postgres:16
     container_name: webtest-db
     environment:
-      POSTGRES_DB: webtest           # ✅ 생성할 DB 이름
-      POSTGRES_USER: dev             # ✅ 생성할 유저명
-      POSTGRES_PASSWORD: dev1234     # ✅ 유저 비밀번호
+      POSTGRES_DB: ${DB_NAME:-webtest}
+      POSTGRES_USER: ${DB_USER:-dev}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-dev1234}
     ports:
       - "55432:5432"
     volumes:

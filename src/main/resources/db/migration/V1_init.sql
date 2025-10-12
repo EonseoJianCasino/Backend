@@ -1,6 +1,6 @@
 -- src/main/resources/db/migration/V1__init.sql
 
-create table if not exists tests (
+create table tests (
   id uuid primary key,                       -- default 제거 (앱이 UUID 생성)
   domain_name varchar(255) not null,
   url text not null,
