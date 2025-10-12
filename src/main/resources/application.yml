@@ -4,11 +4,6 @@ spring:
     name: WebTest
   jackson:
     time-zone: UTC
-  jpa:
-    properties:
-      hibernate:
-        format_sql: true
-        jdbc.time_zone: UTC
 server:
   port: 8080
 management:
