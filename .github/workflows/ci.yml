@@ -1,0 +1,27 @@
+name: CI Build & (Local) Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Test
+        run: ./gradlew test --stacktrace
+
+      - name: Build Jar
+        run: ./gradlew bootJar --stacktrace
+
+      - name: Build Docker image
+        run: docker build -t prefaudit:ci .
