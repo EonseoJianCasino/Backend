@@ -1,4 +1,7 @@
 package com.test.webtest.domain.test.repository;
 
-public class TestRepository {
+import com.test.webtest.domain.test.entity.TestEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface TestRepository extends JpaRepository<TestEntity, String> {
 }
