@@ -3,6 +3,11 @@ services:
   db:
     image: postgres:16
     container_name: webtest-db
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-dev} -d ${DB_NAME:-webtest}" ]
+      interval: 5s
+      timeout: 3s
+      retries: 12
     environment:
       POSTGRES_DB: ${DB_NAME:-webtest}
       POSTGRES_USER: ${DB_USER:-dev}
