@@ -41,9 +41,9 @@ public class SseEmitterManager {
     }
 
     public void remove(String testId, SseEmitter emitter) {
-        emittersByTest.computeIfPresent(testId, (id, set) -> {
-            set.remove(emitter);
-            return set.isEmpty() ? null : set;
-        });
+        var set = emittersByTest.get(testId);
+        if (set == null) return;
+        set.remove(emitter);
+        if (set.isEmpty()) emittersByTest.remove(testId);
     }
 }
