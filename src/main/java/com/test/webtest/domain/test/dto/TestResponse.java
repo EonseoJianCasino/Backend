@@ -5,11 +5,12 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Getter
 @Builder
 public class TestResponse {
-    private String id;
+    private UUID id;
     private String url;
     private String domainName;
     private String ip;

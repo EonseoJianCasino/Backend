@@ -1,4 +1,6 @@
 -- src/main/resources/db/migration/V1__init.sql
+-- noinspection SqlNoDataSourceInspectionForFile
+-- noinspection SqlDialectInspection
 
 create table tests (
   id uuid primary key,                       -- default 제거 (앱이 UUID 생성)

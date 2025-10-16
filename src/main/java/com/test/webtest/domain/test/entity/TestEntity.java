@@ -19,7 +19,7 @@ import java.util.UUID;
 @Builder
 public class TestEntity {
     @Id
-    private String id;
+    private UUID id;
 
     @Column(nullable = false)
     private String url;
@@ -40,7 +40,7 @@ public class TestEntity {
     // 엔티티 생성 팩토리 메서드
     public static TestEntity create(String url, String ip){
         return TestEntity.builder()
-                .id(UUID.randomUUID().toString())
+                .id(UUID.randomUUID())
                 .url(url)
                 .domainName(extractDomain(url))
                 .ip(ip)
