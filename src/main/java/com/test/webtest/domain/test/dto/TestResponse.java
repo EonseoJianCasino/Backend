@@ -1,6 +1,5 @@
 package com.test.webtest.domain.test.dto;
 
-
 import com.test.webtest.domain.test.entity.TestEntity;
 import lombok.Builder;
 import lombok.Getter;
@@ -28,4 +27,4 @@ public class TestResponse {
                 .createdAt(entity.getCreatedAt())
                 .build();
     }
-
+}
