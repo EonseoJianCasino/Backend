@@ -1,22 +1,5 @@
 package com.test.webtest.domain.test.entity;
 
-import com.test.webtest.global.common.constants.StatusType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.time.Instant;
-import java.util.UUID;
-
-@Entity
-@Table(name = "tests")
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
 public class TestEntity {
     @Id
     private UUID id;
