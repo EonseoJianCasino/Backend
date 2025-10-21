@@ -45,6 +45,23 @@ public class AiRecommendationEntity {
     private String related_metric;
 
 
+    public static AiRecommendationEntity create(Long ai_id, TestEntity id, Double improving_score, String improving_priority, String improving_title, String improving_content, String improving_effect, String related_metric){
+
+        return AiRecommendationEntity.builder()
+                .ai_id(ai_id)
+                .id(id)
+                .improving_score(improving_score)
+                .improving_priority(improving_priority)
+                .improving_title(improving_title)
+                .improving_content(improving_content)
+                .improving_effect(improving_effect)
+                .related_metric(related_metric)
+                .build();
+
+    }
+
+
+
 }
 
 
