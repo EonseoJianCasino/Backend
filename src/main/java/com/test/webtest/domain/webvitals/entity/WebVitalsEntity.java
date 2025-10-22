@@ -8,8 +8,10 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.Instant;
 import java.util.UUID;
 
-//WebVitalsEntity - Web Vitals 원본 지표 저장
-//ERD 의 web_vitals 테이블과 매핑
+/**
+ * WebVitalsEntity - Web Vitals 원본 지표를 저장하는 엔티티입니다.
+ * ERD의 'web_vitals' 테이블과 매핑됩니다.
+ */
 
 @Entity
 @Table(name = "web_vitals")
