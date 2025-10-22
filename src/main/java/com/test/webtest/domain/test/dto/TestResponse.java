@@ -22,7 +22,6 @@ public class TestResponse {
                 .id(entity.getId())
                 .url(entity.getUrl())
                 .domainName(entity.getDomainName())
-                .ip(entity.getIp())
                 .status(entity.getStatus().name())
                 .createdAt(entity.getCreatedAt())
                 .build();

@@ -17,7 +17,7 @@ public class TestServiceImpl implements TestService{
     @Override
     @Transactional
     public TestResponse createTest(CreateTestRequest request) {
-        TestEntity entity = TestEntity.create(request.getUrl(), request.getIp());
+        TestEntity entity = TestEntity.create(request.getUrl());
         testRepository.save(entity);
         return TestResponse.fromEntity(entity);
     }
