@@ -54,6 +54,11 @@ class WebVitalsRepositoryTest {
         assertThat(found).isPresent();
         assertThat(found.get().getTestId()).isEqualTo(test.getId());
         assertThat(found.get().getLcp()).isEqualTo(2000.0);
+        assertThat(found.get().getCls()).isEqualTo(0.05);
+        assertThat(found.get().getInp()).isEqualTo(150.0);
+        assertThat(found.get().getFcp()).isEqualTo(1500.0);
+        assertThat(found.get().getTbt()).isEqualTo(150.0);
+        assertThat(found.get().getTtfb()).isEqualTo(600.0);
     }
 
     @Test
