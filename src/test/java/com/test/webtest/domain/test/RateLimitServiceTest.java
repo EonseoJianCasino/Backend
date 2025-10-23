@@ -1,4 +1,4 @@
-package com.test.webtest.test;
+package com.test.webtest.domain.test;
 
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.DisplayName;
