@@ -12,10 +12,12 @@ CREATE TABLE IF NOT EXISTS tests (
 );
 
 -- web_vitals
-CREATE TABLE IF NOT EXISTS web_vitals (
+-- schema.sql
+DROP TABLE IF EXISTS web_vitals CASCADE;
+
+CREATE TABLE web_vitals (
   id         uuid PRIMARY KEY,
-  test_id    uuid NOT NULL REFERENCES tests(id) ON DELETE CASCADE,
-  -- 컬럼 최종 명/타입 정합
+  test_id    uuid NOT NULL UNIQUE REFERENCES tests(id) ON DELETE CASCADE,
   lcp        double precision,
   fid        double precision,
   cls        double precision,
@@ -25,6 +27,7 @@ CREATE TABLE IF NOT EXISTS web_vitals (
   tbt        double precision,
   created_at timestamptz NOT NULL DEFAULT now()
 );
+
 
 -- security_vitals
 CREATE TABLE IF NOT EXISTS security_vitals (
@@ -54,6 +57,7 @@ CREATE TABLE IF NOT EXISTS priorities (
   type       varchar(20) NOT NULL, -- PERFORMANCE / SECURITY
   metric     varchar(50) NOT NULL,
   reason     text,
+  rank       int NOT NULL,
   created_at timestamptz NOT NULL DEFAULT now()
 );
 

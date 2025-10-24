@@ -23,9 +23,8 @@ public class WebVitalsEntity {
     @Id
     private UUID testId;
 
-    @MapsId
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "test_id")
+    @JoinColumn(name = "test_id", unique = true, nullable = false)
     private TestEntity test;
 
     @Column(name = "lcp")
