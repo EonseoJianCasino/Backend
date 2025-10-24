@@ -1,0 +1,30 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://db:5432/webtest  # 컨테이너 네트워크의 db 서비스
+    username: ${DB_USER:dev}
+    password: ${DB_PASSWORD:dev1234}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 2000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc.time_zone: UTC
+    defer-datasource-initialization: true   # [추가] schema.sql 먼저 실행
+
+  sql:
+    init:
+      mode: always                          # [추가] compose 환경에서는 schema.sql 적용
+      schema-locations: classpath:db/schema.sql
+  flyway:
+    enabled: false
+
+logging:
+  level:
+    root: INFO

@@ -1,6 +1,7 @@
 package com.test.webtest.domain.test.dto;
 
 import com.test.webtest.domain.test.entity.TestEntity;
+import com.test.webtest.global.common.constants.StatusType;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -10,20 +11,17 @@ import java.util.UUID;
 @Getter
 @Builder
 public class TestResponse {
-    private UUID id;
-    private String url;
-    private String domainName;
-    private String ip;
-    private String status;
-    private Instant createdAt;
+    private final String url;
+    private final String domainName;
+    private final StatusType status;
+    private final Instant createdAt;
 
-    public static TestResponse fromEntity(TestEntity entity) {
+    public static TestResponse fromEntity(TestEntity e) {
         return TestResponse.builder()
-                .id(entity.getId())
-                .url(entity.getUrl())
-                .domainName(entity.getDomainName())
-                .status(entity.getStatus().name())
-                .createdAt(entity.getCreatedAt())
+                .url(e.getUrl())
+                .domainName(e.getDomainName())
+                .status(e.getStatus())
+                .createdAt(e.getCreatedAt())
                 .build();
     }
 }
