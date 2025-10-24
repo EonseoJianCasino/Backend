@@ -17,12 +17,22 @@ public class ApiResponse <T>{
         this.success = success;
     }
 
-    public static <T> ApiResponse<T> success(String code, String message, T data) {
+    public static <T> ApiResponse<T> success(HttpStatus status, String message, T data) {
         return new ApiResponse<>(ApiSuccess.<T>builder()
-                .status(HttpStatus.OK.value())
-                .code(code)
+                .status(status.value())
                 .message(message)
                 .data(data)
                 .build());
     }
+
+    // 200 OK
+    public static <T> ApiResponse<T> ok(String message, T data) {
+        return success(HttpStatus.OK, message, data);
+    }
+
+    // 201 CREATED
+    public static <T> ApiResponse<T> created(String message, T data) {
+        return success(HttpStatus.CREATED, message, data);
+    }
+
 }

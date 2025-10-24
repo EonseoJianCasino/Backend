@@ -24,8 +24,13 @@ services:
     depends_on:
       - db
     environment:
-      SPRING_PROFILES_ACTIVE: local
+      SPRING_PROFILES_ACTIVE: compose
       DB_HOST: db
       DB_PORT: 5432
+      DB_NAME: webtest
+      DB_USER: dev
+      DB_PASSWORD: dev1234
+    ports:
+      - "8080:8080"
 volumes:
   db-data:

@@ -4,9 +4,14 @@ import com.test.webtest.domain.test.dto.CreateTestRequest;
 import com.test.webtest.domain.test.dto.TestResponse;
 import com.test.webtest.domain.test.entity.TestEntity;
 import com.test.webtest.domain.test.repository.TestRepository;
+import com.test.webtest.global.common.util.UrlNormalizer;
+import com.test.webtest.global.error.exception.BusinessException;
+import com.test.webtest.global.error.model.ErrorCode;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -18,8 +23,26 @@ public class TestServiceImpl implements TestService{
     @Override
     @Transactional
     public TestResponse createTest(CreateTestRequest request) {
+         var normalizedKey = UrlNormalizer.normalizeUrlForKey(request.getUrl());
+         var result = rateLimitService.checkAndMark(normalizedKey);
+         if (!result.allowed()) {
+             throw new BusinessException(ErrorCode.DUPLICATE_REQUEST,
+                     "중복 요청입니다. 남은 대기(ms): " + result.remainingMillis());
+         }
+
         TestEntity entity = TestEntity.create(request.getUrl());
         testRepository.save(entity);
+        return TestResponse.fromEntity(entity);
+    }
+
+    @Override
+    @Transactional
+    public TestResponse getTest(UUID testId) {
+        TestEntity entity = testRepository.findById(testId)
+                .orElseThrow(() -> new BusinessException(
+                        ErrorCode.TEST_NOT_FOUND,
+                        "요청한 테스트가 존재하지 않습니다. id=" + testId
+                ));
         return TestResponse.fromEntity(entity);
     }
 

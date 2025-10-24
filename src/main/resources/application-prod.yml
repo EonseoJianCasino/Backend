@@ -11,6 +11,14 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc.time_zone: UTC
+    sql:
+      init:
+        mode: never                   # 운영은 마이그레이션 도구 사용
+      flyway:
+        enabled: false
 logging:
   level:
     root: WARN
