@@ -12,11 +12,12 @@ CREATE TABLE IF NOT EXISTS tests (
 );
 
 -- web_vitals (공유 PK가 아니라면 UNIQUE 제약)
-CREATE TABLE IF NOT EXISTS web_vitals (
+DROP TABLE IF EXISTS web_vitals CASCADE;
+
+CREATE TABLE web_vitals (
   id         uuid PRIMARY KEY,
   test_id    uuid NOT NULL UNIQUE REFERENCES tests(id) ON DELETE CASCADE,
   lcp        double precision,
-  fid        double precision,
   cls        double precision,
   fcp        double precision,
   ttfb       double precision,
@@ -35,6 +36,27 @@ CREATE TABLE IF NOT EXISTS security_vitals (
   x_content_type_options   varchar(50),
   created_at               timestamptz NOT NULL DEFAULT now()
 );
+
+-- ★ 멱등 ALTER: 한 줄에 한 컬럼 + IF NOT EXISTS
+ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS referrer_policy             varchar(50);
+ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS hsts_max_age                bigint;
+ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS hsts_include_subdomains     boolean;
+ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS hsts_preload                boolean;
+ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS csp_has_unsafe_inline       boolean;
+ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS csp_has_unsafe_eval         boolean;
+ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS csp_frame_ancestors         text;
+ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS cookie_secure_all           boolean;
+ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS cookie_httponly_all         boolean;
+ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS cookie_samesite_policy      varchar(10); -- Strict/Lax/None/Unspecified
+ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS ssl_valid                   boolean;
+ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS ssl_chain_valid             boolean;
+ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS ssl_days_remaining          int;
+ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS ssl_issuer                  text;
+ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS ssl_subject                 text;
+ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS csp_raw                     text;
+ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS hsts_raw                    text;
+
+
 
 -- scores: 구조가 바뀌었으므로 안전하게 교체
 DROP TABLE IF EXISTS scores CASCADE;
@@ -82,4 +104,17 @@ CREATE TABLE ai_expectations (
   metric      varchar(50) NOT NULL, -- LCP, CSP, INP...
   content     text        NOT NULL,
   created_at  timestamptz NOT NULL DEFAULT now()
+);
+
+-- logic_status (ai 호출 트리거)
+DROP TABLE IF EXISTS logic_status CASCADE;
+
+CREATE TABLE logic_status (
+  test_id        uuid PRIMARY KEY REFERENCES tests(id) ON DELETE CASCADE,
+  web_received   boolean NOT NULL DEFAULT false,
+  sec_received   boolean NOT NULL DEFAULT false,
+  scores_ready   boolean NOT NULL DEFAULT false,
+  ai_triggered   boolean NOT NULL DEFAULT false,
+  updated_at     timestamptz NOT NULL DEFAULT now(),
+  created_at     timestamptz NOT NULL DEFAULT now()
 );
