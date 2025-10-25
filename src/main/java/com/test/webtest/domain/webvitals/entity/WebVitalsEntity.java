@@ -21,7 +21,7 @@ import java.util.UUID;
 @Builder(access = AccessLevel.PRIVATE)
 public class WebVitalsEntity {
     @Id
-    private UUID testId;
+    private UUID id;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "test_id", unique = true, nullable = false)
@@ -59,6 +59,7 @@ public class WebVitalsEntity {
         validateMetricValue(ttfb, "TTFB");
 
         return WebVitalsEntity.builder()
+                .id(UUID.randomUUID())
                 .test(test)  // @MapsId를 사용하므로 test만 설정하면 testId는 자동으로 매핑됨
                 .lcp(lcp)
                 .cls(cls)

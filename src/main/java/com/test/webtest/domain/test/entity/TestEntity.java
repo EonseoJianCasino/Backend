@@ -14,6 +14,8 @@ import java.util.UUID;
 @Table(name = "tests")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder(access = AccessLevel.PRIVATE)
 public class TestEntity {
     @Id
     private UUID id;
@@ -31,17 +33,9 @@ public class TestEntity {
     @CreationTimestamp
     private Instant createdAt;
 
-    @Builder(builderMethodName = "internalBuilder")
-    private TestEntity(UUID id, String url, String domainName, StatusType status) {
-        this.id = id;
-        this.url = url;
-        this.domainName = domainName;
-        this.status = status;
-    }
-
     // 엔티티 생성 팩토리 메서드
     public static TestEntity create(String url){
-        return internalBuilder()
+        return TestEntity.builder()
             .id(UUID.randomUUID())
             .url(url)
             .domainName(UrlNormalizer.extractDomain(url))
