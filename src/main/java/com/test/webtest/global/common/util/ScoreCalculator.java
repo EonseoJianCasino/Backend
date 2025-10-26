@@ -2,6 +2,7 @@ package com.test.webtest.global.common.util;
 
 import com.test.webtest.domain.securityvitals.entity.SecurityVitalsEntity;
 import com.test.webtest.domain.webvitals.entity.WebVitalsEntity;
+import com.test.webtest.global.common.constants.WebMetricThreshold;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -12,7 +13,36 @@ public class ScoreCalculator {
      */
     public WebScores toWebScores(WebVitalsEntity web) {
         //실제 계산 로직 추가
-        return new WebScores(80, 90, 85, 88, 70, 75); // 임시 값
+            double lcp = calculateLinearScore(web.getLcp(), WebMetricThreshold.LCP);
+            double cls = calculateLinearScore(web.getCls(), WebMetricThreshold.CLS);
+            double inp = calculateLinearScore(web.getInp(), WebMetricThreshold.INP);
+            double fcp = calculateLinearScore(web.getFcp(), WebMetricThreshold.FCP);
+            double tbt = calculateLinearScore(web.getTbt(), WebMetricThreshold.TBT);
+            double ttfb = calculateLinearScore(web.getTtfb(), WebMetricThreshold.TTFB);
+
+        return new WebScores(
+                (int) Math.round(lcp),
+                (int) Math.round(cls),
+                (int) Math.round(inp),
+                (int) Math.round(fcp),
+                (int) Math.round(tbt),
+                (int) Math.round(ttfb)
+        ); // 임시 값
+    }
+
+    private double calculateLinearScore(Double value, WebMetricThreshold metric) {
+        if (value == null) return 0.0;
+
+        double good = metric.getGood();
+        double poor = metric.getPoor();
+
+        if (value <= good) return 100.0;
+        if (value > poor) return 0.0;
+
+        double ratio = (value - good) / (poor - good);
+        double score = 100.0 - (ratio * 100.0);
+
+        return Math.max(0.0, Math.min(100.0, score));
     }
 
     /**
