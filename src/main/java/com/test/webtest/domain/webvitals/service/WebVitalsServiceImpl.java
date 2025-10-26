@@ -6,7 +6,7 @@ import com.test.webtest.domain.test.repository.TestRepository;
 import com.test.webtest.domain.webvitals.entity.WebVitalsEntity;
 import com.test.webtest.domain.webvitals.repository.WebVitalsRepository;
 import com.test.webtest.global.common.constants.Channel;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -26,11 +26,17 @@ public class WebVitalsServiceImpl implements WebVitalsService{
     public void saveWebVitals(UUID testId, WebVitalsSaveCommand cmd) {
         TestEntity test = testRepository.getReferenceById(testId);
 
-        WebVitalsEntity entity = WebVitalsEntity.create(
-                test, cmd.lcp(), cmd.cls(), cmd.inp(), cmd.fcp(), cmd.tbt(), cmd.ttfb()
+        webVitalsRepository.findByTestId(testId).ifPresentOrElse(
+                found -> {
+                    found.updateFrom(cmd.lcp(), cmd.cls(), cmd.inp(), cmd.fcp(), cmd.tbt(), cmd.ttfb());
+                },
+                () -> {
+                    WebVitalsEntity entity = WebVitalsEntity.create(
+                            test, cmd.lcp(), cmd.cls(), cmd.inp(), cmd.fcp(), cmd.tbt(), cmd.ttfb()
+                    );
+                    webVitalsRepository.save(entity);
+                }
         );
-
-        webVitalsRepository.save(entity);
 
         // 커밋 이후 status 호출
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {

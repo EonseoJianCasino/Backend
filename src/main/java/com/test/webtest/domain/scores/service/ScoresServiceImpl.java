@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -27,41 +28,47 @@ public class ScoresServiceImpl implements ScoresService{
     private final TestRepository testRepository;
     private final ScoreCalculator scoreCalculator;
 
+    @Override
     @Async("logicExecutor")
+    @Transactional
     public void calcAndSaveAsync(UUID testId) {
-        log.info("[SCORES] Calculating scores for testId = {}", testId);
+        doCalcAndSave(testId);
+    }
 
-        WebVitalsEntity web = webVitalsRepository.findByTestId(testId)
-                .orElse(null); // 웹 없을 수도 있음(가중치 0으로 처리)
-        SecurityVitalsEntity sec = securityVitalsRepository.findByTestId(testId)
-                .orElse(null);
+    @Override
+    @Transactional
+    public void calcAndSave(UUID testId) {
+        doCalcAndSave(testId);
+    }
 
-        // 웹 지표 100점화 {lcp, cls, inp, fcp, tbt, ttfb}
-        var webScore = scoreCalculator.toWebScores(web);
+    private void doCalcAndSave(UUID testId) {
+        log.info("[SCORES] Calculating scores for testId={}", testId);
 
-        // 보안 50점화
+        WebVitalsEntity web = webVitalsRepository.findByTestId(testId).orElse(null);
+        SecurityVitalsEntity sec = securityVitalsRepository.findByTestId(testId).orElse(null);
+
+        var webScore = scoreCalculator.toWebScores(web);      // null 안전 (이전 답변 반영)
         int securityHalf = scoreCalculator.toSecurityHalfScore(sec);
-
-        // 총점 = 웹세부 평균 등으로 0~100 만들고 *0.5) + 보안
         int total = scoreCalculator.totalFrom(webScore, securityHalf);
 
         TestEntity test = testRepository.getReferenceById(testId);
+
         scoresRepository.findByTestId(testId).ifPresentOrElse(
-            found -> {
-                found.update(total,
-                        webScore.lcp(), webScore.cls(), webScore.inp(),
-                        webScore.fcp(), webScore.tbt(), webScore.ttfb());
-                log.info("[SCORES] updated testId={} total={}", testId, total);
-            },
-            ()->{
-                ScoresEntity created = ScoresEntity.create(
-                        test, total,
-                        webScore.lcp(), webScore.cls(), webScore.inp(),
-                        webScore.fcp(), webScore.tbt(), webScore.ttfb()
-                );
-                scoresRepository.save(created);
-                log.info("[SCORES] inserted testId={} total={}", testId, total);
-            }
+                found -> {
+                    found.update(total,
+                            webScore.lcp(), webScore.cls(), webScore.inp(),
+                            webScore.fcp(), webScore.tbt(), webScore.ttfb());
+                    log.info("[SCORES] updated testId={} total={}", testId, total);
+                },
+                () -> {
+                    ScoresEntity created = ScoresEntity.create(
+                            test, total,
+                            webScore.lcp(), webScore.cls(), webScore.inp(),
+                            webScore.fcp(), webScore.tbt(), webScore.ttfb()
+                    );
+                    scoresRepository.save(created);
+                    log.info("[SCORES] inserted testId={} total={}", testId, total);
+                }
         );
     }
 }

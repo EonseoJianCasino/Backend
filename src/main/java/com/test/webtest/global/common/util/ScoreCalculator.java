@@ -2,6 +2,7 @@ package com.test.webtest.global.common.util;
 
 import com.test.webtest.domain.securityvitals.entity.SecurityVitalsEntity;
 import com.test.webtest.domain.webvitals.entity.WebVitalsEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -10,15 +11,19 @@ public class ScoreCalculator {
     /**
      * 웹 성능 지표(LCP, CLS, INP 등)를 100점화하여 반환한다.
      */
-    public WebScores toWebScores(WebVitalsEntity web) {
+    public WebScores toWebScores(@Nullable WebVitalsEntity web) {
         //실제 계산 로직 추가
+        if (web == null) {
+            return new WebScores(0,0,0,0,0,0);
+        }
         return new WebScores(80, 90, 85, 88, 70, 75); // 임시 값
     }
 
     /**
      * 보안 지표를 50점화하여 반환한다. (내부에서 0~100 → 0~50 환산)
      */
-    public int toSecurityHalfScore(SecurityVitalsEntity sec) {
+    public int toSecurityHalfScore(@Nullable SecurityVitalsEntity sec) {
+        if (sec == null) return 0;
         // 실제 계산 로직 추가
         return 40; // 임시 값
     }

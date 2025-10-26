@@ -1,5 +1,5 @@
 -- =========================================
--- schema.sql (idempotent & safe)
+-- schema.sql (최신 스키마 - 테이블 정의만)
 -- =========================================
 
 -- tests
@@ -11,10 +11,8 @@ CREATE TABLE IF NOT EXISTS tests (
   created_at  timestamptz NOT NULL DEFAULT now()
 );
 
--- web_vitals (공유 PK가 아니라면 UNIQUE 제약)
-DROP TABLE IF EXISTS web_vitals CASCADE;
-
-CREATE TABLE web_vitals (
+-- web_vitals
+CREATE TABLE IF NOT EXISTS web_vitals (
   id         uuid PRIMARY KEY,
   test_id    uuid NOT NULL UNIQUE REFERENCES tests(id) ON DELETE CASCADE,
   lcp        double precision,
@@ -34,33 +32,28 @@ CREATE TABLE IF NOT EXISTS security_vitals (
   has_hsts                 boolean DEFAULT false,
   x_frame_options          varchar(50),
   x_content_type_options   varchar(50),
+  referrer_policy          varchar(50),
+  hsts_max_age             bigint,
+  hsts_include_subdomains  boolean,
+  hsts_preload             boolean,
+  csp_has_unsafe_inline    boolean,
+  csp_has_unsafe_eval      boolean,
+  csp_frame_ancestors      text,
+  cookie_secure_all        boolean,
+  cookie_httponly_all      boolean,
+  cookie_samesite_policy   varchar(10),
+  ssl_valid                boolean,
+  ssl_chain_valid          boolean,
+  ssl_days_remaining       int,
+  ssl_issuer               text,
+  ssl_subject              text,
+  csp_raw                  text,
+  hsts_raw                 text,
   created_at               timestamptz NOT NULL DEFAULT now()
 );
 
--- ★ 멱등 ALTER: 한 줄에 한 컬럼 + IF NOT EXISTS
-ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS referrer_policy             varchar(50);
-ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS hsts_max_age                bigint;
-ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS hsts_include_subdomains     boolean;
-ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS hsts_preload                boolean;
-ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS csp_has_unsafe_inline       boolean;
-ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS csp_has_unsafe_eval         boolean;
-ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS csp_frame_ancestors         text;
-ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS cookie_secure_all           boolean;
-ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS cookie_httponly_all         boolean;
-ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS cookie_samesite_policy      varchar(10); -- Strict/Lax/None/Unspecified
-ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS ssl_valid                   boolean;
-ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS ssl_chain_valid             boolean;
-ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS ssl_days_remaining          int;
-ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS ssl_issuer                  text;
-ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS ssl_subject                 text;
-ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS csp_raw                     text;
-ALTER TABLE security_vitals ADD COLUMN IF NOT EXISTS hsts_raw                    text;
-
-
-
--- scores: 구조가 바뀌었으므로 안전하게 교체
-DROP TABLE IF EXISTS scores CASCADE;
-CREATE TABLE scores (
+-- scores
+CREATE TABLE IF NOT EXISTS scores (
   id           uuid PRIMARY KEY,
   test_id      uuid NOT NULL REFERENCES tests(id) ON DELETE CASCADE,
   total        int  NOT NULL, -- 0~100
@@ -73,7 +66,7 @@ CREATE TABLE scores (
   created_at   timestamptz NOT NULL DEFAULT now()
 );
 
--- priorities (스크립트 산출 결과)
+-- priorities
 CREATE TABLE IF NOT EXISTS priorities (
   id         uuid PRIMARY KEY,
   test_id    uuid NOT NULL REFERENCES tests(id) ON DELETE CASCADE,
@@ -84,32 +77,28 @@ CREATE TABLE IF NOT EXISTS priorities (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
--- ai_recommendations (분리 설계 + priority 연결)
-DROP TABLE IF EXISTS ai_recommendations CASCADE;
-CREATE TABLE ai_recommendations (
+-- ai_recommendations
+CREATE TABLE IF NOT EXISTS ai_recommendations (
   id            uuid PRIMARY KEY,
-  test_id          uuid NOT NULL REFERENCES tests(id) ON DELETE CASCADE,
-  type             varchar(20)  NOT NULL,       -- PERF / SEC
-  metric           varchar(50),
-  title            varchar(200) NOT NULL,
-  content          text         NOT NULL,
-  created_at       timestamptz NOT NULL DEFAULT now()
+  test_id       uuid NOT NULL REFERENCES tests(id) ON DELETE CASCADE,
+  type          varchar(20) NOT NULL, -- PERF / SEC
+  metric        varchar(50),
+  title         varchar(200) NOT NULL,
+  content       text NOT NULL,
+  created_at    timestamptz NOT NULL DEFAULT now()
 );
 
--- ai_expectations (기대효과)
-DROP TABLE IF EXISTS ai_expectations CASCADE;
-CREATE TABLE ai_expectations (
-  id      uuid PRIMARY KEY,
-  test_id     uuid NOT NULL REFERENCES tests(id) ON DELETE CASCADE,
-  metric      varchar(50) NOT NULL, -- LCP, CSP, INP...
-  content     text        NOT NULL,
-  created_at  timestamptz NOT NULL DEFAULT now()
+-- ai_expectations
+CREATE TABLE IF NOT EXISTS ai_expectations (
+  id           uuid PRIMARY KEY,
+  test_id      uuid NOT NULL REFERENCES tests(id) ON DELETE CASCADE,
+  metric       varchar(50) NOT NULL, -- LCP, CSP, INP...
+  content      text NOT NULL,
+  created_at   timestamptz NOT NULL DEFAULT now()
 );
 
--- logic_status (ai 호출 트리거)
-DROP TABLE IF EXISTS logic_status CASCADE;
-
-CREATE TABLE logic_status (
+-- logic_status
+CREATE TABLE IF NOT EXISTS logic_status (
   test_id        uuid PRIMARY KEY REFERENCES tests(id) ON DELETE CASCADE,
   web_received   boolean NOT NULL DEFAULT false,
   sec_received   boolean NOT NULL DEFAULT false,

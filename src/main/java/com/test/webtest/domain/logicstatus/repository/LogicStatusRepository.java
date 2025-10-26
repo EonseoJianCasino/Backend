@@ -50,6 +50,7 @@ public interface LogicStatusRepository extends JpaRepository<LogicStatusEntity, 
          WHERE test_id = :testId
            AND web_received = TRUE
            AND sec_received = TRUE
+           AND scores_ready = TRUE
            AND ai_triggered = FALSE
         RETURNING ai_triggered
         """, nativeQuery = true)

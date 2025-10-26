@@ -1,10 +1,10 @@
 package com.test.webtest.domain.logicstatus.service;
 
-import com.test.webtest.domain.airecommendation.service.AiRecommendationService;
+import com.test.webtest.domain.ai.service.AiRecommendationService;
 import com.test.webtest.domain.logicstatus.repository.LogicStatusRepository;
 import com.test.webtest.domain.scores.service.ScoresService;
 import com.test.webtest.global.common.constants.Channel;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,9 +25,9 @@ public class LogicStatusServiceImpl {
             case SECURITY -> repo.markSecReceived(testId);
         }
 
-        // 점수 계산 (비동기)
+        // 점수 계산 (동기)
         boolean scoresMarked = markScoresReadyIfEligible(testId);
-        if (scoresMarked) scoresService.calcAndSaveAsync(testId);
+        if (scoresMarked) scoresService.calcAndSave(testId);
 
         // Ai 호출 (비동기)
         boolean aiMarked = markAiTriggeredIfEligible(testId);
