@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ScoreCalculator {
 
+    private static SecurityHalfScore securityHalfScore;
     /**
      * 웹 성능 지표(LCP, CLS, INP 등)를 100점화하여 반환한다.
      */
@@ -24,8 +25,25 @@ public class ScoreCalculator {
      */
     public int toSecurityHalfScore(@Nullable SecurityVitalsEntity sec) {
         if (sec == null) return 0;
-        // 실제 계산 로직 추가
-        return 40; // 임시 값
+
+        int hstsRaw   = securityHalfScore.scoreHsts(sec);                    // 0/50/100
+        int xfoRaw    = securityHalfScore.scoreXfoOrFrameAncestors(sec);     // 0/100
+        int sslRaw    = securityHalfScore.scoreSsl(sec);                     // 0/70/100
+        int xctoRaw   = securityHalfScore.scoreXContentTypeOptions(sec);     // 0/100
+        int rpRaw     = securityHalfScore.scoreReferrerPolicy(sec);          // 0/50/100
+        int cookieRaw = securityHalfScore.scoreCookies(sec);                 // 0/40/70/100
+        int cspRaw    = securityHalfScore.scoreCsp(sec);                     // 0/50/100
+
+        double total =
+                7 * (hstsRaw   / 100.0) +
+                        7 * (xfoRaw    / 100.0) +
+                        8 * (sslRaw    / 100.0) +
+                        7 * (xctoRaw   / 100.0) +
+                        7 * (rpRaw     / 100.0) +
+                        7 * (cookieRaw / 100.0) +
+                        7 * (cspRaw    / 100.0);
+
+        return (int) Math.round(total); // 0~50
     }
 
     /**
