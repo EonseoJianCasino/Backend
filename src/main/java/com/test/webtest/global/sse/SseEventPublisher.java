@@ -20,6 +20,10 @@ public class SseEventPublisher {
         ));
     }
 
+    public void publishSecuritySnapshot(String testId, Object dto) {
+        manager.sendTo(testId, "t1_sec", dto);
+    }
+
     public void publishTestPayload(String testId, Object dto) {
         manager.sendTo(testId, "t2", dto);
     }

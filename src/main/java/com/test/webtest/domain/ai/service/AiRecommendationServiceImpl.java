@@ -1,4 +1,4 @@
-package com.test.webtest.domain.airecommendation.service;
+package com.test.webtest.domain.ai.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

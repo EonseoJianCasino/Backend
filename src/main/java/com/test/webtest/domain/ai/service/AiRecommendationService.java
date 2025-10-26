@@ -1,4 +1,4 @@
-package com.test.webtest.domain.airecommendation.service;
+package com.test.webtest.domain.ai.service;
 
 import java.util.UUID;
 
