@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 public class SecurityMessageService {
 
     private final SecurityRulesLoader loader;
-    private final ScoreCalculator scoreCalculator = new ScoreCalculator();
+    private final ScoreCalculator scoreCalculator;
 
     // === 외부에 노출: Entity -> View 변환 ===
     public SecurityVitalsView toView(SecurityVitalsEntity s) {
