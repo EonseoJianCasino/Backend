@@ -1,5 +1,7 @@
 package com.test.webtest.domain.test.service;
 
+import com.test.webtest.domain.logicstatus.entity.LogicStatusEntity;
+import com.test.webtest.domain.logicstatus.repository.LogicStatusRepository;
 import com.test.webtest.domain.test.dto.CreateTestRequest;
 import com.test.webtest.domain.test.dto.TestResponse;
 import com.test.webtest.domain.test.entity.TestEntity;
@@ -18,6 +20,7 @@ import java.util.UUID;
 public class TestServiceImpl implements TestService{
 
     private final TestRepository testRepository;
+    private final LogicStatusRepository logicStatusRepository;
     private final RateLimitService rateLimitService;
 
     @Override
@@ -32,6 +35,9 @@ public class TestServiceImpl implements TestService{
 
         TestEntity entity = TestEntity.create(request.getUrl());
         testRepository.save(entity);
+
+        logicStatusRepository.save(LogicStatusEntity.create(entity.getId()));
+
         return TestResponse.fromEntity(entity);
     }
 

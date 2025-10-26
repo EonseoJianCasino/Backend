@@ -1,13 +1,16 @@
 package com.test.webtest.domain.securityvitals.service;
 
 import com.test.webtest.domain.logicstatus.service.LogicStatusServiceImpl;
+import com.test.webtest.domain.securityvitals.dto.SecurityVitalsView;
 import com.test.webtest.domain.securityvitals.entity.SecurityVitalsEntity;
 import com.test.webtest.domain.securityvitals.entity.SecurityVitalsEntity.SaveCommand;
 import com.test.webtest.domain.securityvitals.repository.SecurityVitalsRepository;
+import com.test.webtest.domain.securityvitals.scan.SecurityScanner;
 import com.test.webtest.domain.test.entity.TestEntity;
 import com.test.webtest.domain.test.repository.TestRepository;
 import com.test.webtest.global.common.constants.Channel;
-import jakarta.transaction.Transactional;
+import com.test.webtest.global.sse.SseEventPublisher;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,36 +26,19 @@ public class SecurityVitalsServiceImpl implements SecurityVitalsService {
     private final TestRepository testRepository;
     private final SecurityVitalsRepository securityVitalsRepository;
     private final LogicStatusServiceImpl logicStatusService;
+    private final SecurityScanner securityScanner;
+    private final SecurityMessageService messageService;
+    private final SseEventPublisher sseEventPublisher;
 
     @Override
     @Transactional
     public void scanAndSave(UUID testId) {
         TestEntity test = testRepository.getReferenceById(testId);
 
-        SaveCommand result = SaveCommand.builder()
-                .hasCsp(true)
-                .hasHsts(true)
-                .xFrameOptions("SAMEORIGIN")
-                .xContentTypeOptions("nosniff")
-                .referrerPolicy("no-referrer-when-downgrade")
-                .hstsMaxAge(31536000L)
-                .hstsIncludeSubdomains(true)
-                .hstsPreload(false)
-                .cspHasUnsafeInline(false)
-                .cspHasUnsafeEval(false)
-                .cspFrameAncestors("'self'")
-                .cookieSecureAll(true)
-                .cookieHttpOnlyAll(true)
-                .cookieSameSitePolicy("Lax")
-                .sslValid(true)
-                .sslChainValid(true)
-                .sslDaysRemaining(120)
-                .sslIssuer("Let's Encrypt")
-                .sslSubject("CN=example.com")
-                .cspRaw("default-src 'self'; img-src https: data:;")
-                .hstsRaw("max-age=31536000; includeSubDomains")
-                .build();
+        // 대상 URL 보안 스캔
+        SaveCommand result = securityScanner.scan(test.getUrl());
 
+        // upsert
         securityVitalsRepository.findByTestId(testId).ifPresentOrElse(
                 found -> {
                     found.updateFrom(result);
@@ -65,10 +51,18 @@ public class SecurityVitalsServiceImpl implements SecurityVitalsService {
                 }
         );
 
+        // 커밋 이후 후속 로직
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override public void afterCommit() {
                 logicStatusService.onPartialUpdate(testId, Channel.SECURITY);
             }
         });
+    }
+
+    @Transactional(readOnly = true)
+    public SecurityVitalsView getView(UUID testId) {
+        SecurityVitalsEntity entity = securityVitalsRepository.findByTestId(testId)
+                .orElseThrow(() -> new IllegalArgumentException("security vitals not found " + testId));
+        return messageService.toView(entity);
     }
 }

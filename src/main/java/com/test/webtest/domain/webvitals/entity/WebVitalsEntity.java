@@ -70,6 +70,16 @@ public class WebVitalsEntity {
                 .build();
     }
 
+    public void updateFrom(Double lcp, Double cls, Double inp,
+                           Double fcp, Double tbt, Double ttfb) {
+        this.lcp = lcp;
+        this.cls = cls;
+        this.fcp = fcp;
+        this.ttfb = ttfb;
+        this.inp = inp;
+        this.tbt = tbt;
+    }
+
     // 지표값 검증 메서드 (음수 불가, NaN 불가)
     private static void validateMetricValue(Double value, String metricName) {
         if (value == null) {

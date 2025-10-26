@@ -1,0 +1,91 @@
+{
+  "version": "1.0.0",
+  "rules": [
+    {
+      "metric": "SSL_VALIDITY",
+      "conditions": [
+        {
+          "when": { "ssl_valid": false },
+          "message": "SSL 유효하지 않음(만료/체인 오류)"
+        },
+        {
+          "when": { "ssl_valid": true, "ssl_chain_valid": true, "ssl_days_remaining_lte": 10 },
+          "message": "SSL 만료 임박 ({{ssl_days_remaining}}일 남음)"
+        },
+        {
+          "when": { "ssl_valid": true, "ssl_chain_valid": true },
+          "message": "SSL 유효 ({{ssl_days_remaining}}일 남음)"
+        }
+      ]
+    },
+
+    {
+      "metric": "HSTS",
+      "conditions": [
+        {
+          "when": { "has_hsts": false },
+          "message": "HSTS 미설정"
+        },
+        {
+          "when": { "has_hsts": true, "hsts_max_age_lt": 2592000 },
+          "message": "HSTS 유효기간 짧음 (max-age={{hsts_max_age}})"
+        },
+        {
+          "when": { "has_hsts": true, "hsts_include_subdomains": false },
+          "message": "HSTS 적용 (서브도메인 미포함)"
+        },
+        {
+          "when": { "has_hsts": true },
+          "message": "HSTS 적용됨 (max-age={{hsts_max_age}}{{#hsts_include_subdomains}}, includeSubDomains{{/hsts_include_subdomains}})"
+        }
+      ]
+    },
+
+    {
+      "metric": "X_CONTENT_TYPE_OPTIONS",
+      "conditions": [
+        { "when": { "x_content_type_options_equals": "nosniff" }, "message": "nosniff 적용됨" },
+        { "when": { }, "message": "X-Content-Type-Options 미설정" }
+      ]
+    },
+
+    {
+      "metric": "REFERRER_POLICY",
+      "conditions": [
+        { "when": { "referrer_policy_in": ["no-referrer","strict-origin-when-cross-origin"] }, "message": "안전한 Referrer-Policy ({{referrer_policy}})" },
+        { "when": { "referrer_policy_equals": "unsafe-url" }, "message": "referrer 과다 노출 위험(unsafe-url)" },
+        { "when": { }, "message": "Referrer-Policy 미설정" }
+      ]
+    },
+
+    {
+      "metric": "COOKIES",
+      "conditions": [
+        { "when": { "cookie_secure_all": true, "cookie_httponly_all": true, "cookie_samesite_policy_in": ["Strict","Lax"] }, "message": "쿠키 보안 속성 양호 (Secure+HttpOnly+SameSite={{cookie_samesite_policy}})" },
+        { "when": { "cookie_secure_all": false }, "message": "쿠키 Secure 미적용" },
+        { "when": { "cookie_httponly_all": false }, "message": "쿠키 HttpOnly 미적용" },
+        { "when": { "cookie_samesite_policy_equals": "None" }, "message": "SameSite=None 사용(보안 주의)" },
+        { "when": { }, "message": "쿠키 보안 속성 확인 필요" }
+      ]
+    },
+
+    {
+      "metric": "CSP",
+      "conditions": [
+        { "when": { "has_csp": false }, "message": "CSP 미설정" },
+        { "when": { "csp_has_unsafe_inline": true }, "message": "CSP에 'unsafe-inline' 허용" },
+        { "when": { "csp_has_unsafe_eval": true }, "message": "CSP에 'unsafe-eval' 허용" },
+        { "when": { "has_csp": true }, "message": "안전한 CSP 적용" }
+      ]
+    },
+
+    {
+      "metric": "X_FRAME_OPTIONS_OR_FRAME_ANCESTORS",
+      "conditions": [
+        { "when": { "csp_frame_ancestors_present": true }, "message": "frame-ancestors 적용 ({{csp_frame_ancestors}})" },
+        { "when": { "x_frame_options_in": ["DENY","SAMEORIGIN"] }, "message": "X-Frame-Options 적용 ({{x_frame_options}})" },
+        { "when": { }, "message": "클릭재킹 방지 미설정" }
+      ]
+    }
+  ]
+}
