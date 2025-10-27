@@ -81,15 +81,9 @@ public class WebVitalsEntity {
     }
 
     // 지표값 검증 메서드 (음수 불가, NaN 불가)
-    private static void validateMetricValue(Double value, String metricName) {
-        if (value == null) {
-            return; // null은 허용
-        }
-        if (Double.isNaN(value)) {
-            throw new IllegalArgumentException(metricName + " 값은 NaN일 수 없습니다.");
-        }
-        if (value < 0) {
-            throw new IllegalArgumentException(metricName + " 값은 음수일 수 없습니다. 입력값: " + value);
-        }
+    private static void validateMetricValue(Double v, String name) {
+        if (v == null) return;           // null 허용
+        if (Double.isNaN(v)) throw new IllegalArgumentException(name + " 값은 NaN일 수 없습니다.");
+        if (v < 0)           throw new IllegalArgumentException(name + " 값은 음수일 수 없습니다. 입력값: " + v);
     }
 }

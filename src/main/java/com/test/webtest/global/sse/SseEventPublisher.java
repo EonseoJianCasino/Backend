@@ -20,12 +20,12 @@ public class SseEventPublisher {
         ));
     }
 
-    public void publishSecuritySnapshot(String testId, Object dto) {
-        manager.sendTo(testId, "t1_sec", dto);
+    public void publishWebSnapshot(String testId, Object dto) {
+        manager.sendTo(testId, "t1_web", dto);
     }
 
-    public void publishTestPayload(String testId, Object dto) {
-        manager.sendTo(testId, "t2", dto);
+    public void publishSecuritySnapshot(String testId, Object dto) {
+        manager.sendTo(testId, "t1_sec", dto);
     }
 
     public void publishAiAnalysisResult(String testId, Object dto) {
