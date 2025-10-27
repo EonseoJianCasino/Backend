@@ -173,5 +173,44 @@ public class SecurityVitalsEntity {
             String  sslSubject,
             String  cspRaw,
             String  hstsRaw
-    ) {}
+    ) {
+        /**
+         * 스캔 실패/예외/타임아웃 시 사용.
+         * - 보수적으로 대부분 false/NULL로 채움
+         * - 스키마 변경 없이 “실패”를 표현하기 위해 안전 기본값 사용
+         */
+        public static SaveCommand failed() {
+            return SaveCommand.builder()
+                    .hasCsp(false)
+                    .hasHsts(false)
+                    .xFrameOptions(null)
+                    .xContentTypeOptions(null)
+                    .referrerPolicy(null)
+                    .hstsMaxAge(null)
+                    .hstsIncludeSubdomains(null)
+                    .hstsPreload(null)
+                    .cspHasUnsafeInline(null)
+                    .cspHasUnsafeEval(null)
+                    .cspFrameAncestors(null)
+                    .cookieSecureAll(null)
+                    .cookieHttpOnlyAll(null)
+                    .cookieSameSitePolicy(null)
+                    .sslValid(null)
+                    .sslChainValid(null)
+                    .sslDaysRemaining(null)
+                    .sslIssuer(null)
+                    .sslSubject(null)
+                    .cspRaw(null)
+                    .hstsRaw(null)
+                    .build();
+        }
+
+        /**
+         * 모든 값을 ‘알 수 없음’으로 두고 싶을 때(선택).
+         * - 실패와 구분이 필요 없다면 생략 가능
+         */
+        public static SaveCommand unknown() {
+            return SaveCommand.builder().build();
+        }
+    }
 }

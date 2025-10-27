@@ -15,6 +15,7 @@ public class TestResponse {
     private final String domainName;
     private final StatusType status;
     private final Instant createdAt;
+    private final UUID testId;
 
     public static TestResponse fromEntity(TestEntity e) {
         return TestResponse.builder()
@@ -22,6 +23,7 @@ public class TestResponse {
                 .domainName(e.getDomainName())
                 .status(e.getStatus())
                 .createdAt(e.getCreatedAt())
+                .testId(e.getId())
                 .build();
     }
 }

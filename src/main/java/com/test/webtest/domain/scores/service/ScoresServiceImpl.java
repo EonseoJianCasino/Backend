@@ -45,7 +45,7 @@ public class ScoresServiceImpl implements ScoresService{
         log.info("[SCORES] Calculating scores for testId={}", testId);
 
         WebVitalsEntity web = webVitalsRepository.findByTestId(testId).orElse(null);
-        SecurityVitalsEntity sec = securityVitalsRepository.findByTestId(testId).orElse(null);
+        SecurityVitalsEntity sec = securityVitalsRepository.findByTest_Id(testId).orElse(null);
 
         var webScore = scoreCalculator.toWebScores(web);      // null 안전 (이전 답변 반영)
         int securityHalf = scoreCalculator.toSecurityHalfScore(sec);

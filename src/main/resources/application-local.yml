@@ -16,7 +16,6 @@ spring:
       hibernate:
         format_sql: true
         jdbc.time_zone: UTC
-    defer-datasource-initialization: true
 
   sql:
     init:
@@ -26,4 +25,5 @@ spring:
     enabled: false
 logging:
   level:
-    root: INFO
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace
