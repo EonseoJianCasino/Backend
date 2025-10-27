@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 public class SecurityMessageService {
 
     private final SecurityRulesLoader loader;
-    private final ScoreCalculator scoreCalculator = new ScoreCalculator();
+    private final ScoreCalculator scoreCalculator;
 
     // === 외부에 노출: Entity -> View 변환 ===
     public SecurityVitalsView toView(SecurityVitalsEntity s) {
@@ -37,10 +37,7 @@ public class SecurityMessageService {
         }
 
         Integer secScore = scoreCalculator.toSecurityHalfScore(s);
-        Instant createdAt = (s.getCreatedAt() == null)
-                ? null
-                : s.getCreatedAt();
-        return new SecurityVitalsView(items, createdAt, secScore);
+        return new SecurityVitalsView(items, s.getCreatedAt(), secScore);
     }
 
     // === 룰 매칭 ===
