@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS security_vitals (
   csp_frame_ancestors      text,
   cookie_secure_all        boolean,
   cookie_httponly_all      boolean,
-  cookie_samesite_policy   varchar(10),
+  cookie_samesite_policy   varchar(32),
   ssl_valid                boolean,
   ssl_chain_valid          boolean,
   ssl_days_remaining       int,

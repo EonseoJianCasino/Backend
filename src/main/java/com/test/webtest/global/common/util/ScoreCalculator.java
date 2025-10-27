@@ -2,22 +2,62 @@ package com.test.webtest.global.common.util;
 
 import com.test.webtest.domain.securityvitals.entity.SecurityVitalsEntity;
 import com.test.webtest.domain.webvitals.entity.WebVitalsEntity;
-import lombok.RequiredArgsConstructor;
-import org.springframework.lang.Nullable;
 
-@RequiredArgsConstructor
+
+import com.test.webtest.global.common.constants.WebMetricThreshold;
+
+import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Component;
+
+@Component
 public class ScoreCalculator {
 
     private final SecurityHalfScore securityHalfScore;
+
+    public ScoreCalculator(SecurityHalfScore securityHalfScore) {
+        this.securityHalfScore = securityHalfScore;
+    }
+
     /**
      * 웹 성능 지표(LCP, CLS, INP 등)를 100점화하여 반환한다.
      */
     public WebScores toWebScores(@Nullable WebVitalsEntity web) {
-        //실제 계산 로직 추가
+        // null 체크 추가 (develop 브랜치)
         if (web == null) {
-            return new WebScores(0,0,0,0,0,0);
+            return new WebScores(0, 0, 0, 0, 0, 0);
         }
-        return new WebScores(80, 90, 85, 88, 70, 75); // 임시 값
+
+        // 실제 계산 로직 (feature/score 브랜치)
+        double lcp = calculateLinearScore(web.getLcp(), WebMetricThreshold.LCP);
+        double cls = calculateLinearScore(web.getCls(), WebMetricThreshold.CLS);
+        double inp = calculateLinearScore(web.getInp(), WebMetricThreshold.INP);
+        double fcp = calculateLinearScore(web.getFcp(), WebMetricThreshold.FCP);
+        double tbt = calculateLinearScore(web.getTbt(), WebMetricThreshold.TBT);
+        double ttfb = calculateLinearScore(web.getTtfb(), WebMetricThreshold.TTFB);
+
+        return new WebScores(
+                (int) Math.round(lcp),
+                (int) Math.round(cls),
+                (int) Math.round(inp),
+                (int) Math.round(fcp),
+                (int) Math.round(tbt),
+                (int) Math.round(ttfb)
+        );
+    }
+
+    private double calculateLinearScore(Double value, WebMetricThreshold metric) {
+        if (value == null) return 0.0;
+
+        double good = metric.getGood();
+        double poor = metric.getPoor();
+
+        if (value <= good) return 100.0;
+        if (value > poor) return 0.0;
+
+        double ratio = (value - good) / (poor - good);
+        double score = 100.0 - (ratio * 100.0);
+
+        return Math.max(0.0, Math.min(100.0, score));
     }
 
     /**
@@ -36,12 +76,12 @@ public class ScoreCalculator {
 
         double total =
                 7 * (hstsRaw   / 100.0) +
-                        7 * (xfoRaw    / 100.0) +
-                        8 * (sslRaw    / 100.0) +
-                        7 * (xctoRaw   / 100.0) +
-                        7 * (rpRaw     / 100.0) +
-                        7 * (cookieRaw / 100.0) +
-                        7 * (cspRaw    / 100.0);
+                7 * (xfoRaw    / 100.0) +
+                8 * (sslRaw    / 100.0) +
+                7 * (xctoRaw   / 100.0) +
+                7 * (rpRaw     / 100.0) +
+                7 * (cookieRaw / 100.0) +
+                7 * (cspRaw    / 100.0);
 
         return (int) Math.round(total); // 0~50
     }

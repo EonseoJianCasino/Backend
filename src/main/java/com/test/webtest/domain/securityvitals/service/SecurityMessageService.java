@@ -37,10 +37,7 @@ public class SecurityMessageService {
         }
 
         Integer secScore = scoreCalculator.toSecurityHalfScore(s);
-        Instant createdAt = (s.getCreatedAt() == null)
-                ? null
-                : s.getCreatedAt();
-        return new SecurityVitalsView(items, createdAt, secScore);
+        return new SecurityVitalsView(items, s.getCreatedAt(), secScore);
     }
 
     // === 룰 매칭 ===

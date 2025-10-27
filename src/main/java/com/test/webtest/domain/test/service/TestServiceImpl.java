@@ -2,6 +2,7 @@ package com.test.webtest.domain.test.service;
 
 import com.test.webtest.domain.logicstatus.entity.LogicStatusEntity;
 import com.test.webtest.domain.logicstatus.repository.LogicStatusRepository;
+import com.test.webtest.domain.securityvitals.service.SecurityVitalsServiceImpl;
 import com.test.webtest.domain.test.dto.CreateTestRequest;
 import com.test.webtest.domain.test.dto.TestResponse;
 import com.test.webtest.domain.test.entity.TestEntity;
@@ -12,6 +13,8 @@ import com.test.webtest.global.error.model.ErrorCode;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.UUID;
 
@@ -22,6 +25,7 @@ public class TestServiceImpl implements TestService{
     private final TestRepository testRepository;
     private final LogicStatusRepository logicStatusRepository;
     private final RateLimitService rateLimitService;
+    private final SecurityVitalsServiceImpl securityVitalsService;
 
     @Override
     @Transactional
@@ -37,6 +41,15 @@ public class TestServiceImpl implements TestService{
         testRepository.save(entity);
 
         logicStatusRepository.save(LogicStatusEntity.create(entity.getId()));
+
+        UUID testId = entity.getId();
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override public void afterCommit() {
+                // 네트워크 호출이므로 트랜잭션 밖에서 실행
+                securityVitalsService.scanAndSave(testId);
+                // scanAndSave 내부에서 logicStatus 업데이트 & (선택) SSE 스냅샷 발송 수행
+            }
+        });
 
         return TestResponse.fromEntity(entity);
     }
