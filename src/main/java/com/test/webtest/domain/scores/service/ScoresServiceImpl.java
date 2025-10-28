@@ -1,5 +1,6 @@
 package com.test.webtest.domain.scores.service;
 
+import com.test.webtest.domain.scores.dto.ScoresDetailResponse;
 import com.test.webtest.domain.scores.entity.ScoresEntity;
 import com.test.webtest.domain.scores.repository.ScoresRepository;
 import com.test.webtest.domain.securityvitals.entity.SecurityVitalsEntity;
@@ -9,6 +10,8 @@ import com.test.webtest.domain.test.repository.TestRepository;
 import com.test.webtest.domain.webvitals.entity.WebVitalsEntity;
 import com.test.webtest.domain.webvitals.repository.WebVitalsRepository;
 import com.test.webtest.global.common.util.ScoreCalculator;
+import com.test.webtest.global.error.exception.BusinessException;
+import com.test.webtest.global.error.model.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -29,13 +32,6 @@ public class ScoresServiceImpl implements ScoresService{
     private final ScoreCalculator scoreCalculator;
 
     @Override
-    @Async("logicExecutor")
-    @Transactional
-    public void calcAndSaveAsync(UUID testId) {
-        doCalcAndSave(testId);
-    }
-
-    @Override
     @Transactional
     public void calcAndSave(UUID testId) {
         doCalcAndSave(testId);
@@ -49,7 +45,7 @@ public class ScoresServiceImpl implements ScoresService{
 
         var webScore = scoreCalculator.toWebScores(web);      // null 안전 (이전 답변 반영)
         int securityHalf = scoreCalculator.toSecurityHalfScore(sec);
-        int total = scoreCalculator.totalFrom(webScore, securityHalf);
+        int total = scoreCalculator.total(webScore, securityHalf);
 
         TestEntity test = testRepository.getReferenceById(testId);
 
@@ -70,5 +66,19 @@ public class ScoresServiceImpl implements ScoresService{
                     log.info("[SCORES] inserted testId={} total={}", testId, total);
                 }
         );
+    }
+
+    @Override
+    public ScoresDetailResponse getDetail(UUID testId) {
+        ScoresEntity e = scoresRepository.findByTestId(testId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.SCORES_NOT_READY, "scores not found: " + testId));
+        return ScoresDetailResponse.from(e);
+    }
+
+    @Override
+    public int getTotal(UUID testId) {
+        ScoresEntity e = scoresRepository.findByTestId(testId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.SCORES_NOT_READY, "scores not found: " + testId));
+        return e.getTotal() == null ? 0 : e.getTotal();
     }
 }

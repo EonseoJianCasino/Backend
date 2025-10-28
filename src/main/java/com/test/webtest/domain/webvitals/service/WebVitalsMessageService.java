@@ -2,7 +2,7 @@ package com.test.webtest.domain.webvitals.service;
 
 import com.test.webtest.domain.webvitals.dto.WebVitalsView;
 import com.test.webtest.domain.webvitals.entity.WebVitalsEntity;
-import com.test.webtest.global.common.constants.WebMetricThreshold;
+import com.test.webtest.global.common.util.WebVitalsThreshold;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -10,17 +10,17 @@ public class WebVitalsMessageService {
 
     public WebVitalsView toView(WebVitalsEntity e) {
         return new WebVitalsView(
-                e.getLcp(),  msg(e.getLcp(),  WebMetricThreshold.LCP),
-                e.getCls(),  msg(e.getCls(),  WebMetricThreshold.CLS),
-                e.getInp(),  msg(e.getInp(),  WebMetricThreshold.INP),
-                e.getFcp(),  msg(e.getFcp(),  WebMetricThreshold.FCP),
-                e.getTbt(),  msg(e.getTbt(),  WebMetricThreshold.TBT),
-                e.getTtfb(), msg(e.getTtfb(), WebMetricThreshold.TTFB),
+                e.getLcp(),  msg(e.getLcp(),  WebVitalsThreshold.LCP),
+                e.getCls(),  msg(e.getCls(),  WebVitalsThreshold.CLS),
+                e.getInp(),  msg(e.getInp(),  WebVitalsThreshold.INP),
+                e.getFcp(),  msg(e.getFcp(),  WebVitalsThreshold.FCP),
+                e.getTbt(),  msg(e.getTbt(),  WebVitalsThreshold.TBT),
+                e.getTtfb(), msg(e.getTtfb(), WebVitalsThreshold.TTFB),
                 e.getCreatedAt()
         );
     }
 
-    private String msg(Double value, WebMetricThreshold th) {
+    private String msg(Double value, WebVitalsThreshold th) {
         if (value == null) return null;
         if (th.getGood() <= 0 || th.getPoor() <= 0) return null;
 

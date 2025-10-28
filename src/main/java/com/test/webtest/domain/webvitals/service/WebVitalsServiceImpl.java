@@ -8,12 +8,10 @@ import com.test.webtest.domain.webvitals.repository.WebVitalsRepository;
 import com.test.webtest.global.common.constants.Channel;
 import com.test.webtest.global.error.exception.BusinessException;
 import com.test.webtest.global.error.model.ErrorCode;
-import com.test.webtest.global.sse.SseEventPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
+
 
 import java.util.UUID;
 
@@ -25,7 +23,6 @@ public class WebVitalsServiceImpl implements WebVitalsService {
     private final TestRepository testRepository;
     private final LogicStatusServiceImpl logicStatusService;
     private final WebVitalsMessageService messageService;
-    private final SseEventPublisher sseEventPublisher;
 
     @Override
     @Transactional
@@ -37,7 +34,7 @@ public class WebVitalsServiceImpl implements WebVitalsService {
         // upsert
         webVitalsRepository.findByTest_Id(testId).ifPresentOrElse(
                 found -> found.updateFrom(cmd.lcp(), cmd.cls(), cmd.inp(), cmd.fcp(), cmd.tbt(), cmd.ttfb()),
-                () -> webVitalsRepository.save(WebVitalsEntity.create(
+                () -> webVitalsRepository.saveAndFlush(WebVitalsEntity.create(
                         test, cmd.lcp(), cmd.cls(), cmd.inp(), cmd.fcp(), cmd.tbt(), cmd.ttfb()
                 ))
         );
