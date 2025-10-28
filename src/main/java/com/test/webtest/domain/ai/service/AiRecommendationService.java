@@ -3,6 +3,7 @@ package com.test.webtest.domain.ai.service;
 import com.test.webtest.domain.ai.dto.AiResponse;
 import reactor.core.publisher.Flux;
 
+import java.util.Map;
 import java.util.UUID;
 
 public interface AiRecommendationService {
@@ -12,6 +13,7 @@ public interface AiRecommendationService {
 
     Flux<String> stream(String userPrompt, String model);
 
+    AiResponse generateWithSchema(String prompt, Map<String, Object> jsonSchema);
 
 
 }

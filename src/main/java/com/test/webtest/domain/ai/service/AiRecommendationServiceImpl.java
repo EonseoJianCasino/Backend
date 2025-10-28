@@ -53,7 +53,7 @@ public class AiRecommendationServiceImpl implements AiRecommendationService{
             ));
         }
 
-        if (jsonMode){
+        if (jsonMode){ // 여게서 json schema를 원하는 대로 강제시킬 수 있음.
             body.put("generationConfig", Map.of(
                     "respose_mime_type", "application/json"
             ));
@@ -92,6 +92,34 @@ public class AiRecommendationServiceImpl implements AiRecommendationService{
 
     }
 
+    @Override
+    public AiResponse generateWithSchema(String prompt, Map<String, Object> jsonSchema) {
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("contents", List.of(Map.of(
+                "role", "user",
+                "parts", List.of(Map.of("text", userPrompt))
+        )));
+
+        Map<String, Object> genCfg = new HashMap<>();
+        genCfg.put("response_mime_type", "application/json");
+        genCfg.put("response_schema", jsonSchema);
+        body.put("generationConfig", genCfg);
+
+        String path = String.format("/models/%s:generateContent", defaultModel); // 궁금한 코드
+
+        Map<?, ?> resp = geminiWebClient.post()
+                .uri(path)
+                .bodyValue(body)
+                .retrieve()
+                .bodyToMono(Map.class)
+                .block();
+
+        return new AiResponse(extractText(resp));
+
+        //        return null;
+    }
+
     @SuppressWarnings("unchecked")
     private String extractText(Map<?, ?> resp){
         if(resp == null) return "(no response)";
@@ -110,7 +138,4 @@ public class AiRecommendationServiceImpl implements AiRecommendationService{
             return "(parse error)";
         }
     }
-
-
-
 }
