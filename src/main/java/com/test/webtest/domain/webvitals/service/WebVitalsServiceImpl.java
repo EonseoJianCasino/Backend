@@ -6,9 +6,12 @@ import com.test.webtest.domain.test.repository.TestRepository;
 import com.test.webtest.domain.webvitals.entity.WebVitalsEntity;
 import com.test.webtest.domain.webvitals.repository.WebVitalsRepository;
 import com.test.webtest.global.common.constants.Channel;
-import org.springframework.transaction.annotation.Transactional;
+import com.test.webtest.global.error.exception.BusinessException;
+import com.test.webtest.global.error.model.ErrorCode;
+import com.test.webtest.global.sse.SseEventPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
@@ -16,33 +19,48 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class WebVitalsServiceImpl implements WebVitalsService{
+public class WebVitalsServiceImpl implements WebVitalsService {
+
     private final WebVitalsRepository webVitalsRepository;
     private final TestRepository testRepository;
     private final LogicStatusServiceImpl logicStatusService;
+    private final WebVitalsMessageService messageService;
+    private final SseEventPublisher sseEventPublisher;
 
     @Override
     @Transactional
     public void saveWebVitals(UUID testId, WebVitalsSaveCommand cmd) {
-        TestEntity test = testRepository.getReferenceById(testId);
+        // 테스트 존재 보장(실조회)
+        TestEntity test = testRepository.findById(testId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.TEST_NOT_FOUND, "test not found: " + testId));
 
-        webVitalsRepository.findByTestId(testId).ifPresentOrElse(
-                found -> {
-                    found.updateFrom(cmd.lcp(), cmd.cls(), cmd.inp(), cmd.fcp(), cmd.tbt(), cmd.ttfb());
-                },
-                () -> {
-                    WebVitalsEntity entity = WebVitalsEntity.create(
-                            test, cmd.lcp(), cmd.cls(), cmd.inp(), cmd.fcp(), cmd.tbt(), cmd.ttfb()
-                    );
-                    webVitalsRepository.save(entity);
-                }
+        // upsert
+        webVitalsRepository.findByTest_Id(testId).ifPresentOrElse(
+                found -> found.updateFrom(cmd.lcp(), cmd.cls(), cmd.inp(), cmd.fcp(), cmd.tbt(), cmd.ttfb()),
+                () -> webVitalsRepository.save(WebVitalsEntity.create(
+                        test, cmd.lcp(), cmd.cls(), cmd.inp(), cmd.fcp(), cmd.tbt(), cmd.ttfb()
+                ))
         );
 
-        // 커밋 이후 status 호출
+        // 같은 트랜잭션에서 상태 플래그 갱신
+        logicStatusService.onPartialUpdate(testId, Channel.WEB);
+
+        // 커밋 이후 SSE로 즉시 스냅샷 전송
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override public void afterCommit() {
-                logicStatusService.onPartialUpdate(testId, Channel.WEB);
+                webVitalsRepository.findByTest_Id(testId).ifPresent(entity -> {
+                    var view = messageService.toView(entity);
+                    sseEventPublisher.publishWebSnapshot(testId.toString(), view);
+                });
             }
         });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public com.test.webtest.domain.webvitals.dto.WebVitalsView getView(UUID testId) {
+        var entity = webVitalsRepository.findByTest_Id(testId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.WEB_VITALS_NOT_FOUND));
+        return messageService.toView(entity);
     }
 }

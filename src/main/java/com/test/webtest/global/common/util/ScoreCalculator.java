@@ -3,7 +3,9 @@ package com.test.webtest.global.common.util;
 import com.test.webtest.domain.securityvitals.entity.SecurityVitalsEntity;
 import com.test.webtest.domain.webvitals.entity.WebVitalsEntity;
 
+
 import com.test.webtest.global.common.constants.WebMetricThreshold;
+
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +17,7 @@ public class ScoreCalculator {
     public ScoreCalculator(SecurityHalfScore securityHalfScore) {
         this.securityHalfScore = securityHalfScore;
     }
+
     /**
      * 웹 성능 지표(LCP, CLS, INP 등)를 100점화하여 반환한다.
      */

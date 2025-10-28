@@ -2,7 +2,6 @@ package com.test.webtest.domain.webvitals.repository;
 
 import com.test.webtest.domain.webvitals.entity.WebVitalsEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -13,11 +12,8 @@ import java.util.UUID;
  * - testId 기준 조회 및 존재 여부 확인 기능 제공
  */
 
-@Repository
+
 public interface WebVitalsRepository extends JpaRepository<WebVitalsEntity, UUID> {
-
-    Optional<WebVitalsEntity> findByTestId(UUID testId);
-
-    boolean existsByTestId(UUID testId);
-    void deleteByTestId(UUID testId);
+    Optional<WebVitalsEntity> findByTest_Id(UUID testId); // test 연관 필드 경유
+    boolean existsByTest_Id(UUID testId);
 }

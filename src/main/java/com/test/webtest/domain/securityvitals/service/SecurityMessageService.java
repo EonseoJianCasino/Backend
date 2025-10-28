@@ -62,10 +62,20 @@ public class SecurityMessageService {
     }
 
     private boolean matchOne(String key, Object expected, Map<String, Object> ctx) {
-        // key 패턴: field_op
-        int idx = key.lastIndexOf('_');
-        String field = (idx > 0) ? key.substring(0, idx) : key;
-        String op = (idx > 0) ? key.substring(idx + 1) : "equals";
+        // 1) 기본값
+        String field = key;
+        String op = "equals";
+
+        // 2) 알려진 연산자 접미사만 인식
+        String[] ops = { "equals", "in", "lt", "lte", "gt", "gte", "present" };
+        for (String candidate : ops) {
+            String suffix = "_" + candidate;
+            if (key.endsWith(suffix)) {
+                field = key.substring(0, key.length() - suffix.length());
+                op = candidate;
+                break;
+            }
+        }
 
         Object actual = ctx.get(field);
 
@@ -82,14 +92,19 @@ public class SecurityMessageService {
                 return asLong(actual) < asLong(expected);
             case "lte":
                 return asLong(actual) <= asLong(expected);
+            case "gt":
+                return asLong(actual) > asLong(expected);
+            case "gte":
+                return asLong(actual) >= asLong(expected);
             case "present":
                 boolean want = toBool(expected);
                 boolean isPresent = (actual != null) && !String.valueOf(actual).isBlank();
                 return want == isPresent;
-            default: // unknown -> false
+            default:
                 return false;
         }
     }
+
 
     // === 템플릿 렌더링 ({{var}}, {{#flag}}...{{/flag}})
     private static final Pattern VAR = Pattern.compile("\\{\\{\\s*([a-zA-Z0-9_]+)\\s*}}");
@@ -123,33 +138,46 @@ public class SecurityMessageService {
         return sb.toString();
     }
 
+    private static boolean nz(Boolean b) { return b != null && b; }
+    private static long nzl(Long v, long def) { return v != null ? v : def; }
+    private static int nzi(Integer v, int def) { return v != null ? v : def; }
+
     // === 컨텍스트 빌더: Entity -> Map ===
     private Map<String, Object> buildContext(SecurityVitalsEntity s) {
         Map<String, Object> m = new HashMap<>();
-        m.put("ssl_valid", s.getSslValid());
-        m.put("ssl_chain_valid", s.getSslChainValid());
-        m.put("ssl_days_remaining", s.getSslDaysRemaining());
+        // SSL
+        m.put("ssl_valid", nz(s.getSslValid()));
+        m.put("ssl_chain_valid", nz(s.getSslChainValid()));
+        m.put("ssl_days_remaining", nzi(s.getSslDaysRemaining(), -1)); // 미수집이면 -1
         m.put("ssl_issuer", s.getSslIssuer());
         m.put("ssl_subject", s.getSslSubject());
+        m.put("ssl_present", s.getSslValid()!=null || s.getSslChainValid()!=null || s.getSslDaysRemaining()!=null);
 
-        m.put("has_hsts", s.getHasHsts());
-        m.put("hsts_max_age", s.getHstsMaxAge());
-        m.put("hsts_include_subdomains", s.getHstsIncludeSubdomains());
-        m.put("hsts_preload", s.getHstsPreload());
+        // HSTS
+        m.put("has_hsts", nz(s.getHasHsts())); // null -> false
+        m.put("hsts_max_age", nzl(s.getHstsMaxAge(), 0L));
+        m.put("hsts_include_subdomains", nz(s.getHstsIncludeSubdomains()));
+        m.put("hsts_preload", nz(s.getHstsPreload()));
+        m.put("hsts_present", s.getHasHsts()!=null || s.getHstsRaw()!=null);
 
+        // X-Content-Type-Options / Referrer-Policy
         m.put("x_content_type_options", nullSafeLower(s.getXContentTypeOptions()));
         m.put("referrer_policy", nullSafeLower(s.getReferrerPolicy()));
 
-        m.put("cookie_secure_all", s.getCookieSecureAll());
-        m.put("cookie_httponly_all", s.getCookieHttpOnlyAll());
-        m.put("cookie_samesite_policy", s.getCookieSameSitePolicy()); // Strict/Lax/None/Unspecified
+        // Cookies
+        m.put("cookie_secure_all", nz(s.getCookieSecureAll()));
+        m.put("cookie_httponly_all", nz(s.getCookieHttpOnlyAll()));
+        m.put("cookie_samesite_policy", s.getCookieSameSitePolicy()==null ? "unspecified" : s.getCookieSameSitePolicy());
 
-        m.put("has_csp", s.getHasCsp());
-        m.put("csp_has_unsafe_inline", s.getCspHasUnsafeInline());
-        m.put("csp_has_unsafe_eval", s.getCspHasUnsafeEval());
+        // CSP
+        m.put("has_csp", nz(s.getHasCsp())); // null -> false
+        m.put("csp_has_unsafe_inline", nz(s.getCspHasUnsafeInline()));
+        m.put("csp_has_unsafe_eval", nz(s.getCspHasUnsafeEval()));
         m.put("csp_frame_ancestors", s.getCspFrameAncestors());
         m.put("csp_frame_ancestors_present", notBlank(s.getCspFrameAncestors()));
+        m.put("csp_present", s.getHasCsp()!=null || s.getCspRaw()!=null); // 존재/미수집 판단
 
+        // XFO
         m.put("x_frame_options", s.getXFrameOptions());
 
         return m;

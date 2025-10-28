@@ -44,7 +44,7 @@ public class ScoresServiceImpl implements ScoresService{
     private void doCalcAndSave(UUID testId) {
         log.info("[SCORES] Calculating scores for testId={}", testId);
 
-        WebVitalsEntity web = webVitalsRepository.findByTestId(testId).orElse(null);
+        WebVitalsEntity web = webVitalsRepository.findByTest_Id(testId).orElse(null);
         SecurityVitalsEntity sec = securityVitalsRepository.findByTest_Id(testId).orElse(null);
 
         var webScore = scoreCalculator.toWebScores(web);      // null 안전 (이전 답변 반영)
