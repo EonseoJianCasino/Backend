@@ -44,16 +44,6 @@ public class WebVitalsServiceImpl implements WebVitalsService {
 
         // 같은 트랜잭션에서 상태 플래그 갱신
         logicStatusService.onPartialUpdate(testId, Channel.WEB);
-
-        // 커밋 이후 SSE로 즉시 스냅샷 전송
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override public void afterCommit() {
-                webVitalsRepository.findByTest_Id(testId).ifPresent(entity -> {
-                    var view = messageService.toView(entity);
-                    sseEventPublisher.publishWebSnapshot(testId.toString(), view);
-                });
-            }
-        });
     }
 
     @Override

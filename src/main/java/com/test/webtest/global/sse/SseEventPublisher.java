@@ -28,6 +28,10 @@ public class SseEventPublisher {
         manager.sendTo(testId, "t1_sec", dto);
     }
 
+    public void publishTestPayload(String testId, Object dto) {
+        manager.sendTo(testId, "t2", dto);
+    }
+
     public void publishAiAnalysisResult(String testId, Object dto) {
         manager.sendTo(testId, "t3_ai", dto);
     }

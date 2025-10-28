@@ -47,7 +47,6 @@ public class TestServiceImpl implements TestService{
             @Override public void afterCommit() {
                 // 네트워크 호출이므로 트랜잭션 밖에서 실행
                 securityVitalsService.scanAndSave(testId);
-                // scanAndSave 내부에서 logicStatus 업데이트 & (선택) SSE 스냅샷 발송 수행
             }
         });
 
