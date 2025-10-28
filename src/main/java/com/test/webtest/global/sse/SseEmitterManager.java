@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.time.Duration;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
@@ -14,6 +15,7 @@ public class SseEmitterManager {
     private final Map<String, SseEmitter> emitterByTest = new ConcurrentHashMap<>();
 
     public SseEmitter register(String testId) {
+
         SseEmitter next = new SseEmitter(DEFAULT_TIMEOUT_MS);
         // 기존 연결이 있으면 정리 후 교체
         SseEmitter prev = emitterByTest.put(testId, next);

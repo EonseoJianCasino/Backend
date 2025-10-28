@@ -79,16 +79,6 @@ public class SecurityVitalsServiceImpl implements SecurityVitalsService {
 
         // 5) 상태 플래그 업데이트 (같은 트랜잭션에서)
         logicStatusService.onPartialUpdate(testId, Channel.SECURITY);
-
-        // 6) 커밋 이후 SSE 전송
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override public void afterCommit() {
-                securityVitalsRepository.findByTest_Id(testId).ifPresent(entity -> {
-                    var view = messageService.toView(entity);
-                    sseEventPublisher.publishSecuritySnapshot(testId.toString(), view);
-                });
-            }
-        });
     }
 
     @Transactional(readOnly = true)
