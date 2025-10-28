@@ -1,9 +1,9 @@
-package com.test.webtest.global.common.constants;
+package com.test.webtest.global.common.util;
 
 import lombok.Getter;
 
 @Getter
-public enum WebMetricThreshold {
+public enum WebVitalsThreshold {
     LCP(2.5, 4.0),     // seconds
     CLS(0.10, 0.25),   // unitless
     INP(200.0, 500.0), // milliseconds
@@ -14,7 +14,7 @@ public enum WebMetricThreshold {
     private final double good;
     private final double poor;
 
-    WebMetricThreshold(double good, double poor) {
+    WebVitalsThreshold(double good, double poor) {
         this.good = good;
         this.poor = poor;
     }

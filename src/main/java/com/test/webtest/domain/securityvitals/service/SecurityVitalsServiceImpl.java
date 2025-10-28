@@ -12,15 +12,11 @@ import com.test.webtest.global.common.constants.Channel;
 import com.test.webtest.global.error.exception.BusinessException;
 import com.test.webtest.global.error.exception.EntityNotFoundException;
 import com.test.webtest.global.error.model.ErrorCode;
-import com.test.webtest.global.sse.SseEventPublisher;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-
 import java.util.UUID;
 
 @Service
@@ -32,7 +28,6 @@ public class SecurityVitalsServiceImpl implements SecurityVitalsService {
     private final LogicStatusServiceImpl logicStatusService;
     private final SecurityScanner securityScanner;
     private final SecurityMessageService messageService;
-    private final SseEventPublisher sseEventPublisher;
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW) // ← 커밋 보장
