@@ -9,6 +9,8 @@ import com.test.webtest.domain.test.entity.TestEntity;
 import com.test.webtest.domain.test.repository.TestRepository;
 import com.test.webtest.global.common.util.UrlNormalizer;
 import com.test.webtest.global.error.exception.BusinessException;
+import com.test.webtest.global.error.exception.DuplicateRequestException;
+import com.test.webtest.global.error.exception.InvalidRequestException;
 import com.test.webtest.global.error.model.ErrorCode;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -31,10 +33,16 @@ public class TestServiceImpl implements TestService{
     @Transactional
     public TestResponse createTest(CreateTestRequest request) {
          var normalizedKey = UrlNormalizer.normalizeUrlForKey(request.getUrl());
+         if (normalizedKey == null || normalizedKey.isBlank()) {
+             // 정규화 결과 자체가 이상하면 400
+             throw new InvalidRequestException("URL 정규화에 실패했습니다. 입력값을 확인하세요.");
+         }
+
          var result = rateLimitService.checkAndMark(normalizedKey);
          if (!result.allowed()) {
-             throw new BusinessException(ErrorCode.DUPLICATE_REQUEST,
-                     "중복 요청입니다. 남은 대기(ms): " + result.remainingMillis());
+            throw new DuplicateRequestException(
+                    "동일 URL로 10초 내 중복 요청이 차단되었습니다. 남은 대기(ms): " + result.remainingMillis()
+            );
          }
 
         TestEntity entity = TestEntity.create(request.getUrl());
