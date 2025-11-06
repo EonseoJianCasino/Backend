@@ -11,6 +11,13 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class SecurityConfig {
 
+    private static final String[] SWAGGER_WHITELIST = {
+            "/scalar/**",
+            "/swagger-ui.html",
+            "/swagger-ui/**",
+            "/v3/api-docs/**"
+    };
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -19,10 +26,11 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers(SWAGGER_WHITELIST).permitAll()
                         .requestMatchers("/api/**").permitAll() // 테스트 단계: 전체 오픈
                         .anyRequest().denyAll()
                 )
-                .httpBasic(Customizer.withDefaults()); // 필요 시만 유지(테스트 편의)
+                .httpBasic(httpBasic -> httpBasic.disable()); // 비활성화
         return http.build();
     }
 }

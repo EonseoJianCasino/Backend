@@ -27,3 +27,14 @@ logging:
   level:
     org.hibernate.SQL: debug
     org.hibernate.orm.jdbc.bind: trace
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger
+    display-request-duration: true
+    tags-sorter: alpha
+    operations-sorter: method
