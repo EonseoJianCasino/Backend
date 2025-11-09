@@ -4,12 +4,11 @@ import lombok.Getter;
 
 @Getter
 public enum WebVitalsThreshold {
-    LCP(2.5, 4.0),     // seconds
-    CLS(0.10, 0.25),   // unitless
+    LCP(2500, 4000),     // milliseconds
+    CLS(0.10, 0.25),   // score
     INP(200.0, 500.0), // milliseconds
-    FCP(1.8, 3.0),     // seconds
-    TBT(200.0, 600.0), // milliseconds
-    TTFB(0.8, 1.8);    // seconds
+    FCP(1800, 3000),     // milliseconds
+    TTFB(800, 1800);    // milliseconds
 
     private final double good;
     private final double poor;

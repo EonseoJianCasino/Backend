@@ -22,7 +22,7 @@ public class ScoreCalculator {
         this.securityRules = securityRules;
     }
 
-    /** 웹 성능 지표(LCP, CLS, INP, FCP, TBT, TTFB)를 0~100 점수로 환산하여 묶어서 반환 */
+    /** 웹 성능 지표(LCP, CLS, INP, FCP, TTFB)를 0~100 점수로 환산하여 묶어서 반환 */
     public WebScores toWebScores(@Nullable WebVitalsEntity web) {
         if (web == null) {
             return new WebScores(0, 0, 0, 0, 0);

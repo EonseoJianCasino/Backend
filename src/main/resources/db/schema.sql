@@ -20,7 +20,6 @@ CREATE TABLE IF NOT EXISTS web_vitals (
   fcp        double precision,
   ttfb       double precision,
   inp        double precision,
-  tbt        double precision,
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
