@@ -42,9 +42,12 @@ public class AiRecommendation {
     @Column(nullable = false, length = 200)
     private String title;
 
-    @Lob
-    @Column(nullable = false)
+//    @Lob
+//    @Column(nullable = false)
+//    private String content;
+    @Column(name = "content", nullable = false, columnDefinition = "text")
     private String content;
+
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private OffsetDateTime createdAt;

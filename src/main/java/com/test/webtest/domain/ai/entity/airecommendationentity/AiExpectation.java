@@ -16,9 +16,13 @@ public class AiExpectation {
     @Column(nullable = false, length = 50) // LCP, CLS, INP...
     private String metric;
 
-    @Lob
-    @Column(nullable = false)
+//    @Lob
+//    @Column(nullable = false)
+//    private String content;
+
+    @Column(name = "content", nullable = false, columnDefinition = "text")
     private String content;
+
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private OffsetDateTime createdAt;

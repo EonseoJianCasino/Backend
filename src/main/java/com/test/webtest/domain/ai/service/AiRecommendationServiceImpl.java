@@ -98,7 +98,7 @@ public class AiRecommendationServiceImpl implements AiRecommendationService{
         Map<String, Object> body = new HashMap<>();
         body.put("contents", List.of(Map.of(
                 "role", "user",
-                "parts", List.of(Map.of("text", userPrompt))
+                "parts", List.of(Map.of("text", prompt))
         )));
 
         Map<String, Object> genCfg = new HashMap<>();
