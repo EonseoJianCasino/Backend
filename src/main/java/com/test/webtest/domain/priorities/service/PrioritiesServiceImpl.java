@@ -10,6 +10,7 @@ import com.test.webtest.domain.securityvitals.service.SecurityMessageService;
 import com.test.webtest.domain.webvitals.entity.WebVitalsEntity;
 import com.test.webtest.domain.webvitals.repository.WebVitalsRepository;
 import com.test.webtest.global.common.util.ScoreCalculator;
+import com.test.webtest.global.common.util.WebVitalsThreshold;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
@@ -134,7 +135,7 @@ public class PrioritiesServiceImpl implements PrioritiesService {
         for (String metric : bottom3Metrics) {
             if (WEB_METRICS.contains(metric)) {
                 webVitalCount++;
-                items.add(getWebVitalDummy(metric, rank++));
+                items.add(getWebVitalDummy(web, metric, rank++));
             } else {
                 String message = securityMessageService.getMessageByMetric(sec, metric);
                 items.add(PriorityDto.builder()
@@ -155,50 +156,99 @@ public class PrioritiesServiceImpl implements PrioritiesService {
                 .build();
     }
     
-    private PriorityDto getWebVitalDummy(String metric, int rank) {
+    private PriorityDto getWebVitalDummy(WebVitalsEntity web, String metric, int rank) {
+        if (web == null) {
+            return PriorityDto.builder()
+                    .type("PERFORMANCE")
+                    .metric(metric)
+                    .reason("데이터 없음")
+                    .rank(rank)
+                    .value(null)
+                    .status(null)
+                    .build();
+        }
+
         return switch(metric) {
-            case "LCP" -> PriorityDto.builder()
-                    .type("PERFORMANCE")
-                    .metric("LCP")
-                    .reason("좋은 지표의 40% 수준입니다")
-                    .rank(rank)
-                    .value(3.1)
-                    .build();
-            case "CLS" -> PriorityDto.builder()
-                    .type("PERFORMANCE")
-                    .metric("CLS")
-                    .reason("좋은 지표의 53% 수준입니다")
-                    .rank(rank)
-                    .value(0.18)
-                    .build();
-            case "INP" -> PriorityDto.builder()
-                    .type("PERFORMANCE")
-                    .metric("INP")
-                    .reason("좋은 지표의 27% 수준입니다")
-                    .rank(rank)
-                    .value(280.0)
-                    .build();
-            case "FCP" -> PriorityDto.builder()
-                    .type("PERFORMANCE")
-                    .metric("FCP")
-                    .reason("좋은 지표의 33% 수준입니다")
-                    .rank(rank)
-                    .value(2.2)
-                    .build();
-            case "TTFB" -> PriorityDto.builder()
-                    .type("PERFORMANCE")
-                    .metric("TTFB")
-                    .reason("좋은 지표의 20% 수준입니다")
-                    .rank(rank)
-                    .value(1.0)
-                    .build();
+            case "LCP" -> {
+                Double value = web.getLcp();
+                int score = getWebScoreByName(scoreCalculator.toWebScores(web), "LCP");
+                yield PriorityDto.builder()
+                        .type("PERFORMANCE")
+                        .metric("LCP")
+                        .reason(String.format("좋은 지표의 %d%% 수준입니다", score))
+                        .rank(rank)
+                        .value(value)
+                        .status(getStatus(value, WebVitalsThreshold.LCP))
+                        .build();
+            }
+            case "CLS" -> {
+                Double value = web.getCls();
+                int score = getWebScoreByName(scoreCalculator.toWebScores(web), "CLS");
+                yield PriorityDto.builder()
+                        .type("PERFORMANCE")
+                        .metric("CLS")
+                        .reason(String.format("좋은 지표의 %d%% 수준입니다", score))
+                        .rank(rank)
+                        .value(value)
+                        .status(getStatus(value, WebVitalsThreshold.CLS))
+                        .build();
+            }
+            case "INP" -> {
+                Double value = web.getInp();
+                int score = getWebScoreByName(scoreCalculator.toWebScores(web), "INP");
+                yield PriorityDto.builder()
+                        .type("PERFORMANCE")
+                        .metric("INP")
+                        .reason(String.format("좋은 지표의 %d%% 수준입니다", score))
+                        .rank(rank)
+                        .value(value)
+                        .status(getStatus(value, WebVitalsThreshold.INP))
+                        .build();
+            }
+            case "FCP" -> {
+                Double value = web.getFcp();
+                int score = getWebScoreByName(scoreCalculator.toWebScores(web), "FCP");
+                yield PriorityDto.builder()
+                        .type("PERFORMANCE")
+                        .metric("FCP")
+                        .reason(String.format("좋은 지표의 %d%% 수준입니다", score))
+                        .rank(rank)
+                        .value(value)
+                        .status(getStatus(value, WebVitalsThreshold.FCP))
+                        .build();
+            }
+            case "TTFB" -> {
+                Double value = web.getTtfb();
+                int score = getWebScoreByName(scoreCalculator.toWebScores(web), "TTFB");
+                yield PriorityDto.builder()
+                        .type("PERFORMANCE")
+                        .metric("TTFB")
+                        .reason(String.format("좋은 지표의 %d%% 수준입니다", score))
+                        .rank(rank)
+                        .value(value)
+                        .status(getStatus(value, WebVitalsThreshold.TTFB))
+                        .build();
+            }
             default -> PriorityDto.builder()
                     .type("PERFORMANCE")
                     .metric(metric)
                     .reason("정보 없음")
                     .rank(rank)
                     .value(null)
+                    .status(null)
                     .build();
         };
+    }
+
+    private String getStatus(Double value, WebVitalsThreshold threshold) {
+        if (value == null) return null;
+        
+        if (value <= threshold.getGood()) {
+            return "양호";
+        } else if (value >= threshold.getPoor()) {
+            return "긴급";
+        } else {
+            return "주의";
+        }
     }
 }

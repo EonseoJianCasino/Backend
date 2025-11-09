@@ -19,6 +19,18 @@ public class WebVitalsMessageService {
         );
     }
 
+	public String getStatus(Double value, WebVitalsThreshold th) {
+		if (value == null) return null;
+
+		if (value <= th.getGood()) {
+			return "양호";
+		}
+		else if (value >= th.getPoor()) {
+			return "긴급";
+		}
+		return "주의";
+	}
+
     private String msg(Double value, WebVitalsThreshold th) {
         if (value == null) return null;
         if (th.getGood() <= 0 || th.getPoor() <= 0) return null;
