@@ -61,7 +61,6 @@ CREATE TABLE IF NOT EXISTS scores (
   cls_score    int,
   inp_score    int,
   fcp_score    int,
-  tbt_score    int,
   ttfb_score   int,
   created_at   timestamptz NOT NULL DEFAULT now()
 );

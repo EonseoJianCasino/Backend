@@ -10,6 +10,6 @@ public interface WebVitalsService {
 
     record WebVitalsSaveCommand(
             Double lcp, Double cls, Double inp,
-            Double fcp, Double tbt, Double ttfb
+            Double fcp, Double ttfb
     ) {}
 }

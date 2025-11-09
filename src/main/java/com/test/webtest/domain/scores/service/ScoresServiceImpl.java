@@ -53,14 +53,14 @@ public class ScoresServiceImpl implements ScoresService{
                 found -> {
                     found.update(total,
                             webScore.lcp(), webScore.cls(), webScore.inp(),
-                            webScore.fcp(), webScore.tbt(), webScore.ttfb());
+                            webScore.fcp(), webScore.ttfb());
                     log.info("[SCORES] updated testId={} total={}", testId, total);
                 },
                 () -> {
                     ScoresEntity created = ScoresEntity.create(
                             test, total,
                             webScore.lcp(), webScore.cls(), webScore.inp(),
-                            webScore.fcp(), webScore.tbt(), webScore.ttfb()
+                            webScore.fcp(), webScore.ttfb()
                     );
                     scoresRepository.save(created);
                     log.info("[SCORES] inserted testId={} total={}", testId, total);

@@ -14,7 +14,6 @@ public record T2Payload(
             int clsScore,
             int inpScore,
             int fcpScore,
-            int tbtScore,
             int ttfbScore
     ) {}
 }

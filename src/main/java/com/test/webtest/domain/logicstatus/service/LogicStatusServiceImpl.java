@@ -62,11 +62,10 @@ public class LogicStatusServiceImpl {
                     int cls     = scOpt.map(ScoresEntity::getClsScore).orElse(0);
                     int inp     = scOpt.map(ScoresEntity::getInpScore).orElse(0);
                     int fcp     = scOpt.map(ScoresEntity::getFcpScore).orElse(0);
-                    int tbt     = scOpt.map(ScoresEntity::getTbtScore).orElse(0);
                     int ttfb    = scOpt.map(ScoresEntity::getTtfbScore).orElse(0);
 
                     var payload = new T2Payload(
-                            new T2Payload.Scores(total, lcp, cls, inp, fcp, tbt, ttfb),
+                            new T2Payload.Scores(total, lcp, cls, inp, fcp, ttfb),
                             secView,
                             webView
                     );

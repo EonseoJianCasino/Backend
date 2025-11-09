@@ -25,13 +25,12 @@ public class ScoreCalculator {
     /** 웹 성능 지표(LCP, CLS, INP, FCP, TBT, TTFB)를 0~100 점수로 환산하여 묶어서 반환 */
     public WebScores toWebScores(@Nullable WebVitalsEntity web) {
         if (web == null) {
-            return new WebScores(0, 0, 0, 0, 0, 0);
+            return new WebScores(0, 0, 0, 0, 0);
         }
         double lcp = linearScore(web.getLcp(),  WebVitalsThreshold.LCP);
         double cls = linearScore(web.getCls(),  WebVitalsThreshold.CLS);
         double inp = linearScore(web.getInp(),  WebVitalsThreshold.INP);
         double fcp = linearScore(web.getFcp(),  WebVitalsThreshold.FCP);
-        double tbt = linearScore(web.getTbt(),  WebVitalsThreshold.TBT);
         double ttfb= linearScore(web.getTtfb(), WebVitalsThreshold.TTFB);
 
         return new WebScores(
@@ -39,7 +38,6 @@ public class ScoreCalculator {
                 (int) Math.round(cls),
                 (int) Math.round(inp),
                 (int) Math.round(fcp),
-                (int) Math.round(tbt),
                 (int) Math.round(ttfb)
         );
     }
@@ -66,7 +64,6 @@ public class ScoreCalculator {
                         9 * (w.cls / 100.0) +
                         8 * (w.inp / 100.0) +
                         8 * (w.fcp / 100.0) +
-                        8 * (w.tbt / 100.0) +
                         8 * (w.ttfb / 100.0);
         return (int) Math.round(total); // 0~50
     }
@@ -114,7 +111,6 @@ public class ScoreCalculator {
         map.put("CLS",  webScores.cls);
         map.put("INP",  webScores.inp);
         map.put("FCP",  webScores.fcp);
-        map.put("TBT",  webScores.tbt);
         map.put("TTFB", webScores.ttfb);
 
         // Security (7) — sec == null이면 전부 0 처리
@@ -154,7 +150,6 @@ public class ScoreCalculator {
             int cls,
             int inp,
             int fcp,
-            int tbt,
             int ttfb
     ) {}
 }

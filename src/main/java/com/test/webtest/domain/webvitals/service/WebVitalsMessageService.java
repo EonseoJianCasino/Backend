@@ -14,7 +14,6 @@ public class WebVitalsMessageService {
                 e.getCls(),  msg(e.getCls(),  WebVitalsThreshold.CLS),
                 e.getInp(),  msg(e.getInp(),  WebVitalsThreshold.INP),
                 e.getFcp(),  msg(e.getFcp(),  WebVitalsThreshold.FCP),
-                e.getTbt(),  msg(e.getTbt(),  WebVitalsThreshold.TBT),
                 e.getTtfb(), msg(e.getTtfb(), WebVitalsThreshold.TTFB),
                 e.getCreatedAt()
         );

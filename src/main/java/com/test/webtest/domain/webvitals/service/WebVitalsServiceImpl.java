@@ -33,9 +33,9 @@ public class WebVitalsServiceImpl implements WebVitalsService {
 
         // upsert
         webVitalsRepository.findByTest_Id(testId).ifPresentOrElse(
-                found -> found.updateFrom(cmd.lcp(), cmd.cls(), cmd.inp(), cmd.fcp(), cmd.tbt(), cmd.ttfb()),
+                found -> found.updateFrom(cmd.lcp(), cmd.cls(), cmd.inp(), cmd.fcp(), cmd.ttfb()),
                 () -> webVitalsRepository.saveAndFlush(WebVitalsEntity.create(
-                        test, cmd.lcp(), cmd.cls(), cmd.inp(), cmd.fcp(), cmd.tbt(), cmd.ttfb()
+                        test, cmd.lcp(), cmd.cls(), cmd.inp(), cmd.fcp(), cmd.ttfb()
                 ))
         );
 

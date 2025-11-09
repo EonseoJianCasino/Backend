@@ -35,10 +35,7 @@ public class ScoresEntity {
     private Integer inpScore;
 
     @Column(name = "fcp_score")
-    private Integer fcpScore;
-
-    @Column(name = "tbt_score")
-    private Integer tbtScore;
+    private Integer fcpScore;	
 
     @Column(name = "ttfb_score")
     private Integer ttfbScore;
@@ -49,7 +46,7 @@ public class ScoresEntity {
 
     public static ScoresEntity create(TestEntity test,
                                       int total, Integer lcp, Integer cls, Integer inp,
-                                      Integer fcp, Integer tbt, Integer ttfb) {
+                                      Integer fcp, Integer ttfb) {
         return ScoresEntity.builder()
                 .id(UUID.randomUUID())
                 .test(test)
@@ -58,19 +55,17 @@ public class ScoresEntity {
                 .clsScore(cls)
                 .inpScore(inp)
                 .fcpScore(fcp)
-                .tbtScore(tbt)
                 .ttfbScore(ttfb)
                 .build();
     }
 
     public void update(int total, Integer lcp, Integer cls, Integer inp,
-                       Integer fcp, Integer tbt, Integer ttfb) {
+                       Integer fcp, Integer ttfb) {
         this.total = total;
         this.lcpScore = lcp;
         this.clsScore = cls;
         this.inpScore = inp;
         this.fcpScore = fcp;
-        this.tbtScore = tbt;
         this.ttfbScore = ttfb;
     }
 }

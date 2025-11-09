@@ -39,9 +39,6 @@ public class WebVitalsEntity {
     @Column(name = "fcp")
     private Double fcp;
 
-    @Column(name = "tbt")
-    private Double tbt;
-
     @Column(name = "ttfb")
     private Double ttfb;
 
@@ -50,12 +47,11 @@ public class WebVitalsEntity {
     private Instant createdAt;
 
     // 팩토리 메서드 - WebVitals 생성
-    public static WebVitalsEntity create(TestEntity test, Double lcp, Double cls, Double inp, Double fcp, Double tbt, Double ttfb) {
+    public static WebVitalsEntity create(TestEntity test, Double lcp, Double cls, Double inp, Double fcp, Double ttfb) {
         validateMetricValue(lcp, "LCP");
         validateMetricValue(cls, "CLS");
         validateMetricValue(inp, "INP");
         validateMetricValue(fcp, "FCP");
-        validateMetricValue(tbt, "TBT");
         validateMetricValue(ttfb, "TTFB");
 
         return WebVitalsEntity.builder()
@@ -65,19 +61,17 @@ public class WebVitalsEntity {
                 .cls(cls)
                 .inp(inp)
                 .fcp(fcp)
-                .tbt(tbt)
                 .ttfb(ttfb)
                 .build();
     }
 
     public void updateFrom(Double lcp, Double cls, Double inp,
-                           Double fcp, Double tbt, Double ttfb) {
+                           Double fcp, Double ttfb) {
         this.lcp = lcp;
         this.cls = cls;
         this.fcp = fcp;
         this.ttfb = ttfb;
         this.inp = inp;
-        this.tbt = tbt;
     }
 
     // 지표값 검증 메서드 (음수 불가, NaN 불가)

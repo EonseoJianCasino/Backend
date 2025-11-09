@@ -11,6 +11,5 @@ public class WebVitalsRequest {
     @JsonProperty("CLS") @PositiveOrZero private Double CLS;
     @JsonProperty("INP") @PositiveOrZero private Double INP;
     @JsonProperty("FCP") @PositiveOrZero private Double FCP;
-    @JsonProperty("TBT") @PositiveOrZero private Double TBT;
     @JsonProperty("TTFB") @PositiveOrZero private Double TTFB;
 }

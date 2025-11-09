@@ -32,7 +32,7 @@ public class PrioritiesServiceImpl implements PrioritiesService {
     private final SecurityVitalsRepository securityRepository;
     private final SecurityMessageService securityMessageService;
 
-    private static final Set<String> WEB_METRICS = Set.of("LCP", "CLS", "INP", "FCP", "TBT", "TTFB");
+    private static final Set<String> WEB_METRICS = Set.of("LCP", "CLS", "INP", "FCP", "TTFB");
 
     @Override
     @Transactional
@@ -114,7 +114,6 @@ public class PrioritiesServiceImpl implements PrioritiesService {
             case "CLS" -> scores.cls();
             case "INP" -> scores.inp();
             case "FCP" -> scores.fcp();
-            case "TBT" -> scores.tbt();
             case "TTFB" -> scores.ttfb();
             default -> 0;
         };
@@ -185,13 +184,6 @@ public class PrioritiesServiceImpl implements PrioritiesService {
                     .reason("좋은 지표의 33% 수준입니다")
                     .rank(rank)
                     .value(2.2)
-                    .build();
-            case "TBT" -> PriorityDto.builder()
-                    .type("PERFORMANCE")
-                    .metric("TBT")
-                    .reason("좋은 지표의 38% 수준입니다")
-                    .rank(rank)
-                    .value(350.0)
                     .build();
             case "TTFB" -> PriorityDto.builder()
                     .type("PERFORMANCE")
