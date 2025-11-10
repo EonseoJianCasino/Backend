@@ -24,6 +24,65 @@ CREATE TABLE IF NOT EXISTS web_vitals (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS lcp (
+  id         uuid PRIMARY KEY,
+  test_id    uuid NOT NULL UNIQUE REFERENCES tests(id) ON DELETE CASCADE,
+  start_time        int,
+  render_time        int,
+  rendered_size        int,
+  element       text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS cls (
+  id         uuid PRIMARY KEY,
+  test_id    uuid NOT NULL UNIQUE REFERENCES tests(id) ON DELETE CASCADE,
+  entry_type        varchar(30),
+  start_time        double precision,
+  cls_value        double precision,
+  had_recent_input       boolean DEFAULT false,
+  sources        text,
+  previous_rect        text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+
+CREATE TABLE IF NOT EXISTS inp (
+  id         uuid PRIMARY KEY,
+  test_id    uuid NOT NULL UNIQUE REFERENCES tests(id) ON DELETE CASCADE,
+  entry_type        varchar(30),
+  name        varchar(30),
+  start_time        double precision,
+  duration       int,
+  processing_start        double precision,
+  processing_end        double precision,
+  interaction_id        int,
+  target        varchar(30),
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS fcp (
+  id         uuid PRIMARY KEY,
+  test_id    uuid NOT NULL UNIQUE REFERENCES tests(id) ON DELETE CASCADE,
+  entry_type        varchar(30),
+  start_time        int,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS ttfb (
+  id         uuid PRIMARY KEY,
+  test_id    uuid NOT NULL UNIQUE REFERENCES tests(id) ON DELETE CASCADE,
+  entry_type        varchar(30),
+  start_time        int,
+  response_start        double precision,
+  request_start       double precision,
+  domain_lookup_start        double precision,
+  connect_start        double precision,
+  connect_end        double precision,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+
 -- security_vitals
 CREATE TABLE IF NOT EXISTS security_vitals (
   id                       uuid PRIMARY KEY,
