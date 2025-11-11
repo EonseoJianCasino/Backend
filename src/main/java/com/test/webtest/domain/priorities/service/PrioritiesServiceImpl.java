@@ -12,7 +12,6 @@ import com.test.webtest.domain.securityvitals.service.SecurityMessageService;
 import com.test.webtest.domain.webvitals.entity.WebVitalsEntity;
 import com.test.webtest.domain.webvitals.repository.WebVitalsRepository;
 import com.test.webtest.global.common.util.ScoreCalculator;
-import com.test.webtest.global.common.util.WebVitalsThreshold;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
@@ -163,7 +162,7 @@ public class PrioritiesServiceImpl implements PrioritiesService {
         for (String metric : bottom3Metrics) {
             if (WEB_METRICS.contains(metric)) {
                 webVitalCount++;
-                items.add(getWebVitalDummy(web, webScores, metric, rank++));
+                items.add(getWebVitalDummy(web, webScores, scoresEntity, metric, rank++));
             } else {
                 String message = securityMessageService.getMessageByMetric(sec, metric);
                 items.add(PriorityDto.builder()
@@ -184,9 +183,12 @@ public class PrioritiesServiceImpl implements PrioritiesService {
                 .build();
     }
 
-    private PriorityDto getWebVitalDummy(WebVitalsEntity web, ScoreCalculator.WebScores webScores, String metric,
-            int rank) {
+    private PriorityDto getWebVitalDummy(WebVitalsEntity web, ScoreCalculator.WebScores webScores,
+            ScoresEntity scoresEntity, String metric, int rank) {
         int score = getWebScoreByName(webScores, metric);
+
+        // ScoresEntity에서 저장된 status 사용 (GOOD, WARNING, URGENT)
+        String status = getStatusFromScoresEntity(scoresEntity, metric);
 
         if (web == null) {
             return PriorityDto.builder()
@@ -195,7 +197,7 @@ public class PrioritiesServiceImpl implements PrioritiesService {
                     .reason(String.format("좋은 지표의 %d%% 수준입니다", score))
                     .rank(rank)
                     .value(null)
-                    .status(null)
+                    .status(status)
                     .build();
         }
 
@@ -208,7 +210,7 @@ public class PrioritiesServiceImpl implements PrioritiesService {
                         .reason(String.format("좋은 지표의 %d%% 수준입니다", score))
                         .rank(rank)
                         .value(value)
-                        .status(getStatus(value, WebVitalsThreshold.LCP))
+                        .status(status)
                         .build();
             }
             case "CLS" -> {
@@ -219,7 +221,7 @@ public class PrioritiesServiceImpl implements PrioritiesService {
                         .reason(String.format("좋은 지표의 %d%% 수준입니다", score))
                         .rank(rank)
                         .value(value)
-                        .status(getStatus(value, WebVitalsThreshold.CLS))
+                        .status(status)
                         .build();
             }
             case "INP" -> {
@@ -230,7 +232,7 @@ public class PrioritiesServiceImpl implements PrioritiesService {
                         .reason(String.format("좋은 지표의 %d%% 수준입니다", score))
                         .rank(rank)
                         .value(value)
-                        .status(getStatus(value, WebVitalsThreshold.INP))
+                        .status(status)
                         .build();
             }
             case "FCP" -> {
@@ -241,7 +243,7 @@ public class PrioritiesServiceImpl implements PrioritiesService {
                         .reason(String.format("좋은 지표의 %d%% 수준입니다", score))
                         .rank(rank)
                         .value(value)
-                        .status(getStatus(value, WebVitalsThreshold.FCP))
+                        .status(status)
                         .build();
             }
             case "TTFB" -> {
@@ -252,7 +254,7 @@ public class PrioritiesServiceImpl implements PrioritiesService {
                         .reason(String.format("좋은 지표의 %d%% 수준입니다", score))
                         .rank(rank)
                         .value(value)
-                        .status(getStatus(value, WebVitalsThreshold.TTFB))
+                        .status(status)
                         .build();
             }
             default -> PriorityDto.builder()
@@ -261,21 +263,22 @@ public class PrioritiesServiceImpl implements PrioritiesService {
                     .reason("정보 없음")
                     .rank(rank)
                     .value(null)
-                    .status(null)
+                    .status(status)
                     .build();
         };
     }
 
-    private String getStatus(Double value, WebVitalsThreshold threshold) {
-        if (value == null)
+    private String getStatusFromScoresEntity(ScoresEntity scoresEntity, String metric) {
+        if (scoresEntity == null)
             return null;
 
-        if (value <= threshold.getGood()) {
-            return "양호";
-        } else if (value >= threshold.getPoor()) {
-            return "긴급";
-        } else {
-            return "주의";
-        }
+        return switch (metric) {
+            case "LCP" -> scoresEntity.getLcpStatus();
+            case "CLS" -> scoresEntity.getClsStatus();
+            case "INP" -> scoresEntity.getInpStatus();
+            case "FCP" -> scoresEntity.getFcpStatus();
+            case "TTFB" -> scoresEntity.getTtfbStatus();
+            default -> null;
+        };
     }
 }
