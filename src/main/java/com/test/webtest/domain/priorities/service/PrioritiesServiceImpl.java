@@ -2,8 +2,6 @@ package com.test.webtest.domain.priorities.service;
 
 import com.test.webtest.domain.priorities.dto.PrioritiesResponse;
 import com.test.webtest.domain.priorities.dto.PriorityDto;
-import com.test.webtest.domain.priorities.entity.PrioritiesEntity;
-import com.test.webtest.domain.priorities.repository.PrioritiesRepository;
 import com.test.webtest.domain.scores.entity.ScoresEntity;
 import com.test.webtest.domain.scores.repository.ScoresRepository;
 import com.test.webtest.domain.securityvitals.entity.SecurityVitalsEntity;
@@ -21,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -29,99 +26,12 @@ import java.util.stream.Collectors;
 public class PrioritiesServiceImpl implements PrioritiesService {
 
     private final ScoreCalculator scoreCalculator;
-    private final PrioritiesRepository prioritiesRepository;
     private final WebVitalsRepository webRepository;
     private final SecurityVitalsRepository securityRepository;
     private final SecurityMessageService securityMessageService;
     private final ScoresRepository scoresRepository;
 
     private static final Set<String> WEB_METRICS = Set.of("LCP", "CLS", "INP", "FCP", "TTFB");
-
-    @Override
-    @Transactional
-    public PrioritiesResponse calculateAndGetPriorities(UUID testId) {
-
-        ScoresEntity scoresEntity = scoresRepository.findByTestId(testId).orElse(null);
-        SecurityVitalsEntity securityEntity = securityRepository.findByTest_Id(testId).orElse(null);
-        WebVitalsEntity webEntity = webRepository.findByTest_Id(testId).orElse(null);
-
-        List<String> bottom3Metrics = scoreCalculator.bottom3(scoresEntity, securityEntity);
-
-        // WebScores는 ScoresEntity에서 가져오거나, 없으면 계산
-        ScoreCalculator.WebScores webScores;
-        if (scoresEntity != null) {
-            webScores = new ScoreCalculator.WebScores(
-                    scoresEntity.getLcpScore() != null ? scoresEntity.getLcpScore() : 0,
-                    scoresEntity.getClsScore() != null ? scoresEntity.getClsScore() : 0,
-                    scoresEntity.getInpScore() != null ? scoresEntity.getInpScore() : 0,
-                    scoresEntity.getFcpScore() != null ? scoresEntity.getFcpScore() : 0,
-                    scoresEntity.getTtfbScore() != null ? scoresEntity.getTtfbScore() : 0);
-        } else {
-            webScores = scoreCalculator.toWebScores(webEntity);
-        }
-
-        int webVitalCount = 0;
-        List<PrioritiesEntity> newPriorities = new java.util.ArrayList<>();
-
-        for (int i = 0; i < bottom3Metrics.size(); i++) {
-            String metricName = bottom3Metrics.get(i);
-            String type;
-            String message;
-
-            if (WEB_METRICS.contains(metricName)) {
-                type = "PERFORMANCE";
-                webVitalCount++;
-
-                int score = getWebScoreByName(webScores, metricName);
-                message = String.format("좋은 지표의 %d%% 수준입니다", score); // score가 높을수록 좋음 (0~100)
-            } else {
-                type = "SECURITY";
-                message = securityMessageService.getMessageByMetric(securityEntity, metricName);
-            }
-
-            PrioritiesEntity entity = PrioritiesEntity.builder()
-                    .testId(testId)
-                    .type(type)
-                    .metric(metricName)
-                    .reason(message)
-                    .rank(i + 1)
-                    .build();
-            newPriorities.add(entity);
-        }
-
-        prioritiesRepository.saveAll(newPriorities);
-
-        return getPriorities(testId);
-    }
-
-    @Override
-    public PrioritiesResponse getPriorities(UUID testId) {
-        List<PrioritiesEntity> entities = prioritiesRepository.findAllByTestIdOrderByRankAsc(testId);
-
-        List<PriorityDto> dtos = entities.stream()
-                .map(this::toPriorityDto)
-                .collect(Collectors.toList());
-
-        long webVitalCount = dtos.stream()
-                .filter(dto -> "PERFORMANCE".equals(dto.getType()))
-                .count();
-
-        return PrioritiesResponse.builder()
-                .testId(testId)
-                .priorities(dtos)
-                .totalCount(dtos.size())
-                .webVitalCount((int) webVitalCount)
-                .build();
-    }
-
-    private PriorityDto toPriorityDto(PrioritiesEntity entity) {
-        return PriorityDto.builder()
-                .type(entity.getType())
-                .metric(entity.getMetric())
-                .reason(entity.getReason())
-                .rank(entity.getRank())
-                .build();
-    }
 
     private int getWebScoreByName(ScoreCalculator.WebScores scores, String metricName) {
         return switch (metricName) {
