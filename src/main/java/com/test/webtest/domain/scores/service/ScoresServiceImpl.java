@@ -10,11 +10,11 @@ import com.test.webtest.domain.test.repository.TestRepository;
 import com.test.webtest.domain.webvitals.entity.WebVitalsEntity;
 import com.test.webtest.domain.webvitals.repository.WebVitalsRepository;
 import com.test.webtest.global.common.util.ScoreCalculator;
+import com.test.webtest.global.common.util.WebVitalsThreshold;
 import com.test.webtest.global.error.exception.BusinessException;
 import com.test.webtest.global.error.model.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +23,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ScoresServiceImpl implements ScoresService{
+public class ScoresServiceImpl implements ScoresService {
 
     private final ScoresRepository scoresRepository;
     private final WebVitalsRepository webVitalsRepository;
@@ -43,9 +43,17 @@ public class ScoresServiceImpl implements ScoresService{
         WebVitalsEntity web = webVitalsRepository.findByTest_Id(testId).orElse(null);
         SecurityVitalsEntity sec = securityVitalsRepository.findByTest_Id(testId).orElse(null);
 
-        var webScore = scoreCalculator.toWebScores(web);      // null 안전 (이전 답변 반영)
+        var webScore = scoreCalculator.toWebScores(web); // null 안전 (이전 답변 반영)
         int securityHalf = scoreCalculator.toSecurityHalfScore(sec);
         int total = scoreCalculator.total(webScore, securityHalf);
+
+        // Status 계산 (WebVitalsEntity의 원본 수치 사용)
+        String lcpStatus = scoreCalculator.calculateStatus(web != null ? web.getLcp() : null, WebVitalsThreshold.LCP);
+        String clsStatus = scoreCalculator.calculateStatus(web != null ? web.getCls() : null, WebVitalsThreshold.CLS);
+        String inpStatus = scoreCalculator.calculateStatus(web != null ? web.getInp() : null, WebVitalsThreshold.INP);
+        String fcpStatus = scoreCalculator.calculateStatus(web != null ? web.getFcp() : null, WebVitalsThreshold.FCP);
+        String ttfbStatus = scoreCalculator.calculateStatus(web != null ? web.getTtfb() : null,
+                WebVitalsThreshold.TTFB);
 
         TestEntity test = testRepository.getReferenceById(testId);
 
@@ -53,19 +61,19 @@ public class ScoresServiceImpl implements ScoresService{
                 found -> {
                     found.update(total,
                             webScore.lcp(), webScore.cls(), webScore.inp(),
-                            webScore.fcp(), webScore.ttfb());
+                            webScore.fcp(), webScore.ttfb(),
+                            lcpStatus, clsStatus, inpStatus, fcpStatus, ttfbStatus);
                     log.info("[SCORES] updated testId={} total={}", testId, total);
                 },
                 () -> {
                     ScoresEntity created = ScoresEntity.create(
                             test, total,
                             webScore.lcp(), webScore.cls(), webScore.inp(),
-                            webScore.fcp(), webScore.ttfb()
-                    );
+                            webScore.fcp(), webScore.ttfb(),
+                            lcpStatus, clsStatus, inpStatus, fcpStatus, ttfbStatus);
                     scoresRepository.save(created);
                     log.info("[SCORES] inserted testId={} total={}", testId, total);
-                }
-        );
+                });
     }
 
     @Override

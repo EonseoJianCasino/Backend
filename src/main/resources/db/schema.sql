@@ -61,6 +61,11 @@ CREATE TABLE IF NOT EXISTS scores (
   inp_score    int,
   fcp_score    int,
   ttfb_score   int,
+  lcp_status   varchar(10), -- GOOD, WARNING, URGENT
+  cls_status   varchar(10),
+  inp_status   varchar(10),
+  fcp_status   varchar(10),
+  ttfb_status  varchar(10),
   created_at   timestamptz NOT NULL DEFAULT now()
 );
 
