@@ -22,10 +22,11 @@ public class AiPersistController {
      */
     @PostMapping("/save")
     public ResponseEntity<Void> saveAiResult(
-            @RequestParam("testId") UUID testId,
-            @RequestBody String prompt
+            @RequestParam("testId") UUID testId //,
+//            @RequestBody String prompt
     ) {
-        aiPersistService.generateAndSave(testId, prompt);
+//        aiPersistService.generateAndSave(testId, prompt);
+        aiPersistService.generateAndSave(testId);
         return ResponseEntity.ok().build();
     }
 }

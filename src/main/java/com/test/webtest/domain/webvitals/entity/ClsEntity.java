@@ -27,57 +27,52 @@ public class ClsEntity {
     @JoinColumn(name = "test_id", unique = true, nullable = false)
     private TestEntity test;
 
-    @Column(name = "lcp")
-    private Double lcp;
+    @Column(name = "entry_type")
+    private String entryType;
 
-    @Column(name = "cls")
-    private Double cls;
+    @Column(name = "start_time")
+    private Double startTime;
 
-    @Column(name = "inp")
-    private Double inp;
+    @Column(name = "cls_value")
+    private Double clsValue;
 
-    @Column(name = "fcp")
-    private Double fcp;
+    @Column(name = "had_recent_input")
+    private Boolean hadRecentInput;
 
-    @Column(name = "tbt")
-    private Double tbt;
+    @Column(name = "sources")
+    private String sources;
 
-    @Column(name = "ttfb")
-    private Double ttfb;
+    @Column(name = "previous_rect")
+    private String previousRect;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
     // 팩토리 메서드 - WebVitals 생성
-    public static ClsEntity create(TestEntity test, Double lcp, Double cls, Double inp, Double fcp, Double tbt, Double ttfb) {
-        validateMetricValue(lcp, "LCP");
-        validateMetricValue(cls, "CLS");
-        validateMetricValue(inp, "INP");
-        validateMetricValue(fcp, "FCP");
-        validateMetricValue(tbt, "TBT");
-        validateMetricValue(ttfb, "TTFB");
+    public static ClsEntity create(TestEntity test, String entryType, Double startTime, Double clsValue, Boolean hadRecentInput, String sources, String previousRect) {
+        validateMetricValue(startTime, "start time");
+        validateMetricValue(clsValue, "CLS value");
 
         return ClsEntity.builder()
                 .id(UUID.randomUUID())
                 .test(test)  // @MapsId를 사용하므로 test만 설정하면 testId는 자동으로 매핑됨
-                .lcp(lcp)
-                .cls(cls)
-                .inp(inp)
-                .fcp(fcp)
-                .tbt(tbt)
-                .ttfb(ttfb)
+                .entryType(entryType)
+                .startTime(startTime)
+                .clsValue(clsValue)
+                .hadRecentInput(hadRecentInput)
+                .sources(sources)
+                .previousRect(previousRect)
                 .build();
     }
 
-    public void updateFrom(Double lcp, Double cls, Double inp,
-                           Double fcp, Double tbt, Double ttfb) {
-        this.lcp = lcp;
-        this.cls = cls;
-        this.fcp = fcp;
-        this.ttfb = ttfb;
-        this.inp = inp;
-        this.tbt = tbt;
+    public void updateFrom(String entryType, Double startTime, Double clsValue, Boolean hadRecentInput, String sources, String previousRect) {
+        this.entryType = entryType;
+        this.startTime = startTime;
+        this.clsValue = clsValue;
+        this.hadRecentInput = hadRecentInput;
+        this.sources = sources;
+        this.previousRect = previousRect;
     }
 
     // 지표값 검증 메서드 (음수 불가, NaN 불가)

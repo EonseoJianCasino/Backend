@@ -27,57 +27,63 @@ public class InpEntity {
     @JoinColumn(name = "test_id", unique = true, nullable = false)
     private TestEntity test;
 
-    @Column(name = "lcp")
-    private Double lcp;
+    @Column(name = "entry_type")
+    private String entryType;
 
-    @Column(name = "cls")
-    private Double cls;
+    @Column(name = "name")
+    private String name;
 
-    @Column(name = "inp")
-    private Double inp;
+    @Column(name = "start_time")
+    private Double startTime;
 
-    @Column(name = "fcp")
-    private Double fcp;
+    @Column(name = "duration")
+    private Integer duration;
 
-    @Column(name = "tbt")
-    private Double tbt;
+    @Column(name = "processing_start")
+    private Double processingStart;
 
-    @Column(name = "ttfb")
-    private Double ttfb;
+    @Column(name = "processing_end")
+    private Double processingEnd;
+
+    @Column(name = "interaction_id")
+    private Integer interactionId;
+
+    @Column(name = "target")
+    private String target;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
     // 팩토리 메서드 - WebVitals 생성
-    public static InpEntity create(TestEntity test, Double lcp, Double cls, Double inp, Double fcp, Double tbt, Double ttfb) {
-        validateMetricValue(lcp, "LCP");
-        validateMetricValue(cls, "CLS");
-        validateMetricValue(inp, "INP");
-        validateMetricValue(fcp, "FCP");
-        validateMetricValue(tbt, "TBT");
-        validateMetricValue(ttfb, "TTFB");
+    public static InpEntity create(TestEntity test, String entryType, String name, Double startTime, Integer duration, Double processingStart, Double processingEnd, Integer interactionId, String target) {
+        validateMetricValue(startTime, "start time");
+        validateMetricValue(processingStart, "processing start");
+        validateMetricValue(processingEnd, "processing end");
 
         return InpEntity.builder()
                 .id(UUID.randomUUID())
                 .test(test)  // @MapsId를 사용하므로 test만 설정하면 testId는 자동으로 매핑됨
-                .lcp(lcp)
-                .cls(cls)
-                .inp(inp)
-                .fcp(fcp)
-                .tbt(tbt)
-                .ttfb(ttfb)
+                .entryType(entryType)
+                .name(name)
+                .startTime(startTime)
+                .duration(duration)
+                .processingStart(processingStart)
+                .processingEnd(processingEnd)
+                .interactionId(interactionId)
+                .target(target)
                 .build();
     }
 
-    public void updateFrom(Double lcp, Double cls, Double inp,
-                           Double fcp, Double tbt, Double ttfb) {
-        this.lcp = lcp;
-        this.cls = cls;
-        this.fcp = fcp;
-        this.ttfb = ttfb;
-        this.inp = inp;
-        this.tbt = tbt;
+    public void updateFrom(String entryType, String name, Double startTime, Integer duration, Double processingStart, Double processingEnd, Integer interactionId, String target) {
+        this.entryType = entryType;
+        this.name = name;
+        this.startTime = startTime;
+        this.duration = duration;
+        this.processingStart = processingStart;
+        this.processingEnd = processingEnd;
+        this.interactionId = interactionId;
+        this.target = target;
     }
 
     // 지표값 검증 메서드 (음수 불가, NaN 불가)

@@ -27,57 +27,58 @@ public class TtfbEntity {
     @JoinColumn(name = "test_id", unique = true, nullable = false)
     private TestEntity test;
 
-    @Column(name = "lcp")
-    private Double lcp;
+    @Column(name = "entry_type")
+    private String entryType;
 
-    @Column(name = "cls")
-    private Double cls;
+    @Column(name = "start_time")
+    private Integer startTime;
 
-    @Column(name = "inp")
-    private Double inp;
+    @Column(name = "response_start")
+    private Double responseStart;
 
-    @Column(name = "fcp")
-    private Double fcp;
+    @Column(name = "request_start")
+    private Double reqeustStart;
 
-    @Column(name = "tbt")
-    private Double tbt;
+    @Column(name = "domain_lookup_start")
+    private Double domainLookupStart;
 
-    @Column(name = "ttfb")
-    private Double ttfb;
+    @Column(name = "connect_start")
+    private Double connectStart;
+
+    @Column(name = "connect_end")
+    private Double connectEnd;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
     // 팩토리 메서드 - WebVitals 생성
-    public static TtfbEntity create(TestEntity test, Double lcp, Double cls, Double inp, Double fcp, Double tbt, Double ttfb) {
-        validateMetricValue(lcp, "LCP");
-        validateMetricValue(cls, "CLS");
-        validateMetricValue(inp, "INP");
-        validateMetricValue(fcp, "FCP");
-        validateMetricValue(tbt, "TBT");
-        validateMetricValue(ttfb, "TTFB");
+    public static TtfbEntity create(TestEntity test, String entryType, Integer startTime, Double responseStart, Double requestStart, Double domainLookupStart, Double connectStart, Double connectEnd) {
+        validateMetricValue(responseStart, "response start");
+        validateMetricValue(requestStart, "request start");
+        validateMetricValue(domainLookupStart, "domain lookup start");
+        validateMetricValue(connectStart, "connect start");
+        validateMetricValue(connectEnd, "connect end");
 
         return TtfbEntity.builder()
                 .id(UUID.randomUUID())
                 .test(test)  // @MapsId를 사용하므로 test만 설정하면 testId는 자동으로 매핑됨
-                .lcp(lcp)
-                .cls(cls)
-                .inp(inp)
-                .fcp(fcp)
-                .tbt(tbt)
-                .ttfb(ttfb)
+                .entryType(entryType)
+                .startTime(startTime)
+                .responseStart(responseStart)
+                .domainLookupStart(domainLookupStart)
+                .connectStart(connectStart)
+                .connectEnd(connectEnd)
                 .build();
     }
 
-    public void updateFrom(Double lcp, Double cls, Double inp,
-                           Double fcp, Double tbt, Double ttfb) {
-        this.lcp = lcp;
-        this.cls = cls;
-        this.fcp = fcp;
-        this.ttfb = ttfb;
-        this.inp = inp;
-        this.tbt = tbt;
+    public void updateFrom(String entryType, Integer startTime, Double responseStart, Double requestStart, Double domainLookupStart, Double connectStart, Double connectEnd) {
+        this.entryType = entryType;
+        this.startTime = startTime;
+        this.responseStart = responseStart;
+        this.domainLookupStart = domainLookupStart;
+        this.connectStart = connectStart;
+        this.connectEnd = connectEnd;
     }
 
     // 지표값 검증 메서드 (음수 불가, NaN 불가)
