@@ -4,6 +4,8 @@ import com.test.webtest.domain.priorities.dto.PrioritiesResponse;
 import com.test.webtest.domain.priorities.dto.PriorityDto;
 import com.test.webtest.domain.priorities.entity.PrioritiesEntity;
 import com.test.webtest.domain.priorities.repository.PrioritiesRepository;
+import com.test.webtest.domain.scores.entity.ScoresEntity;
+import com.test.webtest.domain.scores.repository.ScoresRepository;
 import com.test.webtest.domain.securityvitals.entity.SecurityVitalsEntity;
 import com.test.webtest.domain.securityvitals.repository.SecurityVitalsRepository;
 import com.test.webtest.domain.securityvitals.service.SecurityMessageService;
@@ -32,6 +34,7 @@ public class PrioritiesServiceImpl implements PrioritiesService {
     private final WebVitalsRepository webRepository;
     private final SecurityVitalsRepository securityRepository;
     private final SecurityMessageService securityMessageService;
+    private final ScoresRepository scoresRepository;
 
     private static final Set<String> WEB_METRICS = Set.of("LCP", "CLS", "INP", "FCP", "TTFB");
 
@@ -39,12 +42,24 @@ public class PrioritiesServiceImpl implements PrioritiesService {
     @Transactional
     public PrioritiesResponse calculateAndGetPriorities(UUID testId) {
 
-        WebVitalsEntity webEntity = webRepository.findByTest_Id(testId).orElse(null);
+        ScoresEntity scoresEntity = scoresRepository.findByTestId(testId).orElse(null);
         SecurityVitalsEntity securityEntity = securityRepository.findByTest_Id(testId).orElse(null);
+        WebVitalsEntity webEntity = webRepository.findByTest_Id(testId).orElse(null);
 
-        List<String> bottom3Metrics = scoreCalculator.bottom3(webEntity, securityEntity);
+        List<String> bottom3Metrics = scoreCalculator.bottom3(scoresEntity, securityEntity);
 
-        ScoreCalculator.WebScores webScores = scoreCalculator.toWebScores(webEntity);
+        // WebScores는 ScoresEntity에서 가져오거나, 없으면 계산
+        ScoreCalculator.WebScores webScores;
+        if (scoresEntity != null) {
+            webScores = new ScoreCalculator.WebScores(
+                    scoresEntity.getLcpScore() != null ? scoresEntity.getLcpScore() : 0,
+                    scoresEntity.getClsScore() != null ? scoresEntity.getClsScore() : 0,
+                    scoresEntity.getInpScore() != null ? scoresEntity.getInpScore() : 0,
+                    scoresEntity.getFcpScore() != null ? scoresEntity.getFcpScore() : 0,
+                    scoresEntity.getTtfbScore() != null ? scoresEntity.getTtfbScore() : 0);
+        } else {
+            webScores = scoreCalculator.toWebScores(webEntity);
+        }
 
         int webVitalCount = 0;
         List<PrioritiesEntity> newPriorities = new java.util.ArrayList<>();
@@ -119,23 +134,36 @@ public class PrioritiesServiceImpl implements PrioritiesService {
             default -> 0;
         };
     }
-    
+
     @Override
     public PrioritiesResponse getBottom3(UUID testId) {
-        var web = webRepository.findByTest_Id(testId).orElse(null);
+        var scoresEntity = scoresRepository.findByTestId(testId).orElse(null);
         var sec = securityRepository.findByTest_Id(testId).orElse(null);
-        
-        var webScores = scoreCalculator.toWebScores(web);
-        var bottom3Metrics = scoreCalculator.bottom3(webScores, sec);
-        
+        var web = webRepository.findByTest_Id(testId).orElse(null);
+
+        var bottom3Metrics = scoreCalculator.bottom3(scoresEntity, sec);
+
+        // WebScores는 ScoresEntity에서 가져오거나, 없으면 계산
+        ScoreCalculator.WebScores webScores;
+        if (scoresEntity != null) {
+            webScores = new ScoreCalculator.WebScores(
+                    scoresEntity.getLcpScore() != null ? scoresEntity.getLcpScore() : 0,
+                    scoresEntity.getClsScore() != null ? scoresEntity.getClsScore() : 0,
+                    scoresEntity.getInpScore() != null ? scoresEntity.getInpScore() : 0,
+                    scoresEntity.getFcpScore() != null ? scoresEntity.getFcpScore() : 0,
+                    scoresEntity.getTtfbScore() != null ? scoresEntity.getTtfbScore() : 0);
+        } else {
+            webScores = scoreCalculator.toWebScores(web);
+        }
+
         List<PriorityDto> items = new ArrayList<>();
         int webVitalCount = 0;
         int rank = 1;
-        
+
         for (String metric : bottom3Metrics) {
             if (WEB_METRICS.contains(metric)) {
                 webVitalCount++;
-                items.add(getWebVitalDummy(web, metric, rank++));
+                items.add(getWebVitalDummy(web, webScores, metric, rank++));
             } else {
                 String message = securityMessageService.getMessageByMetric(sec, metric);
                 items.add(PriorityDto.builder()
@@ -147,7 +175,7 @@ public class PrioritiesServiceImpl implements PrioritiesService {
                         .build());
             }
         }
-        
+
         return PrioritiesResponse.builder()
                 .testId(testId)
                 .priorities(items)
@@ -155,23 +183,25 @@ public class PrioritiesServiceImpl implements PrioritiesService {
                 .webVitalCount(webVitalCount)
                 .build();
     }
-    
-    private PriorityDto getWebVitalDummy(WebVitalsEntity web, String metric, int rank) {
+
+    private PriorityDto getWebVitalDummy(WebVitalsEntity web, ScoreCalculator.WebScores webScores, String metric,
+            int rank) {
+        int score = getWebScoreByName(webScores, metric);
+
         if (web == null) {
             return PriorityDto.builder()
                     .type("PERFORMANCE")
                     .metric(metric)
-                    .reason("데이터 없음")
+                    .reason(String.format("좋은 지표의 %d%% 수준입니다", score))
                     .rank(rank)
                     .value(null)
                     .status(null)
                     .build();
         }
 
-        return switch(metric) {
+        return switch (metric) {
             case "LCP" -> {
                 Double value = web.getLcp();
-                int score = getWebScoreByName(scoreCalculator.toWebScores(web), "LCP");
                 yield PriorityDto.builder()
                         .type("PERFORMANCE")
                         .metric("LCP")
@@ -183,7 +213,6 @@ public class PrioritiesServiceImpl implements PrioritiesService {
             }
             case "CLS" -> {
                 Double value = web.getCls();
-                int score = getWebScoreByName(scoreCalculator.toWebScores(web), "CLS");
                 yield PriorityDto.builder()
                         .type("PERFORMANCE")
                         .metric("CLS")
@@ -195,7 +224,6 @@ public class PrioritiesServiceImpl implements PrioritiesService {
             }
             case "INP" -> {
                 Double value = web.getInp();
-                int score = getWebScoreByName(scoreCalculator.toWebScores(web), "INP");
                 yield PriorityDto.builder()
                         .type("PERFORMANCE")
                         .metric("INP")
@@ -207,7 +235,6 @@ public class PrioritiesServiceImpl implements PrioritiesService {
             }
             case "FCP" -> {
                 Double value = web.getFcp();
-                int score = getWebScoreByName(scoreCalculator.toWebScores(web), "FCP");
                 yield PriorityDto.builder()
                         .type("PERFORMANCE")
                         .metric("FCP")
@@ -219,7 +246,6 @@ public class PrioritiesServiceImpl implements PrioritiesService {
             }
             case "TTFB" -> {
                 Double value = web.getTtfb();
-                int score = getWebScoreByName(scoreCalculator.toWebScores(web), "TTFB");
                 yield PriorityDto.builder()
                         .type("PERFORMANCE")
                         .metric("TTFB")
@@ -241,8 +267,9 @@ public class PrioritiesServiceImpl implements PrioritiesService {
     }
 
     private String getStatus(Double value, WebVitalsThreshold threshold) {
-        if (value == null) return null;
-        
+        if (value == null)
+            return null;
+
         if (value <= threshold.getGood()) {
             return "양호";
         } else if (value >= threshold.getPoor()) {

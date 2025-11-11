@@ -114,10 +114,12 @@ public class ScoreCalculator {
         return (int) Math.round(total); // 0~50
     }
 
-    /** 총점 = 웹(평균 0~100 → 0~50 환산) + 보안(0~50) */
+    /** 총점 = 웹(0~42 → 0~50 스케일링) + 보안(0~50) */
     public int total(WebScores webScores, int securityHalf) {
         int webHalf = toWebHalfScore(webScores);
-        return Math.min(100, webHalf + securityHalf);
+        // 가중치 합 42점 만점을 50점 만점으로 스케일링
+        int webHalfScaled = (int) Math.round(webHalf * (50.0 / 42.0));
+        return Math.min(100, webHalfScaled + securityHalf);
     }
 
     /** 최저 3개 지표명 반환 - ScoresEntity에서 저장된 점수 사용 */
