@@ -36,15 +36,19 @@ public class AiRecommendation {
     @Column(nullable = false, length = 20) // PERF / SEC
     private String type;
 
-    @Column(length = 50)
-    private String metric;                 // LCP, CLS, ...
 
     @Column(nullable = false, length = 200)
     private String title;
 
-//    @Lob
-//    @Column(nullable = false)
-//    private String content;
+    @Column
+    private String summaryOfImpr;
+
+    @Column
+    private String scoreImpr;                 // LCP, CLS, ...
+
+    @Column
+    private String relatedMetric;
+
     @Column(name = "content", nullable = false, columnDefinition = "text")
     private String content;
 
@@ -56,7 +60,7 @@ public class AiRecommendation {
         AiRecommendation r = new AiRecommendation();
         r.id = UUID.randomUUID();
         r.testId = testId;
-        r.type = type;
+        r.type = type; // ??
         r.metric = metric;
         r.title = title;
         r.content = content;
