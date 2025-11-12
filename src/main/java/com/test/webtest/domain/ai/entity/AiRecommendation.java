@@ -1,4 +1,4 @@
-package com.test.webtest.domain.ai.entity.airecommendationentity; //.airecommendationentity;
+package com.test.webtest.domain.ai.entity; //.airecommendationentity;
 
 import jakarta.persistence.*;
 
@@ -61,6 +61,7 @@ public class AiRecommendation {
         r.title = title;
         r.content = content;
         return r;
+
     }
 
 

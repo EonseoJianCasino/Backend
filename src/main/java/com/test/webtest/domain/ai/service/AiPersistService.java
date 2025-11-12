@@ -2,9 +2,10 @@ package com.test.webtest.domain.ai.service;
 
 import com.test.webtest.domain.ai.AiSavePayload;
 import com.test.webtest.domain.ai.dto.AiResponse;
-import com.test.webtest.domain.ai.service.*;
-import com.test.webtest.domain.ai.entity.airecommendationentity.*;
-import com.test.webtest.domain.logicstatus.entity.LogicStatusEntity;
+import com.test.webtest.domain.ai.entity.AiExpectation;
+import com.test.webtest.domain.ai.entity.AiRecommendation;
+import com.test.webtest.domain.ai.repository.AiExpectationRepository;
+import com.test.webtest.domain.ai.repository.AiRecommendationRepository;
 //import com.test.webtest.domain.logicstatus.entity.LogicStatusRepository;
 import com.test.webtest.domain.logicstatus.repository.LogicStatusRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static com.test.webtest.domain.ai.schema.AiSchemas.buildPerfAdviceSchema;
 
-import java.util.List;
 import java.util.UUID;
 
 import com.test.webtest.domain.webvitals.repository.ClsRepository;
@@ -133,21 +133,55 @@ public class AiPersistService {
 
     private String buildPromptFromDb(UUID testId, Optional<ClsEntity> clsResults, Optional<FcpEntity> fcpResults, Optional<InpEntity> inpResults, Optional<LcpEntity> lcpResults, Optional<TtfbEntity> ttfbResults) {
 
+        String lcpStartTime = lcpResults.map(LcpEntity::getStartTime).map(Object::toString).orElse("N/A");
+        String lcpRenderTime = lcpResults.map(LcpEntity::getRenderTime).map(Object::toString).orElse("N/A");
+        String lcpSize = lcpResults.map(LcpEntity::getRenderedSize).map(Object::toString).orElse("N/A");
+//                getLcpSize).map(Object::toString).orElse("N/A");
+        String lcpElement = lcpResults.map(LcpEntity::getElement).orElse("N/A");
+
+        String clsEntryType = clsResults.map(ClsEntity::getEntryType).orElse("N/A");
+        String clsStartTime = clsResults.map(ClsEntity::getStartTime).map(Object::toString).orElse("N/A");
+        String clsValue = clsResults.map(ClsEntity::getClsValue).map(Object::toString).orElse("N/A");
+        String clsHadRecentInp = clsResults.map(ClsEntity::getHadRecentInput).map(Object::toString).orElse("N/A");
+        String clsPreviousRect = clsResults.map(ClsEntity::getPreviousRect).orElse("N/A"); // 이거 없애야 함....
+        String sources = clsResults.map(ClsEntity::getSources).orElse("N/A");
+
+        String inpEntryType = inpResults.map(InpEntity::getEntryType).orElse("N/A");
+        String inpName = inpResults.map(InpEntity::getName).orElse("N/A");
+        String inpStartTime = inpResults.map(InpEntity::getStartTime).map(Object::toString).orElse("N/A");
+        String inpDuration = inpResults.map(InpEntity::getDuration).map(Object::toString).orElse("N/A");
+        String inpProcStart = inpResults.map(InpEntity::getStartTime).map(Object::toString).orElse("N/A");
+        String inpProcEnd = inpResults.map(InpEntity::getProcessingEnd).map(Object::toString).orElse("N/A");
+        String inpInteractionId = inpResults.map(InpEntity::getInteractionId).map(Object::toString).orElse("N/A");
+        String inpTarget = inpResults.map(InpEntity::getTarget).orElse("N/A");
+
+        String fcpEntryType = fcpResults.map(FcpEntity::getEntryType).orElse("N/A");
+        String fcpStartTime = fcpResults.map(FcpEntity::getStartTime).map(Object::toString).orElse("N/A");
+
+        String ttfbEntryType = ttfbResults.map(TtfbEntity::getEntryType).orElse("N/A");
+        String ttfbStartTime = ttfbResults.map(TtfbEntity::getStartTime).map(Object::toString).orElse("N/A");
+        String ttfbResponseStart = ttfbResults.map(TtfbEntity::getResponseStart).map(Object::toString).orElse("N/A");
+        String ttfbRequestStart = ttfbResults.map(TtfbEntity::getReqeustStart).map(Object::toString).orElse("N/A");
+        String ttfbDnsStart = ttfbResults.map(TtfbEntity::getDomainLookupStart).map(Object::toString).orElse("N/A");
+        String ttfbConnectStart = ttfbResults.map(TtfbEntity::getConnectStart).map(Object::toString).orElse("N/A");
+        String ttfbConnectEnd = ttfbResults.map(TtfbEntity::getConnectEnd).map(Object::toString).orElse("N/A");
 
 
 
-
-
-
-        return """
-                You are an IT security expert. I want advice on web performance analysis.\s
-                The LCP metric has a startTime of {1236}, a renderTime of {1236}, a size of {6496}, and the element is {h1.text-[30px].font-semibold}.\s
-                The CLS metric has an entryType of {'layout-shift'}, startTime of {1062.8999999985099}, a value of {0.0055210489993099869}, hadRecentInput of {false}, and sources of {node: body, currentRect: { 'x': 0, 'y': 0, 'width': 2898, 'height': 1426, 'top': 0, 'right': 2898, 'bottom': 1426, 'left': 0 }, previousRect: { 'x': 16, 'y': 16, 'width': 2866, 'height': 1394, 'top': 16, 'right': 2882, 'bottom': 1410, 'left': 16 } }.\s
-                The INP metric has an entryType of {'first-input'}, name of {'keydown'}, startTime of {7760.0999999996275}, duration of {48}, processingStart of {7794.199999999255}, processingEnd of {7800.799999998882}, interactionId of {9482}, and target of {body}.\s
-                The FCP metric has an entryType of {paint}, and startTime of {1236}.\s
-                The TTFB metric has an entryType of {navigation}, startTime of {0}, responseStart of {390.8999999985099}, requestStart of {77.69999999962747}, domainLookupStart of {77.09999999962747}, connectStart of {77.09999999962747}, and connectEnd of {77.39999999850988}.\s
-                Regarding these LCP, CLS, INP, FCP, and TTFB metrics, please provide the following in JSON format for each metric: A one-line summary of the areas needing improvement, A list of potential improvements, The estimated score improvement, The expected benefits, related metrics. Give it to me strictly in dictionary format, without any introductory phrases.
-                """.formatted(testId);
+        return String.format("You are an IT security expert. I want advice on web performance analysis." +
+                "The LCP metric has a startTime of %s, a renderTime of %s, a size of %s, and the element is %s." +
+                "The CLS metric has an entryType of %s, startTime of %s, a value of %s, hadRecentInput of %s, and sources of %s." +
+                "The INP metric has an entryType of %s, name of %s, startTime of %s, duration of %s, processingStart of %s, processingEnd of %s, interactionId of %s, and target of %s." +
+                "The FCP metric has an entryType of %s, and startTime of %s." +
+                "The TTFB metric has an entryType of %s, startTime of %s, responseStart of %s, requestStart of %s, domainLookupStart of %s, connectStart of %s, and connectEnd of %s." +
+                "Regarding these LCP, CLS, INP, FCP, and TTFB metrics, please provide the following in JSON format for each metric: " +
+                "A one-line summary of the areas needing improvement, A list of potential improvements, The estimated score improvement, The expected benefits, related metrics." +
+                "Give it to me strictly in dictionary format, without any introductory phrases.", lcpStartTime, lcpRenderTime, lcpSize, lcpElement,
+                clsEntryType, clsStartTime, clsValue, clsHadRecentInp, sources,
+                inpEntryType, inpName, inpStartTime, inpDuration, inpProcStart, inpProcEnd, inpInteractionId, inpInteractionId, inpTarget,
+                fcpEntryType, fcpStartTime,
+                ttfbEntryType, ttfbStartTime, ttfbResponseStart, ttfbRequestStart, ttfbDnsStart, ttfbConnectStart, ttfbConnectEnd
+                );
     }
 
 }

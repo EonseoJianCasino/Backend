@@ -1,4 +1,4 @@
-package com.test.webtest.domain.ai.entity.airecommendationentity;
+package com.test.webtest.domain.ai.entity;
 
 import jakarta.persistence.*;
 import java.time.OffsetDateTime;
