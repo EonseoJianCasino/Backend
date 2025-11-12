@@ -178,7 +178,7 @@ public class AiPersistService {
                 "A one-line summary of the areas needing improvement, A list of potential improvements, The estimated score improvement, The expected benefits, related metrics." +
                 "Give it to me strictly in dictionary format, without any introductory phrases.", lcpStartTime, lcpRenderTime, lcpSize, lcpElement,
                 clsEntryType, clsStartTime, clsValue, clsHadRecentInp, sources,
-                inpEntryType, inpName, inpStartTime, inpDuration, inpProcStart, inpProcEnd, inpInteractionId, inpInteractionId, inpTarget,
+                inpEntryType, inpName, inpStartTime, inpDuration, inpProcStart, inpProcEnd, inpInteractionId, inpTarget,
                 fcpEntryType, fcpStartTime,
                 ttfbEntryType, ttfbStartTime, ttfbResponseStart, ttfbRequestStart, ttfbDnsStart, ttfbConnectStart, ttfbConnectEnd
                 );
