@@ -2,11 +2,11 @@ package com.test.webtest.domain.priorities.service;
 
 import com.test.webtest.domain.priorities.dto.PrioritiesResponse;
 import com.test.webtest.domain.priorities.dto.PriorityDto;
-import com.test.webtest.domain.scores.entity.ScoresEntity;
 import com.test.webtest.domain.scores.repository.ScoresRepository;
-import com.test.webtest.domain.securityvitals.entity.SecurityVitalsEntity;
 import com.test.webtest.domain.securityvitals.repository.SecurityVitalsRepository;
 import com.test.webtest.domain.securityvitals.service.SecurityMessageService;
+import com.test.webtest.domain.urgentlevel.entity.UrgentLevelEntity;
+import com.test.webtest.domain.urgentlevel.repository.UrgentLevelRepository;
 import com.test.webtest.domain.webvitals.entity.WebVitalsEntity;
 import com.test.webtest.domain.webvitals.repository.WebVitalsRepository;
 import com.test.webtest.global.common.util.ScoreCalculator;
@@ -30,40 +30,18 @@ public class PrioritiesServiceImpl implements PrioritiesService {
     private final SecurityVitalsRepository securityRepository;
     private final SecurityMessageService securityMessageService;
     private final ScoresRepository scoresRepository;
+    private final UrgentLevelRepository urgentLevelRepository;
 
     private static final Set<String> WEB_METRICS = Set.of("LCP", "CLS", "INP", "FCP", "TTFB");
-
-    private int getWebScoreByName(ScoreCalculator.WebScores scores, String metricName) {
-        return switch (metricName) {
-            case "LCP" -> scores.lcp();
-            case "CLS" -> scores.cls();
-            case "INP" -> scores.inp();
-            case "FCP" -> scores.fcp();
-            case "TTFB" -> scores.ttfb();
-            default -> 0;
-        };
-    }
 
     @Override
     public PrioritiesResponse getBottom3(UUID testId) {
         var scoresEntity = scoresRepository.findByTestId(testId).orElse(null);
         var sec = securityRepository.findByTest_Id(testId).orElse(null);
         var web = webRepository.findByTest_Id(testId).orElse(null);
+        var urgentLevel = urgentLevelRepository.findByTestId(testId).orElse(null);
 
         var bottom3Metrics = scoreCalculator.bottom3(scoresEntity, sec);
-
-        // WebScores는 ScoresEntity에서 가져오거나, 없으면 계산
-        ScoreCalculator.WebScores webScores;
-        if (scoresEntity != null) {
-            webScores = new ScoreCalculator.WebScores(
-                    scoresEntity.getLcpScore() != null ? scoresEntity.getLcpScore() : 0,
-                    scoresEntity.getClsScore() != null ? scoresEntity.getClsScore() : 0,
-                    scoresEntity.getInpScore() != null ? scoresEntity.getInpScore() : 0,
-                    scoresEntity.getFcpScore() != null ? scoresEntity.getFcpScore() : 0,
-                    scoresEntity.getTtfbScore() != null ? scoresEntity.getTtfbScore() : 0);
-        } else {
-            webScores = scoreCalculator.toWebScores(web);
-        }
 
         List<PriorityDto> items = new ArrayList<>();
         int webVitalCount = 0;
@@ -72,7 +50,7 @@ public class PrioritiesServiceImpl implements PrioritiesService {
         for (String metric : bottom3Metrics) {
             if (WEB_METRICS.contains(metric)) {
                 webVitalCount++;
-                items.add(getWebVitalDummy(web, webScores, scoresEntity, metric, rank++));
+                items.add(getWebVitalDummy(web, urgentLevel, metric, rank++));
             } else {
                 String message = securityMessageService.getMessageByMetric(sec, metric);
                 items.add(PriorityDto.builder()
@@ -93,101 +71,84 @@ public class PrioritiesServiceImpl implements PrioritiesService {
                 .build();
     }
 
-    private PriorityDto getWebVitalDummy(WebVitalsEntity web, ScoreCalculator.WebScores webScores,
-            ScoresEntity scoresEntity, String metric, int rank) {
-        int score = getWebScoreByName(webScores, metric);
-
-        // ScoresEntity에서 저장된 status 사용 (GOOD, WARNING, URGENT)
-        String status = getStatusFromScoresEntity(scoresEntity, metric);
+    private PriorityDto getWebVitalDummy(WebVitalsEntity web, UrgentLevelEntity urgentLevel,
+            String metric, int rank) {
+        // UrgentLevelEntity에서 저장된 status 사용 (GOOD, POOR, WARNING)
+        String status = getStatusFromUrgentLevel(urgentLevel, metric);
 
         if (web == null) {
             return PriorityDto.builder()
                     .type("PERFORMANCE")
                     .metric(metric)
-                    .reason(String.format("좋은 지표의 %d%% 수준입니다", score))
+                    .reason(null)
                     .rank(rank)
                     .value(null)
-                    .status(status)
+                    .urgentLevel(status)
                     .build();
         }
 
         return switch (metric) {
-            case "LCP" -> {
-                Double value = web.getLcp();
-                yield PriorityDto.builder()
-                        .type("PERFORMANCE")
-                        .metric("LCP")
-                        .reason(String.format("좋은 지표의 %d%% 수준입니다", score))
-                        .rank(rank)
-                        .value(value)
-                        .status(status)
-                        .build();
-            }
-            case "CLS" -> {
-                Double value = web.getCls();
-                yield PriorityDto.builder()
-                        .type("PERFORMANCE")
-                        .metric("CLS")
-                        .reason(String.format("좋은 지표의 %d%% 수준입니다", score))
-                        .rank(rank)
-                        .value(value)
-                        .status(status)
-                        .build();
-            }
-            case "INP" -> {
-                Double value = web.getInp();
-                yield PriorityDto.builder()
-                        .type("PERFORMANCE")
-                        .metric("INP")
-                        .reason(String.format("좋은 지표의 %d%% 수준입니다", score))
-                        .rank(rank)
-                        .value(value)
-                        .status(status)
-                        .build();
-            }
-            case "FCP" -> {
-                Double value = web.getFcp();
-                yield PriorityDto.builder()
-                        .type("PERFORMANCE")
-                        .metric("FCP")
-                        .reason(String.format("좋은 지표의 %d%% 수준입니다", score))
-                        .rank(rank)
-                        .value(value)
-                        .status(status)
-                        .build();
-            }
-            case "TTFB" -> {
-                Double value = web.getTtfb();
-                yield PriorityDto.builder()
-                        .type("PERFORMANCE")
-                        .metric("TTFB")
-                        .reason(String.format("좋은 지표의 %d%% 수준입니다", score))
-                        .rank(rank)
-                        .value(value)
-                        .status(status)
-                        .build();
-            }
+            case "LCP" -> PriorityDto.builder()
+                    .type("PERFORMANCE")
+                    .metric("LCP")
+                    .reason(null)
+                    .rank(rank)
+                    .value(null)
+                    .urgentLevel(status)
+                    .build();
+            case "CLS" -> PriorityDto.builder()
+                    .type("PERFORMANCE")
+                    .metric("CLS")
+                    .reason(null)
+                    .rank(rank)
+                    .value(null)
+                    .urgentLevel(status)
+                    .build();
+            case "INP" -> PriorityDto.builder()
+                    .type("PERFORMANCE")
+                    .metric("INP")
+                    .reason(null)
+                    .rank(rank)
+                    .value(null)
+                    .urgentLevel(status)
+                    .build();
+            case "FCP" -> PriorityDto.builder()
+                    .type("PERFORMANCE")
+                    .metric("FCP")
+                    .reason(null)
+                    .rank(rank)
+                    .value(null)
+                    .urgentLevel(status)
+                    .build();
+            case "TTFB" -> PriorityDto.builder()
+                    .type("PERFORMANCE")
+                    .metric("TTFB")
+                    .reason(null)
+                    .rank(rank)
+                    .value(null)
+                    .urgentLevel(status)
+                    .build();
             default -> PriorityDto.builder()
                     .type("PERFORMANCE")
                     .metric(metric)
-                    .reason("정보 없음")
+                    .reason(null)
                     .rank(rank)
                     .value(null)
-                    .status(status)
+                    .urgentLevel(status)
                     .build();
         };
     }
 
-    private String getStatusFromScoresEntity(ScoresEntity scoresEntity, String metric) {
-        if (scoresEntity == null)
+    private String getStatusFromUrgentLevel(UrgentLevelEntity urgentLevel, String metric) {
+        if (urgentLevel == null)
             return null;
 
         return switch (metric) {
-            case "LCP" -> scoresEntity.getLcpStatus();
-            case "CLS" -> scoresEntity.getClsStatus();
-            case "INP" -> scoresEntity.getInpStatus();
-            case "FCP" -> scoresEntity.getFcpStatus();
-            case "TTFB" -> scoresEntity.getTtfbStatus();
+            case "LCP" -> urgentLevel.getLcpStatus();
+            case "CLS" -> urgentLevel.getClsStatus();
+            case "INP" -> urgentLevel.getInpStatus();
+            case "FCP" -> urgentLevel.getFcpStatus();
+            case "TTFB" -> urgentLevel.getTtfbStatus();
             default -> null;
         };
     }

@@ -7,6 +7,8 @@ import com.test.webtest.domain.securityvitals.entity.SecurityVitalsEntity;
 import com.test.webtest.domain.securityvitals.repository.SecurityVitalsRepository;
 import com.test.webtest.domain.test.entity.TestEntity;
 import com.test.webtest.domain.test.repository.TestRepository;
+import com.test.webtest.domain.urgentlevel.entity.UrgentLevelEntity;
+import com.test.webtest.domain.urgentlevel.repository.UrgentLevelRepository;
 import com.test.webtest.domain.webvitals.entity.WebVitalsEntity;
 import com.test.webtest.domain.webvitals.repository.WebVitalsRepository;
 import com.test.webtest.global.common.util.ScoreCalculator;
@@ -30,6 +32,7 @@ public class ScoresServiceImpl implements ScoresService {
     private final SecurityVitalsRepository securityVitalsRepository;
     private final TestRepository testRepository;
     private final ScoreCalculator scoreCalculator;
+    private final UrgentLevelRepository urgentLevelRepository;
 
     @Override
     @Transactional
@@ -57,22 +60,34 @@ public class ScoresServiceImpl implements ScoresService {
 
         TestEntity test = testRepository.getReferenceById(testId);
 
+        // Scores 저장 (점수만 저장)
         scoresRepository.findByTestId(testId).ifPresentOrElse(
                 found -> {
                     found.update(total,
                             webScore.lcp(), webScore.cls(), webScore.inp(),
-                            webScore.fcp(), webScore.ttfb(),
-                            lcpStatus, clsStatus, inpStatus, fcpStatus, ttfbStatus);
+                            webScore.fcp(), webScore.ttfb());
                     log.info("[SCORES] updated testId={} total={}", testId, total);
                 },
                 () -> {
                     ScoresEntity created = ScoresEntity.create(
                             test, total,
                             webScore.lcp(), webScore.cls(), webScore.inp(),
-                            webScore.fcp(), webScore.ttfb(),
-                            lcpStatus, clsStatus, inpStatus, fcpStatus, ttfbStatus);
+                            webScore.fcp(), webScore.ttfb());
                     scoresRepository.save(created);
                     log.info("[SCORES] inserted testId={} total={}", testId, total);
+                });
+
+        // UrgentLevel 저장 (status만 저장)
+        urgentLevelRepository.findByTestId(testId).ifPresentOrElse(
+                found -> {
+                    found.update(lcpStatus, clsStatus, inpStatus, fcpStatus, ttfbStatus);
+                    log.info("[URGENT_LEVEL] updated testId={}", testId);
+                },
+                () -> {
+                    UrgentLevelEntity created = UrgentLevelEntity.create(
+                            test, lcpStatus, clsStatus, inpStatus, fcpStatus, ttfbStatus);
+                    urgentLevelRepository.save(created);
+                    log.info("[URGENT_LEVEL] inserted testId={}", testId);
                 });
     }
 

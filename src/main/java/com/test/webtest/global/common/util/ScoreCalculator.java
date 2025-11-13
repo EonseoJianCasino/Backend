@@ -59,7 +59,7 @@ public class ScoreCalculator {
         return Math.max(0.0, Math.min(100.0, score));
     }
 
-    /** Status 계산: good 이하면 GOOD, poor 이상이면 URGENT, 나머지는 WARNING */
+    /** Status 계산: good 이하면 GOOD, good과 poor 사이는 WARNING, poor 이상이면 POOR */
     public String calculateStatus(Double value, WebVitalsThreshold metric) {
         if (value == null)
             return null;
@@ -70,7 +70,7 @@ public class ScoreCalculator {
         if (value <= good) {
             return "GOOD";
         } else if (value >= poor) {
-            return "URGENT";
+            return "POOR";
         } else {
             return "WARNING";
         }
