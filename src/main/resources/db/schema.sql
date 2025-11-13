@@ -136,25 +136,65 @@ CREATE TABLE IF NOT EXISTS priorities (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
--- ai_recommendations
-CREATE TABLE IF NOT EXISTS ai_recommendations (
-  id            uuid PRIMARY KEY,
-  test_id       uuid NOT NULL REFERENCES tests(id) ON DELETE CASCADE,
-  type          varchar(20) NOT NULL, -- PERF / SEC
-  metric        varchar(50),
-  title         varchar(200) NOT NULL,
-  content       text NOT NULL,
-  created_at    timestamptz NOT NULL DEFAULT now()
+---- ai_recommendations
+--CREATE TABLE IF NOT EXISTS ai_recommendations (
+--  id            uuid PRIMARY KEY,
+--  test_id       uuid NOT NULL REFERENCES tests(id) ON DELETE CASCADE,
+--  type          varchar(20) NOT NULL, -- PERF / SEC
+--  metric        varchar(50),
+--  title         varchar(200) NOT NULL,
+--  content       text NOT NULL,
+--  created_at    timestamptz NOT NULL DEFAULT now()
+--);
+--
+---- ai_expectations
+--CREATE TABLE IF NOT EXISTS ai_expectations (
+--  id           uuid PRIMARY KEY,
+--  test_id      uuid NOT NULL REFERENCES tests(id) ON DELETE CASCADE,
+--  metric       varchar(50) NOT NULL, -- LCP, CSP, INP...
+--  content      text NOT NULL,
+--  created_at   timestamptz NOT NULL DEFAULT now()
+--);
+
+
+CREATE TABLE ai_metric_advice (
+    id           CHAR(36)    NOT NULL PRIMARY KEY,    -- UUID
+    test_id      CHAR(36)    NOT NULL,                -- 테스트 ID (FK)
+    metric       VARCHAR(20) NOT NULL,                -- 'LCP', 'CLS', 'INP', 'FCP', 'TTFB'
+    summary      TEXT        NULL,                    -- summary_of_improvement_areas
+    estimated_label VARCHAR(255) NULL,                -- estimated_score_improvement 원문
+    created_at   TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- ai_expectations
-CREATE TABLE IF NOT EXISTS ai_expectations (
-  id           uuid PRIMARY KEY,
-  test_id      uuid NOT NULL REFERENCES tests(id) ON DELETE CASCADE,
-  metric       varchar(50) NOT NULL, -- LCP, CSP, INP...
-  content      text NOT NULL,
-  created_at   timestamptz NOT NULL DEFAULT now()
+CREATE TABLE ai_metric_improvement (
+    id        BIGINT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    advice_id CHAR(36)    NOT NULL,           -- ai_metric_advice.id (UUID)
+    ord       INT         NOT NULL,           -- 리스트 내 순서 (0,1,2,...)
+    text      TEXT        NOT NULL,
+    CONSTRAINT fk_improvement_advice
+        FOREIGN KEY (advice_id) REFERENCES ai_metric_advice(id)
 );
+
+
+CREATE TABLE ai_metric_benefit (
+    id        BIGINT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    advice_id CHAR(36)    NOT NULL,
+    ord       INT         NOT NULL,
+    text      TEXT        NOT NULL,
+    CONSTRAINT fk_benefit_advice
+        FOREIGN KEY (advice_id) REFERENCES ai_metric_advice(id)
+);
+
+CREATE TABLE ai_metric_related_metric (
+    id          BIGINT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    advice_id   CHAR(36)    NOT NULL,
+    ord         INT         NOT NULL,
+    metric_text VARCHAR(50) NOT NULL, -- "FCP", "TTFB", "FID", ...
+    CONSTRAINT fk_related_metric_advice
+        FOREIGN KEY (advice_id) REFERENCES ai_metric_advice(id)
+);
+
+
 
 -- logic_status
 CREATE TABLE IF NOT EXISTS logic_status (
