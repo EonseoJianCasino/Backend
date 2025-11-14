@@ -11,20 +11,14 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate
-    properties:
-      hibernate:
-        format_sql: true
-        jdbc.time_zone: UTC
-    defer-datasource-initialization: true   # [추가] schema.sql 먼저 실행
+      ddl-auto: none   # schema.sql에만 테이블 생성 맡기기 (validate 말고 none 추천)
 
   sql:
     init:
-      mode: always                          # [추가] compose 환경에서는 schema.sql 적용
+      mode: always                             # Postgres라서 이거 필수
       schema-locations: classpath:db/schema.sql
-  flyway:
-    enabled: false
+      # data-locations: classpath:db/data.sql  # 더미데이터 있으면 나중에 추가
 
 logging:
   level:
-    root: INFO
+    org.springframework.jdbc.datasource.init: DEBUG   # schema.sql 실행 로그 확인용
