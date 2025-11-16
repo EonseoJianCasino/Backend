@@ -29,14 +29,13 @@ public interface LogicStatusRepository extends JpaRepository<LogicStatusEntity, 
         """, nativeQuery = true)
     List<Object[]> markSecReceived(@Param("testId") UUID testId);
 
-    // 3) 점수 준비 마킹 (경합 방지)
+    // 3) 점수 준비 마킹 (경합 방지) - Web Vitals만 있어도 실행
     @Modifying
     @Query(value = """
         UPDATE logic_status
            SET scores_ready = TRUE, updated_at = now()
          WHERE test_id = :testId
            AND web_received = TRUE
-           AND sec_received = TRUE
            AND scores_ready = FALSE
         RETURNING scores_ready
         """, nativeQuery = true)

@@ -14,11 +14,22 @@ public class WebVitalsMessageService {
                 e.getCls(),  msg(e.getCls(),  WebVitalsThreshold.CLS),
                 e.getInp(),  msg(e.getInp(),  WebVitalsThreshold.INP),
                 e.getFcp(),  msg(e.getFcp(),  WebVitalsThreshold.FCP),
-                e.getTbt(),  msg(e.getTbt(),  WebVitalsThreshold.TBT),
                 e.getTtfb(), msg(e.getTtfb(), WebVitalsThreshold.TTFB),
                 e.getCreatedAt()
         );
     }
+
+	public String getStatus(Double value, WebVitalsThreshold th) {
+		if (value == null) return null;
+
+		if (value <= th.getGood()) {
+			return "양호";
+		}
+		else if (value >= th.getPoor()) {
+			return "긴급";
+		}
+		return "주의";
+	}
 
     private String msg(Double value, WebVitalsThreshold th) {
         if (value == null) return null;

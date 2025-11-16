@@ -20,7 +20,6 @@ import com.test.webtest.global.sse.SseEventPublisher;
 import jakarta.persistence.LockTimeoutException;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.PessimisticLockException;
-import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -38,13 +37,10 @@ import java.util.UUID;
 public class LogicStatusServiceImpl {
     private final LogicStatusRepository repo;
     private final ScoresRepository scoresRepository;
-
     private final SecurityVitalsRepository securityVitalsRepository;
     private final WebVitalsRepository webVitalsRepository;
-
     private final SecurityMessageService securityMessageService;
     private final WebVitalsMessageService webVitalsMessageService;
-
     private final com.test.webtest.domain.scores.service.ScoresService scoresService;
     private final AiRecommendationService aiService;
     private final LongPollingManager longPollingManager;
@@ -54,7 +50,7 @@ public class LogicStatusServiceImpl {
         try {
             // 1) 채널 플래그 마킹 (조건부 UPDATE)
             switch (channel) {
-                case WEB      -> repo.markWebReceived(testId);
+                case WEB -> repo.markWebReceived(testId);
                 case SECURITY -> repo.markSecReceived(testId);
             }
 
@@ -63,32 +59,41 @@ public class LogicStatusServiceImpl {
             if (scoresMarked) {
                 scoresService.calcAndSave(testId);
 
-                // 커밋 후 CORE_READY 롱폴 알림
-                TxAfterCommit.run(() -> {
-                    log.info("[LONPOLL][CORE_READY] triggered for testId={}", testId);
-                    longPollingManager.complete(
-                            new WaitKey(testId, LongPollingTopic.CORE_READY),
-                            new PhaseReadyPayload(LongPollingTopic.CORE_READY, testId, Instant.now())
-                    );
+                // 3) 커밋 이후 T2 전송
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        var secOpt = securityVitalsRepository.findByTest_Id(testId);
+                        var webOpt = webVitalsRepository.findByTest_Id(testId);
+                        var scOpt = scoresRepository.findByTestId(testId);
+
+                        var secView = secOpt.map(securityMessageService::toView).orElse(null);
+                        var webView = webOpt.map(webVitalsMessageService::toView).orElse(null);
+
+                        int total = scOpt.map(ScoresEntity::getTotal).orElse(0);
+                        int lcp = scOpt.map(ScoresEntity::getLcpScore).orElse(0);
+                        int cls = scOpt.map(ScoresEntity::getClsScore).orElse(0);
+                        int inp = scOpt.map(ScoresEntity::getInpScore).orElse(0);
+                        int fcp = scOpt.map(ScoresEntity::getFcpScore).orElse(0);
+                        int ttfb = scOpt.map(ScoresEntity::getTtfbScore).orElse(0);
+
+                        var payload = new T2Payload(
+                                new T2Payload.Scores(total, lcp, cls, inp, fcp, ttfb),
+                                secView,
+                                webView);
+
+                        sse.publishTestPayload(testId.toString(), payload);
+                    }
                 });
             }
 
             // 4) AI 트리거 (조건 충족 시)
             boolean aiMarked = markAiTriggeredIfEligible(testId);
-            if (aiMarked) {
+            if (aiMarked)
                 aiService.invokeAsync(testId);
 
-                // 커밋 후 AI_READY 롱폴 알림
-                TxAfterCommit.run(() -> {
-                    log.info("[LONGPOLL][AI_READY] triggered for testId={}", testId);
-                    longPollingManager.complete(
-                            new WaitKey(testId, LongPollingTopic.AI_READY),
-                            new PhaseReadyPayload(LongPollingTopic.AI_READY, testId, Instant.now())
-                    );
-                });
-            }
         } catch (PessimisticLockException | LockTimeoutException
-                 | PessimisticLockingFailureException e) {
+                | PessimisticLockingFailureException e) {
             // DB 락/타임아웃 → 409로 매핑
             throw new ConcurrencyException("동시 처리 충돌: testId=" + testId);
         }

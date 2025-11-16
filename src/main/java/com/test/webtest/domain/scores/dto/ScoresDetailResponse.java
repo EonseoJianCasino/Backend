@@ -9,7 +9,6 @@ public record ScoresDetailResponse(
         @JsonProperty("cls_score")  int clsScore,
         @JsonProperty("inp_score")  int inpScore,
         @JsonProperty("fcp_score")  int fcpScore,
-        @JsonProperty("tbt_score")  int tbtScore,
         @JsonProperty("ttfb_score") int ttfbScore
 ) {
     public static ScoresDetailResponse from(ScoresEntity e) {
@@ -19,7 +18,6 @@ public record ScoresDetailResponse(
                 n(e.getClsScore()),
                 n(e.getInpScore()),
                 n(e.getFcpScore()),
-                n(e.getTbtScore()),
                 n(e.getTtfbScore())
         );
     }

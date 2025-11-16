@@ -20,7 +20,6 @@ CREATE TABLE IF NOT EXISTS web_vitals (
   fcp        double precision,
   ttfb       double precision,
   inp        double precision,
-  tbt        double precision,
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
@@ -61,11 +60,22 @@ CREATE TABLE IF NOT EXISTS scores (
   cls_score    int,
   inp_score    int,
   fcp_score    int,
-  tbt_score    int,
   ttfb_score   int,
   created_at   timestamptz NOT NULL DEFAULT now()
 );
 
+
+-- urgent_level -- GOOD, POOR, WARNING
+CREATE TABLE IF NOT EXISTS urgent_level (
+  id         uuid PRIMARY KEY,
+  test_id    uuid NOT NULL REFERENCES tests(id) ON DELETE CASCADE,
+  lcp_status varchar(10), 
+  cls_status varchar(10),
+  inp_status varchar(10),
+  fcp_status varchar(10),
+  ttfb_status varchar(10),
+  created_at timestamptz NOT NULL DEFAULT now()
+);
 -- priorities
 CREATE TABLE IF NOT EXISTS priorities (
   id         uuid PRIMARY KEY,
