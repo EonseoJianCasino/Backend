@@ -11,8 +11,14 @@ import com.test.webtest.domain.webvitals.repository.WebVitalsRepository;
 import com.test.webtest.domain.webvitals.service.WebVitalsMessageService;
 import com.test.webtest.global.common.constants.Channel;
 import com.test.webtest.global.error.exception.ConcurrencyException;
+import com.test.webtest.global.longpoll.LongPollingManager;
+import com.test.webtest.global.longpoll.LongPollingTopic;
+import com.test.webtest.global.longpoll.TxAfterCommit;
+import com.test.webtest.global.longpoll.WaitKey;
+import com.test.webtest.global.longpoll.payload.PhaseReadyPayload;
 import com.test.webtest.global.sse.SseEventPublisher;
 import jakarta.persistence.LockTimeoutException;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.PessimisticLockException;
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,11 +27,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class LogicStatusServiceImpl {
     private final LogicStatusRepository repo;
     private final ScoresRepository scoresRepository;
@@ -35,7 +43,7 @@ public class LogicStatusServiceImpl {
     private final WebVitalsMessageService webVitalsMessageService;
     private final com.test.webtest.domain.scores.service.ScoresService scoresService;
     private final AiRecommendationService aiService;
-    private final SseEventPublisher sse;
+    private final LongPollingManager longPollingManager;
 
     @Transactional
     public void onPartialUpdate(UUID testId, Channel channel) {
