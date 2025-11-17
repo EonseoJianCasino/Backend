@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+
+@Getter
 @Entity
 @Table(name = "ai_metric_advice")
 public class AiMetricAdvice {
@@ -19,31 +21,31 @@ public class AiMetricAdvice {
     @Column(name = "test_id", nullable = false)
     private UUID testId;
 
-    @Getter
+//    @Getter
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Metric metric; // LCP / CLS / ...
 
-    @Getter
+//    @Getter
     @Column(name = "summary", columnDefinition = "text")
     private String summary;
 
-    @Getter
+//    @Getter
     @Column(name = "estimated_label", length = 255)
     private String estimatedLabel; // estimated_score_improvement 원문
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private OffsetDateTime createdAt;
 
-    @Getter
+//    @Getter
     @OneToMany(mappedBy = "advice", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AiMetricImprovement> improvements = new ArrayList<>();
-
-    @Getter
+//
+//    @Getter
     @OneToMany(mappedBy = "advice", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AiMetricBenefit> benefits = new ArrayList<>();
 
-    @Getter
+//    @Getter
     @OneToMany(mappedBy = "advice", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AiMetricRelatedMetric> relatedMetrics = new ArrayList<>();
 
@@ -75,5 +77,29 @@ public class AiMetricAdvice {
         AiMetricRelatedMetric r = new AiMetricRelatedMetric(this, ord, metricText);
         relatedMetrics.add(r);
     }
+
+//    public Metric getMetric() {
+//        return metric;
+//    }
+//
+//    public String getSummary() {
+//        return summary;
+//    }
+//
+//    public String getEstimatedLabel() {
+//        return estimatedLabel;
+//    }
+//
+//    public List<AiMetricImprovement> getImprovements() {
+//        return improvements;
+//    }
+//
+//    public List<AiMetricBenefit> getBenefits() {
+//        return benefits;
+//    }
+//
+//    public List<AiMetricRelatedMetric> getRelatedMetrics() {
+//        return relatedMetrics;
+//    }
 
 }

@@ -1,6 +1,11 @@
 package com.test.webtest.domain.ai.entity;
 
 
+import jakarta.persistence.*;
+import lombok.Getter;
+
+
+@Getter
 @Entity
 @Table(name = "ai_metric_related_metric")
 public class AiMetricRelatedMetric {
@@ -13,9 +18,11 @@ public class AiMetricRelatedMetric {
     @JoinColumn(name = "advice_id", nullable = false)
     private AiMetricAdvice advice;
 
+//    @Getter
     @Column(nullable = false)
     private int ord;
 
+//    @Getter
     @Column(name = "metric_text", length = 50, nullable = false)
     private String metricText;
 
