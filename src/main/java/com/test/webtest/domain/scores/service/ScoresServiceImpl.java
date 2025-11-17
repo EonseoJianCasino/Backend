@@ -7,8 +7,7 @@ import com.test.webtest.domain.securityvitals.entity.SecurityVitalsEntity;
 import com.test.webtest.domain.securityvitals.repository.SecurityVitalsRepository;
 import com.test.webtest.domain.test.entity.TestEntity;
 import com.test.webtest.domain.test.repository.TestRepository;
-import com.test.webtest.domain.urgentlevel.entity.UrgentLevelEntity;
-import com.test.webtest.domain.urgentlevel.repository.UrgentLevelRepository;
+import com.test.webtest.domain.urgentlevel.service.UrgentLevelService;
 import com.test.webtest.domain.webvitals.entity.WebVitalsEntity;
 import com.test.webtest.domain.webvitals.repository.WebVitalsRepository;
 import com.test.webtest.global.common.util.ScoreCalculator;
@@ -32,7 +31,8 @@ public class ScoresServiceImpl implements ScoresService {
     private final SecurityVitalsRepository securityVitalsRepository;
     private final TestRepository testRepository;
     private final ScoreCalculator scoreCalculator;
-    private final UrgentLevelRepository urgentLevelRepository;
+    private final UrgentLevelService urgentLevelService; // 새 서비스
+
 
     @Override
     @Transactional
@@ -47,6 +47,8 @@ public class ScoresServiceImpl implements ScoresService {
         SecurityVitalsEntity sec = securityVitalsRepository.findByTest_Id(testId).orElse(null);
 
         var webScore = scoreCalculator.toWebScores(web); // null 안전 (이전 답변 반영)
+        var secScores = scoreCalculator.toSecurityScores(sec);
+
         int securityHalf = scoreCalculator.toSecurityHalfScore(sec);
         int total = scoreCalculator.total(webScore, securityHalf);
 
@@ -63,32 +65,39 @@ public class ScoresServiceImpl implements ScoresService {
         // Scores 저장 (점수만 저장)
         scoresRepository.findByTestId(testId).ifPresentOrElse(
                 found -> {
-                    found.update(total,
+                    found.update(
+                            total,
                             webScore.lcp(), webScore.cls(), webScore.inp(),
-                            webScore.fcp(), webScore.ttfb());
+                            webScore.fcp(), webScore.ttfb(),
+                            secScores.hsts(),
+                            secScores.frameAncestorsOrXfo(),
+                            secScores.ssl(),
+                            secScores.xcto(),
+                            secScores.referrerPolicy(),
+                            secScores.cookies(),
+                            secScores.csp()
+                    );
                     log.info("[SCORES] updated testId={} total={}", testId, total);
                 },
                 () -> {
                     ScoresEntity created = ScoresEntity.create(
-                            test, total,
+                            test,
+                            total,
                             webScore.lcp(), webScore.cls(), webScore.inp(),
-                            webScore.fcp(), webScore.ttfb());
+                            webScore.fcp(), webScore.ttfb(),
+                            secScores.hsts(),
+                            secScores.frameAncestorsOrXfo(),
+                            secScores.ssl(),
+                            secScores.xcto(),
+                            secScores.referrerPolicy(),
+                            secScores.cookies(),
+                            secScores.csp()
+                    );
                     scoresRepository.save(created);
                     log.info("[SCORES] inserted testId={} total={}", testId, total);
                 });
 
-        // UrgentLevel 저장 (status만 저장)
-        urgentLevelRepository.findByTestId(testId).ifPresentOrElse(
-                found -> {
-                    found.update(lcpStatus, clsStatus, inpStatus, fcpStatus, ttfbStatus);
-                    log.info("[URGENT_LEVEL] updated testId={}", testId);
-                },
-                () -> {
-                    UrgentLevelEntity created = UrgentLevelEntity.create(
-                            test, lcpStatus, clsStatus, inpStatus, fcpStatus, ttfbStatus);
-                    urgentLevelRepository.save(created);
-                    log.info("[URGENT_LEVEL] inserted testId={}", testId);
-                });
+        urgentLevelService.calcAndSave(testId);
     }
 
     @Override

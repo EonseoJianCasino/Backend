@@ -61,6 +61,13 @@ CREATE TABLE IF NOT EXISTS scores (
   inp_score    int,
   fcp_score    int,
   ttfb_score   int,
+  hsts_score               int,
+  frame_ancestors_score    int,
+  ssl_score                int,
+  xcto_score               int,
+  referrer_policy_score    int,
+  cookies_score            int,
+  csp_score                int,
   created_at   timestamptz NOT NULL DEFAULT now()
 );
 
@@ -74,6 +81,13 @@ CREATE TABLE IF NOT EXISTS urgent_level (
   inp_status varchar(10),
   fcp_status varchar(10),
   ttfb_status varchar(10),
+   hsts_status              varchar(10),
+  frame_ancestors_status   varchar(20),
+  ssl_status               varchar(10),
+  xcto_status              varchar(10),
+  referrer_policy_status   varchar(20),
+  cookies_status           varchar(10),
+  csp_status               varchar(10),
   created_at timestamptz NOT NULL DEFAULT now()
 );
 -- priorities

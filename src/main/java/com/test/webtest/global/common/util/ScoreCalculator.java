@@ -22,6 +22,8 @@ public class ScoreCalculator {
         this.securityRules = securityRules;
     }
 
+    public enum UrgentStatus { GOOD, WARNING, POOR }
+
     /** 웹 성능 지표(LCP, CLS, INP, FCP, TTFB)를 0~100 점수로 환산하여 묶어서 반환 */
     public WebScores toWebScores(@Nullable WebVitalsEntity web) {
         if (web == null) {
@@ -59,8 +61,8 @@ public class ScoreCalculator {
         return Math.max(0.0, Math.min(100.0, score));
     }
 
-    /** Status 계산: good 이하면 GOOD, good과 poor 사이는 WARNING, poor 이상이면 POOR */
-    public String calculateStatus(Double value, WebVitalsThreshold metric) {
+    // ---- Web 긴급도 ----
+    public UrgentStatus calculateUrgentStatus(Double value, WebVitalsThreshold metric) {
         if (value == null)
             return null;
 
@@ -68,12 +70,38 @@ public class ScoreCalculator {
         double poor = metric.getPoor();
 
         if (value <= good) {
-            return "GOOD";
+            return UrgentStatus.GOOD;
         } else if (value >= poor) {
-            return "POOR";
+            return UrgentStatus.POOR;
         } else {
-            return "WARNING";
+            return UrgentStatus.WARNING;
         }
+    }
+
+    public String calculateStatus(Double value, WebVitalsThreshold metric) {
+        UrgentStatus s = calculateUrgentStatus(value, metric);
+        return (s == null) ? null : s.name();
+    }
+
+    public Map<String, UrgentStatus> webUrgentStatuses(@Nullable WebVitalsEntity web) {
+        Map<String, UrgentStatus> map = new LinkedHashMap<>();
+
+        if (web == null) {
+            map.put("LCP", UrgentStatus.POOR);
+            map.put("CLS", UrgentStatus.POOR);
+            map.put("INP", UrgentStatus.POOR);
+            map.put("FCP", UrgentStatus.POOR);
+            map.put("TTFB", UrgentStatus.POOR);
+            return map;
+        }
+
+        map.put("LCP",  calculateUrgentStatus(web.getLcp(),  WebVitalsThreshold.LCP));
+        map.put("CLS",  calculateUrgentStatus(web.getCls(),  WebVitalsThreshold.CLS));
+        map.put("INP",  calculateUrgentStatus(web.getInp(),  WebVitalsThreshold.INP));
+        map.put("FCP",  calculateUrgentStatus(web.getFcp(),  WebVitalsThreshold.FCP));
+        map.put("TTFB", calculateUrgentStatus(web.getTtfb(), WebVitalsThreshold.TTFB));
+
+        return map;
     }
 
     /** 웹 지표를 0~50점(가중치 포함)으로 환산 */
@@ -86,30 +114,87 @@ public class ScoreCalculator {
         return (int) Math.round(total); // 0~50
     }
 
-    public int toWebHalfScore(@Nullable WebVitalsEntity web) {
-        return toWebHalfScore(toWebScores(web));
+    public record SecurityScores(
+            int hsts,
+            int frameAncestorsOrXfo,
+            int ssl,
+            int xcto,
+            int referrerPolicy,
+            int cookies,
+            int csp
+    ) {}
+
+    /** 보안 지표별 원시 점수(0~100)를 그대로 DTO로 묶어서 반환 */
+    public SecurityScores toSecurityScores(@Nullable SecurityVitalsEntity sec) {
+        if (sec == null) {
+            // 보안 데이터 자체가 없으면 전부 0점
+            return new SecurityScores(0, 0, 0, 0, 0, 0, 0);
+        }
+
+        int hstsRaw   = securityRules.scoreHsts(sec);                  // 0 / 50 / 100
+        int xfoFaRaw  = securityRules.scoreXfoOrFrameAncestors(sec);   // 0 / 100
+        int sslRaw    = securityRules.scoreSsl(sec);                   // 0 / 70 / 100
+        int xctoRaw   = securityRules.scoreXContentTypeOptions(sec);   // 0 / 100
+        int rpRaw     = securityRules.scoreReferrerPolicy(sec);        // 0 / 50 / 100
+        int cookieRaw = securityRules.scoreCookies(sec);               // 0 / 40 / 70 / 100
+        int cspRaw    = securityRules.scoreCsp(sec);                   // 0 / 50 / 100
+
+        return new SecurityScores(
+                hstsRaw,
+                xfoFaRaw,
+                sslRaw,
+                xctoRaw,
+                rpRaw,
+                cookieRaw,
+                cspRaw
+        );
+    }
+
+    // ---- Security 긴급도 (기존) ----
+    public Map<String, UrgentStatus> securityUrgentStatuses(@Nullable SecurityVitalsEntity sec) {
+        Map<String, UrgentStatus> map = new LinkedHashMap<>();
+
+        if (sec == null) {
+            map.put("HSTS",                UrgentStatus.POOR);
+            map.put("FRAME-ANCESTORS/XFO", UrgentStatus.POOR);
+            map.put("SSL",                 UrgentStatus.POOR);
+            map.put("XCTO",                UrgentStatus.POOR);
+            map.put("REFERRER-POLICY",     UrgentStatus.POOR);
+            map.put("COOKIES",             UrgentStatus.POOR);
+            map.put("CSP",                 UrgentStatus.POOR);
+            return map;
+        }
+
+        SecurityScores s = toSecurityScores(sec);
+
+        map.put("HSTS",                bandToUrgentStatus(s.hsts()));
+        map.put("FRAME-ANCESTORS/XFO", bandToUrgentStatus(s.frameAncestorsOrXfo()));
+        map.put("SSL",                 bandToUrgentStatus(s.ssl()));
+        map.put("XCTO",                bandToUrgentStatus(s.xcto()));
+        map.put("REFERRER-POLICY",     bandToUrgentStatus(s.referrerPolicy()));
+        map.put("COOKIES",             bandToUrgentStatus(s.cookies()));
+        map.put("CSP",                 bandToUrgentStatus(s.csp()));
+
+        return map;
+    }
+
+    private UrgentStatus bandToUrgentStatus(int raw) {
+        if (raw >= 100) return UrgentStatus.GOOD;
+        if (raw >= 50)  return UrgentStatus.WARNING; // 50, 70 포함
+        return UrgentStatus.POOR;                    // 40, 0
     }
 
     /** 보안 지표를 0~50점(가중치 포함)으로 환산 */
     public int toSecurityHalfScore(@Nullable SecurityVitalsEntity sec) {
-        if (sec == null)
-            return 0;
+        SecurityScores s = toSecurityScores(sec);
 
-        int hstsRaw = securityRules.scoreHsts(sec); // 0/50/100
-        int xfoRaw = securityRules.scoreXfoOrFrameAncestors(sec); // 0/100
-        int sslRaw = securityRules.scoreSsl(sec); // 0/70/100
-        int xctoRaw = securityRules.scoreXContentTypeOptions(sec); // 0/100
-        int rpRaw = securityRules.scoreReferrerPolicy(sec); // 0/50/100
-        int cookieRaw = securityRules.scoreCookies(sec); // 0/40/70/100
-        int cspRaw = securityRules.scoreCsp(sec); // 0/50/100
-
-        double total = 7 * (hstsRaw / 100.0) +
-                7 * (xfoRaw / 100.0) +
-                8 * (sslRaw / 100.0) +
-                7 * (xctoRaw / 100.0) +
-                7 * (rpRaw / 100.0) +
-                7 * (cookieRaw / 100.0) +
-                7 * (cspRaw / 100.0);
+        double total = 7 * (s.hsts() / 100.0) +
+                7 * (s.frameAncestorsOrXfo() / 100.0) +
+                8 * (s.ssl() / 100.0) +
+                7 * (s.xcto() / 100.0) +
+                7 * (s.referrerPolicy() / 100.0) +
+                7 * (s.cookies() / 100.0) +
+                7 * (s.csp() / 100.0);
 
         return (int) Math.round(total); // 0~50
     }
@@ -123,7 +208,7 @@ public class ScoreCalculator {
     }
 
     /** 최저 3개 지표명 반환 - ScoresEntity에서 저장된 점수 사용 */
-    public List<String> bottom3(@Nullable ScoresEntity scoresEntity, @Nullable SecurityVitalsEntity sec) {
+    public Map<String,Integer> bottom3(@Nullable ScoresEntity scoresEntity, @Nullable SecurityVitalsEntity sec) {
         Map<String, Integer> map = new LinkedHashMap<>();
 
         // Web 지표는 ScoresEntity에서 조회
@@ -160,11 +245,7 @@ public class ScoreCalculator {
             map.put("CSP", 0);
         }
 
-        return map.entrySet().stream()
-                .sorted(Comparator.comparingInt(Map.Entry::getValue)) // 오름차순(점수 낮은게 먼저)
-                .limit(3)
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toList());
+       return map;
     }
 
     /** -------------------- DTO -------------------- */

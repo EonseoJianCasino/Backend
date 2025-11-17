@@ -14,6 +14,5 @@ public class PriorityDto {
     private String metric;
     private String reason;
     private Integer rank;
-    private Double value; // web vital용 수치 (선택적)
     private String urgentLevel; // GOOD, POOR, WARNING
 }

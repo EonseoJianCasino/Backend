@@ -19,7 +19,6 @@ import java.util.UUID;
 public class PrioritiesResponse {
 
     private UUID testId;
-    private List<PriorityDto> priorities;
     private Integer totalCount; // webvitalcount  -> 받은 priority 중에 webvital 이 몇개인지
     private Integer webVitalCount;
 }
