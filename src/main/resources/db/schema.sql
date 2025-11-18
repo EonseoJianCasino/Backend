@@ -218,7 +218,43 @@ CREATE TABLE ai_metric_related_metric (
         FOREIGN KEY (advice_id) REFERENCES ai_metric_advice(id)
 );
 
+-- ai_analysis_summary
+CREATE TABLE IF NOT EXISTS ai_analysis_summary (
+    id                          CHAR(36)    NOT NULL PRIMARY KEY,
+    test_id                     CHAR(36)    NOT NULL UNIQUE,
+    overall_expected_improvement INT        NOT NULL,
+    web_total_after             INT         NULL,
+    security_total_after        INT         NULL,
+    overall_total_after         INT         NULL,
+    created_at                  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_analysis_summary_test
+        FOREIGN KEY (test_id) REFERENCES tests(id) ON DELETE CASCADE
+);
 
+-- ai_major_improvement
+CREATE TABLE IF NOT EXISTS ai_major_improvement (
+    id          BIGINT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    summary_id  CHAR(36)    NOT NULL,
+    ord         INT         NOT NULL,
+    metric      VARCHAR(50) NULL,
+    title       VARCHAR(50) NULL,
+    description VARCHAR(100) NULL,
+    CONSTRAINT fk_major_improvement_summary
+        FOREIGN KEY (summary_id) REFERENCES ai_analysis_summary(id) ON DELETE CASCADE
+);
+
+-- ai_top_priority
+CREATE TABLE IF NOT EXISTS ai_top_priority (
+    id           BIGINT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    summary_id   CHAR(36)    NOT NULL,
+    rank         INT         NOT NULL,
+    target_type  VARCHAR(50) NULL,
+    target_name  VARCHAR(100) NULL,
+    expected_gain INT        NOT NULL,
+    reason       TEXT        NULL,
+    CONSTRAINT fk_top_priority_summary
+        FOREIGN KEY (summary_id) REFERENCES ai_analysis_summary(id) ON DELETE CASCADE
+);
 
 -- logic_status
 CREATE TABLE IF NOT EXISTS logic_status (
