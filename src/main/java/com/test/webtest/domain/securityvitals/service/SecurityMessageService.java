@@ -10,7 +10,6 @@ import com.test.webtest.global.common.util.ScoreCalculator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -183,15 +182,31 @@ public class SecurityMessageService {
         return m;
     }
 
+    // === bottom3용: metric명으로 메시지만 추출 ===
+    public String getMessageByMetric(SecurityVitalsEntity s, String metricName) {
+        if (s == null) return "정보 없음";
+        Map<String, Object> ctx = buildContext(s);
+        RuleSet ruleSet = loader.load();
+        
+        for (MetricRule mr : ruleSet.rulesForAllMetrics()) {
+            String display = toDisplayName(mr.getMetric());
+            if (display.equalsIgnoreCase(metricName) || 
+                mr.getMetric().equalsIgnoreCase(metricName)) {
+                return firstMatchedMessage(mr, ctx);
+            }
+        }
+        return "정보 없음";
+    }
+
     private String toDisplayName(String metric) {
         return switch (metric) {
-            case "SSL_VALIDITY" -> "SSL 인증서 유효성";
+            case "SSL_VALIDITY" -> "SSL";
             case "HSTS" -> "HSTS";
-            case "X_CONTENT_TYPE_OPTIONS" -> "X-Content-Type-Options";
-            case "REFERRER_POLICY" -> "Referrer-Policy";
-            case "COOKIES" -> "쿠키 보안 속성";
+            case "X_CONTENT_TYPE_OPTIONS" -> "XCTO";
+            case "REFERRER_POLICY" -> "REFERRER-POLICY";
+            case "COOKIES" -> "COOKIES";
             case "CSP" -> "CSP";
-            case "X_FRAME_OPTIONS_OR_FRAME_ANCESTORS" -> "X-Frame-Options / Frame-Ancestors";
+            case "X_FRAME_OPTIONS_OR_FRAME_ANCESTORS" -> "FRAME-ANCESTORS/XFO";
             default -> metric;
         };
     }

@@ -27,7 +27,7 @@ public class WebVitalsController {
     ) {
         var cmd = new WebVitalsService.WebVitalsSaveCommand(
                 body.getLCP(), body.getCLS(), body.getINP(),
-                body.getFCP(), body.getTBT(), body.getTTFB()
+                body.getFCP(), body.getTTFB()
         );
         webVitalsService.saveWebVitals(testId, cmd);
         var data = new WebVitalsSavedResponse(testId, Instant.now());

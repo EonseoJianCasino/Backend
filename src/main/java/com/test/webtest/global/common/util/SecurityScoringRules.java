@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import java.util.Locale;
 
 @Component
-public class SecurityHalfScore {
+public class SecurityScoringRules {
     public int scoreHsts(SecurityVitalsEntity s) {
         if (Boolean.TRUE.equals(s.getHasHsts())) {
             Long maxAge = s.getHstsMaxAge();

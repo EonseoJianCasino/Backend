@@ -7,7 +7,6 @@ public record WebVitalsView(
         Double cls,   String clsMessage,
         Double inp,   String inpMessage,
         Double fcp,   String fcpMessage,
-        Double tbt,   String tbtMessage,
         Double ttfb,  String ttfbMessage,
         Instant createdAt
 ) {}

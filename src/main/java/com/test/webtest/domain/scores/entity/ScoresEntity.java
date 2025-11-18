@@ -23,7 +23,7 @@ public class ScoresEntity {
     private TestEntity test;
 
     @Column(name = "total", nullable = false)
-    private Integer total;        // 웹50 + 보안50
+    private Integer total; // 웹50 + 보안50
 
     @Column(name = "lcp_score")
     private Integer lcpScore;
@@ -37,19 +37,42 @@ public class ScoresEntity {
     @Column(name = "fcp_score")
     private Integer fcpScore;
 
-    @Column(name = "tbt_score")
-    private Integer tbtScore;
-
     @Column(name = "ttfb_score")
     private Integer ttfbScore;
+
+    @Column(name = "hsts_score")
+    private Integer hstsScore;
+
+    @Column(name = "frame_ancestors_score")
+    private Integer frameAncestorsScore;
+
+    @Column(name = "ssl_score")
+    private Integer sslScore;
+
+    @Column(name = "xcto_score")
+    private Integer xctoScore;
+
+    @Column(name = "referrer_policy_score")
+    private Integer referrerPolicyScore;
+
+    @Column(name = "cookies_score")
+    private Integer cookiesScore;
+
+    @Column(name = "csp_score")
+    private Integer cspScore;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    public static ScoresEntity create(TestEntity test,
-                                      int total, Integer lcp, Integer cls, Integer inp,
-                                      Integer fcp, Integer tbt, Integer ttfb) {
+    public static ScoresEntity create(
+            TestEntity test,
+            int total,
+            Integer lcp, Integer cls, Integer inp,
+            Integer fcp, Integer ttfb,
+            Integer hsts, Integer frameAncestors, Integer ssl,
+            Integer xcto, Integer referrerPolicy, Integer cookies, Integer csp
+    ) {
         return ScoresEntity.builder()
                 .id(UUID.randomUUID())
                 .test(test)
@@ -58,19 +81,36 @@ public class ScoresEntity {
                 .clsScore(cls)
                 .inpScore(inp)
                 .fcpScore(fcp)
-                .tbtScore(tbt)
                 .ttfbScore(ttfb)
+                .hstsScore(hsts)
+                .frameAncestorsScore(frameAncestors)
+                .sslScore(ssl)
+                .xctoScore(xcto)
+                .referrerPolicyScore(referrerPolicy)
+                .cookiesScore(cookies)
+                .cspScore(csp)
                 .build();
     }
 
-    public void update(int total, Integer lcp, Integer cls, Integer inp,
-                       Integer fcp, Integer tbt, Integer ttfb) {
+    public void update(
+            int total,
+            Integer lcp, Integer cls, Integer inp,
+            Integer fcp, Integer ttfb,
+            Integer hsts, Integer frameAncestors, Integer ssl,
+            Integer xcto, Integer referrerPolicy, Integer cookies, Integer csp
+    ) {
         this.total = total;
         this.lcpScore = lcp;
         this.clsScore = cls;
         this.inpScore = inp;
         this.fcpScore = fcp;
-        this.tbtScore = tbt;
         this.ttfbScore = ttfb;
+        this.hstsScore = hsts;
+        this.frameAncestorsScore = frameAncestors;
+        this.sslScore = ssl;
+        this.xctoScore = xcto;
+        this.referrerPolicyScore = referrerPolicy;
+        this.cookiesScore = cookies;
+        this.cspScore = csp;
     }
 }
