@@ -58,6 +58,9 @@ public class SecurityVitalsEntity {
     @Column(name = "csp_frame_ancestors", columnDefinition = "text")
     private String cspFrameAncestors;
 
+    @Column(name = "has_cookies")
+    private Boolean hasCookies;
+
     @Column(name = "cookie_secure_all")
     private Boolean cookieSecureAll;
 
@@ -108,6 +111,7 @@ public class SecurityVitalsEntity {
                 .cspHasUnsafeInline(c.cspHasUnsafeInline())
                 .cspHasUnsafeEval(c.cspHasUnsafeEval())
                 .cspFrameAncestors(c.cspFrameAncestors())
+                .hasCookies(c.hasCookies())
                 .cookieSecureAll(c.cookieSecureAll())
                 .cookieHttpOnlyAll(c.cookieHttpOnlyAll())
                 .cookieSameSitePolicy(c.cookieSameSitePolicy())
@@ -163,6 +167,7 @@ public class SecurityVitalsEntity {
             Boolean cspHasUnsafeInline,
             Boolean cspHasUnsafeEval,
             String  cspFrameAncestors,
+            Boolean hasCookies,
             Boolean cookieSecureAll,
             Boolean cookieHttpOnlyAll,
             String  cookieSameSitePolicy,

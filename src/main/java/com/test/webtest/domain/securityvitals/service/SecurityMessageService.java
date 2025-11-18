@@ -21,7 +21,7 @@ public class SecurityMessageService {
     private final SecurityRulesLoader loader;
     private final ScoreCalculator scoreCalculator;
 
-    // === 외부에 노출: Entity -> View 변환 ===
+    // Entity -> View 변환
     public SecurityVitalsView toView(SecurityVitalsEntity s) {
         Map<String, Object> ctx = buildContext(s);
 
@@ -164,6 +164,7 @@ public class SecurityMessageService {
         m.put("referrer_policy", nullSafeLower(s.getReferrerPolicy()));
 
         // Cookies
+        m.put("has_cookies", nz(s.getHasCookies()));
         m.put("cookie_secure_all", nz(s.getCookieSecureAll()));
         m.put("cookie_httponly_all", nz(s.getCookieHttpOnlyAll()));
         m.put("cookie_samesite_policy", s.getCookieSameSitePolicy()==null ? "unspecified" : s.getCookieSameSitePolicy());

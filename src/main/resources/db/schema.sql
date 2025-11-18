@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS security_vitals (
   cookie_secure_all        boolean,
   cookie_httponly_all      boolean,
   cookie_samesite_policy   varchar(32),
+  has_cookies              boolean,
   ssl_valid                boolean,
   ssl_chain_valid          boolean,
   ssl_days_remaining       int,

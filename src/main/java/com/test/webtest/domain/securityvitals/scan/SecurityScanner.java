@@ -60,6 +60,7 @@ public class SecurityScanner {
         String xfo = HeaderUtil.first(h, "x-frame-options");
 
         // Cookies
+        boolean hasCookies = !setCookies.isEmpty();
         CookieParser.Summary cookieSum = CookieParser.summarize(setCookies);
 
         // 3) SSL/TLS 인증서 검사 (최종 도메인 기준)
@@ -79,6 +80,7 @@ public class SecurityScanner {
                 .cspHasUnsafeInline(csp.unsafeInline())
                 .cspHasUnsafeEval(csp.unsafeEval())
                 .cspFrameAncestors(csp.frameAncestors())
+                .hasCookies(hasCookies)
                 .cookieSecureAll(cookieSum.allSecure())
                 .cookieHttpOnlyAll(cookieSum.allHttpOnly())
                 .cookieSameSitePolicy(cookieSum.sameSitePolicy())

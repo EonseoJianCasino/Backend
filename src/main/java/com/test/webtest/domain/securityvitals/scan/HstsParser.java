@@ -1,7 +1,7 @@
 package com.test.webtest.domain.securityvitals.scan;
 
 /**
- * Strict-Transport-Security 헤더를 파싱한다.
+ * Strict-Transport-Security 헤더를 파싱
  * - max-age (초) / includeSubDomains / preload 여부
  * - 헤더 존재 여부
  */
