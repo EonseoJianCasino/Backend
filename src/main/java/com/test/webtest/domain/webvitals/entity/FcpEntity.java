@@ -14,7 +14,7 @@ import java.util.UUID;
  */
 
 @Entity
-@Table(name = "web_vitals")
+@Table(name = "fcp")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -31,33 +31,34 @@ public class FcpEntity {
     private String entryType;
 
     @Column(name = "start_time")
-    private Double startTime;
+    private Integer startTime;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
     // 팩토리 메서드 - WebVitals 생성
-    public static FcpEntity create(TestEntity test, String entryType, Double startTime) {
+    public static FcpEntity create(TestEntity test, String entryType, Integer startTime) {
         validateMetricValue(startTime, "start time");
 
         return FcpEntity.builder()
                 .id(UUID.randomUUID())
-                .test(test)  // @MapsId를 사용하므로 test만 설정하면 testId는 자동으로 매핑됨
+                .test(test) // @MapsId를 사용하므로 test만 설정하면 testId는 자동으로 매핑됨
                 .entryType(entryType)
                 .startTime(startTime)
                 .build();
     }
 
-    public void updateFrom(String entryType, Double startTime) {
+    public void updateFrom(String entryType, Integer startTime) {
         this.entryType = entryType;
         this.startTime = startTime;
     }
 
     // 지표값 검증 메서드 (음수 불가, NaN 불가)
-    private static void validateMetricValue(Double v, String name) {
-        if (v == null) return;           // null 허용
-        if (Double.isNaN(v)) throw new IllegalArgumentException(name + " 값은 NaN일 수 없습니다.");
-        if (v < 0)           throw new IllegalArgumentException(name + " 값은 음수일 수 없습니다. 입력값: " + v);
+    private static void validateMetricValue(Integer v, String name) {
+        if (v == null)
+            return; // null 허용
+        if (v < 0)
+            throw new IllegalArgumentException(name + " 값은 음수일 수 없습니다. 입력값: " + v);
     }
 }

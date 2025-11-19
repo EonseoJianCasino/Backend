@@ -2,6 +2,7 @@ package com.test.webtest.domain.ai.service;
 
 import com.test.webtest.domain.ai.dto.AiResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -13,12 +14,14 @@ import java.util.*;
 @Slf4j
 public class AiRecommendationServiceImpl implements AiRecommendationService {
 
+
     private final WebClient geminiWebClient;
-    private final AiPersistService aiPersistService;
+    private final AiPersistService aiPersistService; // <- 여기서 호출 3
 
     @Value("${app.gemini.model}")
     private String defaultModel;
 
+    @Autowired
     public AiRecommendationServiceImpl(WebClient geminiWebClient, AiPersistService aiPersistService) {
         this.geminiWebClient = geminiWebClient;
         this.aiPersistService = aiPersistService;

@@ -14,7 +14,7 @@ import java.util.UUID;
  */
 
 @Entity
-@Table(name = "web_vitals")
+@Table(name = "inp")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -56,14 +56,15 @@ public class InpEntity {
     private Instant createdAt;
 
     // 팩토리 메서드 - WebVitals 생성
-    public static InpEntity create(TestEntity test, String entryType, String name, Double startTime, Integer duration, Double processingStart, Double processingEnd, Integer interactionId, String target) {
+    public static InpEntity create(TestEntity test, String entryType, String name, Double startTime, Integer duration,
+            Double processingStart, Double processingEnd, Integer interactionId, String target) {
         validateMetricValue(startTime, "start time");
         validateMetricValue(processingStart, "processing start");
         validateMetricValue(processingEnd, "processing end");
 
         return InpEntity.builder()
                 .id(UUID.randomUUID())
-                .test(test)  // @MapsId를 사용하므로 test만 설정하면 testId는 자동으로 매핑됨
+                .test(test) // @MapsId를 사용하므로 test만 설정하면 testId는 자동으로 매핑됨
                 .entryType(entryType)
                 .name(name)
                 .startTime(startTime)
@@ -75,7 +76,8 @@ public class InpEntity {
                 .build();
     }
 
-    public void updateFrom(String entryType, String name, Double startTime, Integer duration, Double processingStart, Double processingEnd, Integer interactionId, String target) {
+    public void updateFrom(String entryType, String name, Double startTime, Integer duration, Double processingStart,
+            Double processingEnd, Integer interactionId, String target) {
         this.entryType = entryType;
         this.name = name;
         this.startTime = startTime;
@@ -88,8 +90,11 @@ public class InpEntity {
 
     // 지표값 검증 메서드 (음수 불가, NaN 불가)
     private static void validateMetricValue(Double v, String name) {
-        if (v == null) return;           // null 허용
-        if (Double.isNaN(v)) throw new IllegalArgumentException(name + " 값은 NaN일 수 없습니다.");
-        if (v < 0)           throw new IllegalArgumentException(name + " 값은 음수일 수 없습니다. 입력값: " + v);
+        if (v == null)
+            return; // null 허용
+        if (Double.isNaN(v))
+            throw new IllegalArgumentException(name + " 값은 NaN일 수 없습니다.");
+        if (v < 0)
+            throw new IllegalArgumentException(name + " 값은 음수일 수 없습니다. 입력값: " + v);
     }
 }

@@ -18,7 +18,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AiAdviceController {
 
-    private final AiPersistService aiPersistService;
+    private final AiPersistService aiPersistService; // <- 여기서 호출
 
     @GetMapping("/{testId}/ai/recommendations")
     public ResponseEntity<ApiResponse<AiAnalysisResponse>> getRecommendations(

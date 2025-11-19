@@ -14,7 +14,7 @@ import java.util.UUID;
  */
 
 @Entity
-@Table(name = "web_vitals")
+@Table(name = "lcp")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -44,15 +44,16 @@ public class LcpEntity {
     private Instant createdAt;
 
     // 팩토리 메서드 - WebVitals 생성
-    public static LcpEntity create(TestEntity test, Integer startTime, Integer renderTime, Integer renderedSize, String element) {
+    public static LcpEntity create(TestEntity test, Integer startTime, Integer renderTime, Integer renderedSize,
+            String element) {
         validateMetricValue(startTime, "start time");
         validateMetricValue(renderTime, "render time");
         validateMetricValue(renderedSize, "element");
-//        validateMetricValue(element, "rendered size");
+        // validateMetricValue(element, "rendered size");
 
         return LcpEntity.builder()
                 .id(UUID.randomUUID())
-                .test(test)  // @MapsId를 사용하므로 test만 설정하면 testId는 자동으로 매핑됨
+                .test(test) // @MapsId를 사용하므로 test만 설정하면 testId는 자동으로 매핑됨
                 .startTime(startTime)
                 .renderTime(renderTime)
                 .element(element)
@@ -69,8 +70,11 @@ public class LcpEntity {
 
     // 지표값 검증 메서드 (음수 불가, NaN 불가)
     private static void validateMetricValue(Integer v, String name) {
-        if (v == null) return;           // null 허용
-        if (Double.isNaN(v)) throw new IllegalArgumentException(name + " 값은 NaN일 수 없습니다.");
-        if (v < 0)           throw new IllegalArgumentException(name + " 값은 음수일 수 없습니다. 입력값: " + v);
+        if (v == null)
+            return; // null 허용
+        if (Double.isNaN(v))
+            throw new IllegalArgumentException(name + " 값은 NaN일 수 없습니다.");
+        if (v < 0)
+            throw new IllegalArgumentException(name + " 값은 음수일 수 없습니다. 입력값: " + v);
     }
 }
