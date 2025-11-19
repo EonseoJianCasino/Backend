@@ -7,7 +7,6 @@ CREATE TABLE IF NOT EXISTS tests (
   id          uuid PRIMARY KEY,
   domain_name varchar(255) NOT NULL,
   url         text NOT NULL,
-  status      varchar(20) NOT NULL,
   created_at  timestamptz NOT NULL DEFAULT now()
 );
 

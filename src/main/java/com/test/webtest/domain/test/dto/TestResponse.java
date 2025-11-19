@@ -13,7 +13,6 @@ import java.util.UUID;
 public class TestResponse {
     private final String url;
     private final String domainName;
-    private final StatusType status;
     private final Instant createdAt;
     private final UUID testId;
 
@@ -21,7 +20,6 @@ public class TestResponse {
         return TestResponse.builder()
                 .url(e.getUrl())
                 .domainName(e.getDomainName())
-                .status(e.getStatus())
                 .createdAt(e.getCreatedAt())
                 .testId(e.getId())
                 .build();

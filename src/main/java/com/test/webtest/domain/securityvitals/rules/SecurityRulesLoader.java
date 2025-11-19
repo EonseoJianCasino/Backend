@@ -57,7 +57,6 @@ public class SecurityRulesLoader {
     }
 
     // ==== 모델 ====
-
     @Getter
     public static class RuleSet {
         private final String version;

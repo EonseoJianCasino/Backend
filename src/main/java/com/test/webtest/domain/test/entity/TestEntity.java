@@ -26,10 +26,6 @@ public class TestEntity {
     @Column(nullable = false)
     private String domainName;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private StatusType status;
-
     @CreationTimestamp
     private Instant createdAt;
 
@@ -39,7 +35,7 @@ public class TestEntity {
             .id(UUID.randomUUID())
             .url(url)
             .domainName(UrlNormalizer.extractDomain(url))
-            .status(StatusType.PENDING)
+            .createdAt(Instant.now())
             .build();
     }
 }

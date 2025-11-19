@@ -6,8 +6,10 @@ import com.test.webtest.domain.securityvitals.rules.SecurityRulesLoader;
 import com.test.webtest.domain.securityvitals.rules.SecurityRulesLoader.ConditionRule;
 import com.test.webtest.domain.securityvitals.rules.SecurityRulesLoader.MetricRule;
 import com.test.webtest.domain.securityvitals.rules.SecurityRulesLoader.RuleSet;
+import com.test.webtest.domain.urgentlevel.entity.UrgentLevelEntity;
 import com.test.webtest.global.common.util.ScoreCalculator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -22,7 +24,9 @@ public class SecurityMessageService {
     private final ScoreCalculator scoreCalculator;
 
     // Entity -> View 변환
-    public SecurityVitalsView toView(SecurityVitalsEntity s) {
+    public SecurityVitalsView toView(SecurityVitalsEntity s,
+                                     @Nullable UrgentLevelEntity urgent) {
+
         Map<String, Object> ctx = buildContext(s);
 
         List<SecurityVitalsView.Item> items = new ArrayList<>();
@@ -30,13 +34,43 @@ public class SecurityMessageService {
 
         for (MetricRule mr : ruleSet.rulesForAllMetrics()) {
             String msg = firstMatchedMessage(mr, ctx);
-            // 프론트 노출용 지표명은 사람이 읽기 좋게 매핑
-            String display = toDisplayName(mr.getMetric());
-            items.add(new SecurityVitalsView.Item(display, msg));
+
+            // 내부 metric 키 (예: "ssl", "hsts" ...) 를 사람이 읽기 좋은 코드로 바꿈
+            String display = toDisplayName(mr.getMetric()); // "SSL", "HSTS", "XCTO" ...
+
+            // 여기서 urgentLevel 매핑
+            String urgentStatus = resolveUrgentStatus(display, urgent);
+
+            items.add(new SecurityVitalsView.Item(display, msg, urgentStatus));
         }
 
-        Integer secScore = scoreCalculator.toSecurityHalfScore(s);
-        return new SecurityVitalsView(items, s.getCreatedAt(), secScore);
+        return new SecurityVitalsView(
+                items,
+                s.getCreatedAt()
+        );
+    }
+
+    private String resolveUrgentStatus(String metric, @Nullable UrgentLevelEntity urgent) {
+        if (urgent == null) return null;
+
+        return switch (metric) {
+            case "HSTS" ->
+                    urgent.getHstsStatus();
+            case "FRAME-ANCESTORS/XFO" ->
+                    urgent.getFrameAncestorsStatus();
+            case "SSL" ->
+                    urgent.getSslStatus();
+            case "XCTO" ->
+                    urgent.getXctoStatus();
+            case "REFERRER-POLICY" ->
+                    urgent.getReferrerPolicyStatus();
+            case "COOKIES" ->
+                    urgent.getCookiesStatus();
+            case "CSP" ->
+                    urgent.getCspStatus();
+            default ->
+                    null;
+        };
     }
 
     // === 룰 매칭 ===
@@ -104,7 +138,6 @@ public class SecurityMessageService {
         }
     }
 
-
     // === 템플릿 렌더링 ({{var}}, {{#flag}}...{{/flag}})
     private static final Pattern VAR = Pattern.compile("\\{\\{\\s*([a-zA-Z0-9_]+)\\s*}}");
     private static final Pattern SEC = Pattern.compile("\\{\\{#([a-zA-Z0-9_]+)}}([\\s\\S]*?)\\{\\{/\\1}}");
@@ -141,7 +174,7 @@ public class SecurityMessageService {
     private static long nzl(Long v, long def) { return v != null ? v : def; }
     private static int nzi(Integer v, int def) { return v != null ? v : def; }
 
-    // === 컨텍스트 빌더: Entity -> Map ===
+    // === Entity -> Map ===
     private Map<String, Object> buildContext(SecurityVitalsEntity s) {
         Map<String, Object> m = new HashMap<>();
         // SSL

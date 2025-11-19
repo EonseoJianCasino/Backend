@@ -24,7 +24,7 @@ public class SecurityScanner {
     private final SslInspector sslInspector;
 
     public SecurityScanner() {
-        this.httpFetcher = new HttpFetcher(Duration.ofSeconds(20));
+        this.httpFetcher = new HttpFetcher();
         this.sslInspector = new JdkTlsInspector(); // 기본
     }
 
