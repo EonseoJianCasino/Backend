@@ -1,32 +1,27 @@
 package com.test.webtest.domain.ai.controller;
 
 import com.test.webtest.domain.ai.service.AiPersistService;
+import com.test.webtest.global.api.ApiResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/ai/gemini")
+@RequestMapping("/api/tests")
+@RequiredArgsConstructor
 public class AiPersistController {
 
     private final AiPersistService aiPersistService;
 
-    public AiPersistController(AiPersistService aiPersistService) {
-        this.aiPersistService = aiPersistService;
-    }
-
     /**
-     * Gemini에게 프롬프트를 보내고, 결과를 DB에 저장하는 엔드포인트
-     * 예: POST /api/ai/gemini/save?testId=...
+     * AI 응답을 생성하고 DB에 저장하는 엔드포인트
+     * 프론트엔드는 저장 후 /api/tests/{testId}/ai/recommendations로 별도 조회 필요
      */
-    @PostMapping("/save")
-    public ResponseEntity<Void> saveAiResult(
-            @RequestParam("testId") UUID testId //,
-//            @RequestBody String prompt
-    ) {
-//        aiPersistService.generateAndSave(testId, prompt);
+    @PostMapping("/{testId}/ai/generate")
+    public ResponseEntity<ApiResponse<Void>> generateAiResult(@PathVariable UUID testId) {
         aiPersistService.generateAndSave(testId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.ok("AI 응답이 생성되어 DB에 저장되었습니다.", null));
     }
 }

@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -60,8 +59,7 @@ public class LogicStatusServiceImpl {
                     log.info("[LONGPOLL][CORE_READY] triggered for testId={}", testId);
                     longPollingManager.complete(
                             new WaitKey(testId, LongPollingTopic.CORE_READY),
-                            new PhaseReadyPayload(LongPollingTopic.CORE_READY, testId, Instant.now())
-                    );
+                            new PhaseReadyPayload(LongPollingTopic.CORE_READY, testId, Instant.now()));
                 });
             }
 
@@ -75,8 +73,7 @@ public class LogicStatusServiceImpl {
                     log.info("[LONGPOLL][AI_READY] triggered for testId={}", testId);
                     longPollingManager.complete(
                             new WaitKey(testId, LongPollingTopic.AI_READY),
-                            new PhaseReadyPayload(LongPollingTopic.AI_READY, testId, Instant.now())
-                    );
+                            new PhaseReadyPayload(LongPollingTopic.AI_READY, testId, Instant.now()));
                 });
             }
 

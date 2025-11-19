@@ -15,6 +15,4 @@ public interface AiRecommendationService {
 
     AiResponse generateWithSchema(String prompt, Map<String, Object> jsonSchema);
 
-
 }
-

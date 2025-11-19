@@ -11,20 +11,17 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import java.util.*; //HashMap, List, Map
 
-
-
-
 @Service
-//@RequiredArgsConstructor
+// @RequiredArgsConstructor
 @Slf4j
-public class AiRecommendationServiceImpl implements AiRecommendationService{
+public class AiRecommendationServiceImpl implements AiRecommendationService {
 
     private final WebClient geminiWebClient;
 
     @Value("${app.gemini.model}")
     private String defaultModel;
 
-    public AiRecommendationServiceImpl(WebClient geminiWebClient){
+    public AiRecommendationServiceImpl(WebClient geminiWebClient) {
         this.geminiWebClient = geminiWebClient;
     }
 
@@ -37,31 +34,28 @@ public class AiRecommendationServiceImpl implements AiRecommendationService{
     }
 
     @Override
-    public AiResponse generate(String userPrompt, String system, String model, boolean jsonMode){
+    public AiResponse generate(String userPrompt, String system, String model, boolean jsonMode) {
 
         String useModel = (model == null || model.isBlank()) ? defaultModel : model;
 
         Map<String, Object> body = new HashMap<>();
         body.put("contents", List.of(Map.of(
                 "role", "user",
-                "parts", List.of(Map.of("text", userPrompt))
-        )));
+                "parts", List.of(Map.of("text", userPrompt)))));
 
-        if(system != null && !system.isBlank()){
+        if (system != null && !system.isBlank()) {
             body.put("systemInstruction", Map.of(
-                    "parts", List.of(Map.of("text", system))
-            ));
+                    "parts", List.of(Map.of("text", system))));
         }
 
-        if (jsonMode){ // 여게서 json schema를 원하는 대로 강제시킬 수 있음.
+        if (jsonMode) { // 여게서 json schema를 원하는 대로 강제시킬 수 있음.
             body.put("generationConfig", Map.of(
-                    "respose_mime_type", "application/json"
-            ));
+                    "respose_mime_type", "application/json"));
         }
 
         String path = String.format("/models/%s:generateContent", useModel);
 
-        Map<?, ?>resp = geminiWebClient.post()
+        Map<?, ?> resp = geminiWebClient.post()
                 .uri(path)
                 .bodyValue(body)
                 .retrieve()
@@ -72,15 +66,13 @@ public class AiRecommendationServiceImpl implements AiRecommendationService{
     }
 
     @Override
-    public Flux<String> stream(String userPrompt, String model){
+    public Flux<String> stream(String userPrompt, String model) {
         String useModel = (model == null || model.isBlank()) ? defaultModel : model;
 
         Map<String, Object> body = Map.of(
                 "contents", List.of(Map.of(
                         "role", "user",
-                        "parts", List.of(Map.of("text", userPrompt))
-                ))
-        );
+                        "parts", List.of(Map.of("text", userPrompt)))));
 
         String path = String.format("/models/%s:streamGenerateContent?alt=sse", useModel);
 
@@ -98,8 +90,7 @@ public class AiRecommendationServiceImpl implements AiRecommendationService{
         Map<String, Object> body = new HashMap<>();
         body.put("contents", List.of(Map.of(
                 "role", "user",
-                "parts", List.of(Map.of("text", prompt))
-        )));
+                "parts", List.of(Map.of("text", prompt)))));
 
         Map<String, Object> genCfg = new HashMap<>();
         genCfg.put("response_mime_type", "application/json");
@@ -117,24 +108,27 @@ public class AiRecommendationServiceImpl implements AiRecommendationService{
 
         return new AiResponse(extractText(resp));
 
-        //        return null;
+        // return null;
     }
 
     @SuppressWarnings("unchecked")
-    private String extractText(Map<?, ?> resp){
-        if(resp == null) return "(no response)";
+    private String extractText(Map<?, ?> resp) {
+        if (resp == null)
+            return "(no response)";
         try {
             var candidates = (List<Map<String, Object>>) resp.get("candidates");
-            if (candidates == null || candidates.isEmpty()) return "(no candidates)";
+            if (candidates == null || candidates.isEmpty())
+                return "(no candidates)";
             var content = (Map<String, Object>) candidates.get(0).get("content");
             var parts = (List<Map<String, Object>>) content.get("parts");
             StringBuilder sb = new StringBuilder();
             for (var p : parts) {
                 Object text = p.get("text");
-                if (text instanceof String s) sb.append(s);
+                if (text instanceof String s)
+                    sb.append(s);
             }
             return sb.length() > 0 ? sb.toString() : "(empty)";
-        }catch(Exception e){
+        } catch (Exception e) {
             return "(parse error)";
         }
     }
