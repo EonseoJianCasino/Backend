@@ -5,8 +5,11 @@ import java.util.List;
 
 public record SecurityVitalsView(
         List<Item> items,
-        Instant createdAt,
-        Integer securityScore
+        Instant createdAt
 ) {
-    public record Item(String metric, String message) {}
+    public record Item(
+            String metric,
+            String message,
+            String urgentStatus  // GOOD / WARNING / POOR
+    ) {}
 }

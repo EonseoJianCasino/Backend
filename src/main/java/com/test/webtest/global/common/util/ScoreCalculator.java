@@ -154,34 +154,47 @@ public class ScoreCalculator {
     public Map<String, UrgentStatus> securityUrgentStatuses(@Nullable SecurityVitalsEntity sec) {
         Map<String, UrgentStatus> map = new LinkedHashMap<>();
 
+        // 1) 아직 보안 스캔이 안 된 경우: "정보 없음"이지 "최악"은 아니다.
         if (sec == null) {
-            map.put("HSTS",                UrgentStatus.POOR);
-            map.put("FRAME-ANCESTORS/XFO", UrgentStatus.POOR);
-            map.put("SSL",                 UrgentStatus.POOR);
-            map.put("XCTO",                UrgentStatus.POOR);
-            map.put("REFERRER-POLICY",     UrgentStatus.POOR);
-            map.put("COOKIES",             UrgentStatus.POOR);
-            map.put("CSP",                 UrgentStatus.POOR);
+            map.put("HSTS",                UrgentStatus.WARNING);
+            map.put("FRAME-ANCESTORS/XFO", UrgentStatus.WARNING);
+            map.put("SSL",                 UrgentStatus.WARNING);
+            map.put("XCTO",                UrgentStatus.WARNING);
+            map.put("REFERRER-POLICY",     UrgentStatus.WARNING);
+            map.put("COOKIES",             UrgentStatus.WARNING);
+            map.put("CSP",                 UrgentStatus.WARNING);
             return map;
         }
 
         SecurityScores s = toSecurityScores(sec);
 
+        // 2) 일반 지표들은 점수 band만 완화해서 그대로 사용
         map.put("HSTS",                bandToUrgentStatus(s.hsts()));
         map.put("FRAME-ANCESTORS/XFO", bandToUrgentStatus(s.frameAncestorsOrXfo()));
         map.put("SSL",                 bandToUrgentStatus(s.ssl()));
         map.put("XCTO",                bandToUrgentStatus(s.xcto()));
         map.put("REFERRER-POLICY",     bandToUrgentStatus(s.referrerPolicy()));
-        map.put("COOKIES",             bandToUrgentStatus(s.cookies()));
+
+        // 3) COOKIES는 has_cookies 플래그를 반영해서 좀 더 유연하게
+        UrgentStatus cookiesStatus = bandToUrgentStatus(s.cookies());
+
+        // 서비스가 아예 쿠키를 사용하지 않는 경우: 공격 면 자체가 거의 없으니 GOOD로 완화
+        if (Boolean.FALSE.equals(sec.getHasCookies())) {
+            cookiesStatus = UrgentStatus.GOOD;
+        }
+
+        map.put("COOKIES", cookiesStatus);
+
         map.put("CSP",                 bandToUrgentStatus(s.csp()));
 
         return map;
     }
 
+    // 점수 band 완화: 70 이상 GOOD, 40 이상 WARNING, 그 미만만 POOR
     private UrgentStatus bandToUrgentStatus(int raw) {
-        if (raw >= 100) return UrgentStatus.GOOD;
-        if (raw >= 50)  return UrgentStatus.WARNING; // 50, 70 포함
-        return UrgentStatus.POOR;                    // 40, 0
+        if (raw >= 70) return UrgentStatus.GOOD;     // 70, 100
+        if (raw >= 40) return UrgentStatus.WARNING;  // 40
+        return UrgentStatus.POOR;                    // 0
     }
 
     /** 보안 지표를 0~50점(가중치 포함)으로 환산 */

@@ -8,6 +8,7 @@ import com.test.webtest.domain.securityvitals.repository.SecurityVitalsRepositor
 import com.test.webtest.domain.securityvitals.scan.SecurityScanner;
 import com.test.webtest.domain.test.entity.TestEntity;
 import com.test.webtest.domain.test.repository.TestRepository;
+import com.test.webtest.domain.urgentlevel.repository.UrgentLevelRepository;
 import com.test.webtest.global.common.constants.Channel;
 import com.test.webtest.global.error.exception.BusinessException;
 import com.test.webtest.global.error.exception.EntityNotFoundException;
@@ -28,6 +29,7 @@ public class SecurityVitalsServiceImpl implements SecurityVitalsService {
     private final LogicStatusServiceImpl logicStatusService;
     private final SecurityScanner securityScanner;
     private final SecurityMessageService messageService;
+    private final UrgentLevelRepository urgentLevelRepository;
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW) // ← 커밋 보장
@@ -78,9 +80,12 @@ public class SecurityVitalsServiceImpl implements SecurityVitalsService {
 
     @Transactional(readOnly = true)
     public SecurityVitalsView getView(UUID testId) {
+
         // 아직 수집 전이면 202/204로 매핑하는 커스텀 예외 권장(선택)
         var entity = securityVitalsRepository.findByTest_Id(testId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.TEST_NOT_FOUND)); // 404 매핑
-        return messageService.toView(entity);
+
+        var urgent = urgentLevelRepository.findByTestId(testId).orElse(null);
+        return messageService.toView(entity, urgent);
     }
 }
