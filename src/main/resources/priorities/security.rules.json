@@ -61,11 +61,12 @@
     {
       "metric": "COOKIES",
       "conditions": [
+        { "when": { "has_cookies": false}, "message": "쿠키를 사용하지 않음" },
         { "when": { "cookie_secure_all": true, "cookie_httponly_all": true, "cookie_samesite_policy_in": ["Strict","Lax"] }, "message": "쿠키 보안 속성 양호 (Secure+HttpOnly+SameSite={{cookie_samesite_policy}})" },
         { "when": { "cookie_secure_all": false }, "message": "쿠키 Secure 미적용" },
         { "when": { "cookie_httponly_all": false }, "message": "쿠키 HttpOnly 미적용" },
         { "when": { "cookie_samesite_policy_equals": "None" }, "message": "SameSite=None 사용(보안 주의)" },
-        { "when": { }, "message": "쿠키 보안 속성 확인 필요" }
+        { "when": { }, "message": "쿠키 보안 속성 확인 필요 (SameSite={{cookie_samesite_policy}})" }
       ]
     },
 

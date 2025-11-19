@@ -1,5 +1,7 @@
 package com.test.webtest.domain.securityvitals.scan;
 
+import org.springframework.stereotype.Component;
+
 import javax.net.ssl.*;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;

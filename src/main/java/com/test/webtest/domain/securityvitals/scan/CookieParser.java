@@ -3,18 +3,18 @@ package com.test.webtest.domain.securityvitals.scan;
 import java.util.*;
 
 /**
- * Set-Cookie 헤더들을 파싱해 보안 속성 요약을 생성
+ * Set-Cookie 헤더들을 파싱해 보안 속성 요약 생성
  * - Secure / HttpOnly 전체 적용 여부
  * - SameSite 정책(Strict/Lax/None/Unspecified)
  */
 
 public class CookieParser {
 
-    public record Summary(boolean allSecure, boolean allHttpOnly, String sameSitePolicy) {}
+    public record Summary(boolean hasCookies, boolean allSecure, boolean allHttpOnly, String sameSitePolicy) {}
 
     public static Summary summarize(List<String> setCookies) {
         if (setCookies == null || setCookies.isEmpty()) {
-            return new Summary(false, false, "Unspecified");
+            return new Summary(false,false, false, "Unspecified");
         }
         boolean allSecure = true;
         boolean allHttpOnly = true;
@@ -25,7 +25,7 @@ public class CookieParser {
             if (!lower.contains("secure")) allSecure = false;
             if (!lower.contains("httponly")) allHttpOnly = false;
         }
-        return new Summary(allSecure, allHttpOnly, mergedSameSite);
+        return new Summary(true, allSecure, allHttpOnly, mergedSameSite);
     }
 
     private static String detectSameSite(List<String> setCookies) {

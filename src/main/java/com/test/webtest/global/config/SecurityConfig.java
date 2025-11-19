@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -20,9 +21,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/api/**").permitAll() // 테스트 단계: 전체 오픈
-                        .anyRequest().denyAll()
+                        .anyRequest().permitAll()
                 )
-                .httpBasic(Customizer.withDefaults()); // 필요 시만 유지(테스트 편의)
+                .httpBasic(AbstractHttpConfigurer::disable);
         return http.build();
     }
 }

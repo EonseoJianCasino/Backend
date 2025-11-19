@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 import java.io.InputStream;
 import java.util.*;
 
+
+// security.rules.json 규칙 로더
 @Component
 @RequiredArgsConstructor
 public class SecurityRulesLoader {
@@ -55,7 +57,6 @@ public class SecurityRulesLoader {
     }
 
     // ==== 모델 ====
-
     @Getter
     public static class RuleSet {
         private final String version;
