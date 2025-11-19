@@ -32,6 +32,8 @@ public class ScoresController {
             @PathVariable("testId") UUID testId
     ) {
         int total = scoresService.getTotal(testId);
-        return ResponseEntity.ok(ApiResponse.ok("총점 조회를 성공했습니다.", TotalScoreResponse.of(total)));
+        int securityTotal = scoresService.getSecurityTotal(testId);
+        int webTotal = scoresService.getWebTotal(testId);
+        return ResponseEntity.ok(ApiResponse.ok("총점 조회를 성공했습니다.", TotalScoreResponse.of(total, securityTotal, webTotal)));
     }
 }

@@ -9,4 +9,6 @@ public interface ScoresService {
 
     ScoresDetailResponse getDetail(UUID testId);
     int getTotal(UUID testId);
+    int getSecurityTotal(UUID testId);
+    int getWebTotal(UUID testId);
 }
