@@ -2,10 +2,12 @@
 spring:
   application:
     name: WebTest
+  config:
+    import: optional:classpath:secret.properties
   jackson:
     time-zone: UTC
   mvc:
-    throw-exception-if-no-handler-found: true  # 404도 예외로 던지기
+    throw-exception-if-no-handler-found: true # 404도 예외로 던지기
   web:
     resources:
       add-mappings: false # 정적 리소스 자동 매핑 끄기
@@ -28,7 +30,6 @@ spring:
 #  sql:
 #    init:
 #      mode: always
-
 
 server:
   port: 8080
@@ -56,7 +57,5 @@ app:
     # 기본 모델: 필요한 걸로 바꿔도 됨 (예: gemini-2.5-flash, gemini-1.5-pro 등)
     model: "gemini-2.5-flash"
     base-url: "https://generativelanguage.googleapis.com/v1beta"
-    api-key: "AIzaSyCRmgvbKXcImkqgVTSmp4zhUP0Wisgitms"
+    api-key: "${GEMINI_API_KEY}"
   allowed-origins: "http://localhost:5173,http://localhost:3000,chrome-extension://*"
-
-

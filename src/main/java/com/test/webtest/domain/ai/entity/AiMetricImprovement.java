@@ -3,8 +3,9 @@ package com.test.webtest.domain.ai.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 
-
 @Getter
+@Entity
+@Table(name = "ai_metric_improvement")
 public class AiMetricImprovement {
 
     @Id
@@ -15,15 +16,16 @@ public class AiMetricImprovement {
     @JoinColumn(name = "advice_id", nullable = false)
     private AiMetricAdvice advice;
 
-//    @Getter
+    // @Getter
     @Column(nullable = false)
     private int ord;
 
-//    @Getter
+    // @Getter
     @Column(columnDefinition = "text", nullable = false)
     private String text;
 
-    protected AiMetricImprovement() {}
+    protected AiMetricImprovement() {
+    }
 
     public AiMetricImprovement(AiMetricAdvice advice, int ord, String text) {
         this.advice = advice;

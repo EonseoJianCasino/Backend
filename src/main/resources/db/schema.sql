@@ -191,7 +191,7 @@ CREATE TABLE ai_metric_advice (
 );
 
 CREATE TABLE ai_metric_improvement (
-    id        BIGINT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    id        BIGINT      NOT NULL PRIMARY KEY GNERATED BY DEFAULT AS IDENTITY,
     advice_id CHAR(36)    NOT NULL,           -- ai_metric_advice.id (UUID)
     ord       INT         NOT NULL,           -- 리스트 내 순서 (0,1,2,...)
     text      TEXT        NOT NULL,
@@ -210,7 +210,7 @@ CREATE TABLE ai_metric_benefit (
 );
 
 CREATE TABLE ai_metric_related_metric (
-    id          BIGINT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    id          BIGINT      NOT NULL PRIMARY KEY GNERATED BY DEFAULT AS IDENTITY,
     advice_id   CHAR(36)    NOT NULL,
     ord         INT         NOT NULL,
     metric_text VARCHAR(50) NOT NULL, -- "FCP", "TTFB", "FID", ...
@@ -233,7 +233,7 @@ CREATE TABLE IF NOT EXISTS ai_analysis_summary (
 
 -- ai_major_improvement
 CREATE TABLE IF NOT EXISTS ai_major_improvement (
-    id          BIGINT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    id          BIGINT      NOT NULL PRIMARY KEY GNERATED BY DEFAULT AS IDENTITY,
     summary_id  CHAR(36)    NOT NULL,
     ord         INT         NOT NULL,
     metric      VARCHAR(50) NULL,
@@ -245,7 +245,7 @@ CREATE TABLE IF NOT EXISTS ai_major_improvement (
 
 -- ai_top_priority
 CREATE TABLE IF NOT EXISTS ai_top_priority (
-    id           BIGINT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    id           BIGINT      NOT NULL PRIMARY KEY GNERATED BY DEFAULT AS IDENTITY,
     summary_id   CHAR(36)    NOT NULL,
     rank         INT         NOT NULL,
     target_type  VARCHAR(50) NULL,

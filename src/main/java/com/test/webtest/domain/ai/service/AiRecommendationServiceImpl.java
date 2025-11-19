@@ -1,36 +1,34 @@
 package com.test.webtest.domain.ai.service;
 
-//import lombok.RequiredArgsConstructor;
+import com.test.webtest.domain.ai.dto.AiResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import java.util.UUID;
-import com.test.webtest.domain.ai.dto.AiResponse;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Flux;
-import java.util.*; //HashMap, List, Map
+
+import java.util.*;
 
 @Service
-// @RequiredArgsConstructor
 @Slf4j
 public class AiRecommendationServiceImpl implements AiRecommendationService {
 
     private final WebClient geminiWebClient;
+    private final AiPersistService aiPersistService;
 
     @Value("${app.gemini.model}")
     private String defaultModel;
 
-    public AiRecommendationServiceImpl(WebClient geminiWebClient) {
+    public AiRecommendationServiceImpl(WebClient geminiWebClient, AiPersistService aiPersistService) {
         this.geminiWebClient = geminiWebClient;
+        this.aiPersistService = aiPersistService;
     }
 
     @Override
     @Async("logicExecutor")
     public void invokeAsync(UUID testId) {
-        log.info("[AI] invoke recommendations for testId={}", testId); // log를 쓰려면 lombok에서 slf4j를 import해야 함,,
-
-        // 프롬프트 생성 및 외부 AI 호출
+        log.info("[AI] invoke recommendations for testId={}", testId);
+        aiPersistService.generateAndSave(testId);
     }
 
     @Override
@@ -48,7 +46,7 @@ public class AiRecommendationServiceImpl implements AiRecommendationService {
                     "parts", List.of(Map.of("text", system))));
         }
 
-        if (jsonMode) { // 여게서 json schema를 원하는 대로 강제시킬 수 있음.
+        if (jsonMode) {
             body.put("generationConfig", Map.of(
                     "respose_mime_type", "application/json"));
         }
@@ -66,25 +64,6 @@ public class AiRecommendationServiceImpl implements AiRecommendationService {
     }
 
     @Override
-    public Flux<String> stream(String userPrompt, String model) {
-        String useModel = (model == null || model.isBlank()) ? defaultModel : model;
-
-        Map<String, Object> body = Map.of(
-                "contents", List.of(Map.of(
-                        "role", "user",
-                        "parts", List.of(Map.of("text", userPrompt)))));
-
-        String path = String.format("/models/%s:streamGenerateContent?alt=sse", useModel);
-
-        return geminiWebClient.post()
-                .uri(path)
-                .bodyValue(body)
-                .retrieve()
-                .bodyToFlux(String.class);
-
-    }
-
-    @Override
     public AiResponse generateWithSchema(String prompt, Map<String, Object> jsonSchema) {
 
         Map<String, Object> body = new HashMap<>();
@@ -97,7 +76,7 @@ public class AiRecommendationServiceImpl implements AiRecommendationService {
         genCfg.put("response_schema", jsonSchema);
         body.put("generationConfig", genCfg);
 
-        String path = String.format("/models/%s:generateContent", defaultModel); // 궁금한 코드
+        String path = String.format("/models/%s:generateContent", defaultModel);
 
         Map<?, ?> resp = geminiWebClient.post()
                 .uri(path)
@@ -107,8 +86,6 @@ public class AiRecommendationServiceImpl implements AiRecommendationService {
                 .block();
 
         return new AiResponse(extractText(resp));
-
-        // return null;
     }
 
     @SuppressWarnings("unchecked")
