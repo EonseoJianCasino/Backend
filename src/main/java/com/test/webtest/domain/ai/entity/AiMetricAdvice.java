@@ -5,9 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 
 @Getter
@@ -39,11 +37,11 @@ public class AiMetricAdvice {
 
 //    @Getter
     @OneToMany(mappedBy = "advice", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<AiMetricImprovement> improvements = new ArrayList<>();
+    private Set<AiMetricImprovement> improvements = new LinkedHashSet<>();
 //
 //    @Getter
     @OneToMany(mappedBy = "advice", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<AiMetricBenefit> benefits = new ArrayList<>();
+    private Set<AiMetricBenefit> benefits = new LinkedHashSet<>();
 
 //    @Getter
     @OneToMany(mappedBy = "advice", cascade = CascadeType.ALL, orphanRemoval = true)
