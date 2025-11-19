@@ -25,6 +25,12 @@ public class ScoresEntity {
     @Column(name = "total", nullable = false)
     private Integer total; // 웹50 + 보안50
 
+    @Column(name = "security_total", nullable = false)
+    private Integer securityTotal; // 웹50 + 보안50
+
+    @Column(name = "web_total", nullable = false)
+    private Integer webTotal; // 웹50 + 보안50
+
     @Column(name = "lcp_score")
     private Integer lcpScore;
 
@@ -67,7 +73,7 @@ public class ScoresEntity {
 
     public static ScoresEntity create(
             TestEntity test,
-            int total,
+            int total, int  securityTotal, int webTotal,
             Integer lcp, Integer cls, Integer inp,
             Integer fcp, Integer ttfb,
             Integer hsts, Integer frameAncestors, Integer ssl,
@@ -77,6 +83,8 @@ public class ScoresEntity {
                 .id(UUID.randomUUID())
                 .test(test)
                 .total(total)
+                .securityTotal(securityTotal)
+                .webTotal(webTotal)
                 .lcpScore(lcp)
                 .clsScore(cls)
                 .inpScore(inp)
@@ -93,13 +101,15 @@ public class ScoresEntity {
     }
 
     public void update(
-            int total,
+            int total, int securityTotal, int webTotal,
             Integer lcp, Integer cls, Integer inp,
             Integer fcp, Integer ttfb,
             Integer hsts, Integer frameAncestors, Integer ssl,
             Integer xcto, Integer referrerPolicy, Integer cookies, Integer csp
     ) {
         this.total = total;
+        this.securityTotal = securityTotal;
+        this.webTotal = webTotal;
         this.lcpScore = lcp;
         this.clsScore = cls;
         this.inpScore = inp;

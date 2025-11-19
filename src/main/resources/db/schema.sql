@@ -53,14 +53,16 @@ CREATE TABLE IF NOT EXISTS security_vitals (
 
 -- scores
 CREATE TABLE IF NOT EXISTS scores (
-  id           uuid PRIMARY KEY,
-  test_id      uuid NOT NULL REFERENCES tests(id) ON DELETE CASCADE,
-  total        int  NOT NULL, -- 0~100
-  lcp_score    int,
-  cls_score    int,
-  inp_score    int,
-  fcp_score    int,
-  ttfb_score   int,
+  id             uuid PRIMARY KEY,
+  test_id        uuid NOT NULL REFERENCES tests(id) ON DELETE CASCADE,
+  total          int  NOT NULL, -- 0~100
+  security_total int NOT NULL,
+  web_total      int NOT NULL,
+  lcp_score      int,
+  cls_score      int,
+  inp_score      int,
+  fcp_score      int,
+  ttfb_score     int,
   hsts_score               int,
   frame_ancestors_score    int,
   ssl_score                int,

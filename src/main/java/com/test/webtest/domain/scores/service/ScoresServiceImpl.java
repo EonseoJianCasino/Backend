@@ -51,14 +51,11 @@ public class ScoresServiceImpl implements ScoresService {
 
         int securityHalf = scoreCalculator.toSecurityHalfScore(sec);
         int total = scoreCalculator.total(webScore, securityHalf);
-
-        // Status 계산 (WebVitalsEntity의 원본 수치 사용)
-        String lcpStatus = scoreCalculator.calculateStatus(web != null ? web.getLcp() : null, WebVitalsThreshold.LCP);
-        String clsStatus = scoreCalculator.calculateStatus(web != null ? web.getCls() : null, WebVitalsThreshold.CLS);
-        String inpStatus = scoreCalculator.calculateStatus(web != null ? web.getInp() : null, WebVitalsThreshold.INP);
-        String fcpStatus = scoreCalculator.calculateStatus(web != null ? web.getFcp() : null, WebVitalsThreshold.FCP);
-        String ttfbStatus = scoreCalculator.calculateStatus(web != null ? web.getTtfb() : null,
-                WebVitalsThreshold.TTFB);
+        log.info("[SCORES] Calculated webScore={}", scoreCalculator.toWebHalfScore(webScore));
+        log.info("[SCORES] Calculated securityScore={}", securityHalf);
+        log.info("[SCORES] Calculated totalScore={}", total);
+        int securityTotal = securityHalf*2;
+        int webTotal = scoreCalculator.toWebHalfScore(webScore)*2;
 
         TestEntity test = testRepository.getReferenceById(testId);
 
@@ -66,7 +63,7 @@ public class ScoresServiceImpl implements ScoresService {
         scoresRepository.findByTestId(testId).ifPresentOrElse(
                 found -> {
                     found.update(
-                            total,
+                            total, securityTotal, webTotal,
                             webScore.lcp(), webScore.cls(), webScore.inp(),
                             webScore.fcp(), webScore.ttfb(),
                             secScores.hsts(),
@@ -82,7 +79,7 @@ public class ScoresServiceImpl implements ScoresService {
                 () -> {
                     ScoresEntity created = ScoresEntity.create(
                             test,
-                            total,
+                            total, securityTotal, webTotal,
                             webScore.lcp(), webScore.cls(), webScore.inp(),
                             webScore.fcp(), webScore.ttfb(),
                             secScores.hsts(),
@@ -110,7 +107,21 @@ public class ScoresServiceImpl implements ScoresService {
     @Override
     public int getTotal(UUID testId) {
         ScoresEntity e = scoresRepository.findByTestId(testId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.SCORES_NOT_READY, "scores not found: " + testId));
+                .orElseThrow(() -> new BusinessException(ErrorCode.SCORES_NOT_READY, "totalScores not found: " + testId));
         return e.getTotal() == null ? 0 : e.getTotal();
+    }
+
+    @Override
+    public int getSecurityTotal(UUID testId) {
+        ScoresEntity e = scoresRepository.findByTestId(testId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.SCORES_NOT_READY, "securityScores not found: " + testId));
+        return e.getTotal() == null ? 0 : e.getSecurityTotal();
+    }
+
+    @Override
+    public int getWebTotal(UUID testId) {
+        ScoresEntity e = scoresRepository.findByTestId(testId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.SCORES_NOT_READY, "webScores not found: " + testId));
+        return e.getTotal() == null ? 0 : e.getWebTotal();
     }
 }
