@@ -20,7 +20,10 @@ public class SseEmitterManager {
         // 기존 연결이 있으면 정리 후 교체
         SseEmitter prev = emitterByTest.put(testId, next);
         if (prev != null) {
-            try { prev.complete(); } catch (Exception ignore) {}
+            try {
+                prev.complete();
+            } catch (Exception ignore) {
+            }
         }
 
         // 종료·에러 시 맵에서 제거
@@ -34,7 +37,8 @@ public class SseEmitterManager {
 
     public void sendTo(String testId, String eventName, Object payload) {
         SseEmitter em = emitterByTest.get(testId);
-        if (em == null) return; // 구독 없음
+        if (em == null)
+            return; // 구독 없음
         try {
             em.send(SseEmitter.event().name(eventName).data(payload));
         } catch (Exception ex) {

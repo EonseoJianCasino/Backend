@@ -40,8 +40,7 @@ public class HttpFetcher {
             Map<String, List<String>> headersLower = resp.headers().map().entrySet().stream()
                     .collect(Collectors.toMap(
                             e -> e.getKey().toLowerCase(Locale.ROOT),
-                            Map.Entry::getValue
-                    ));
+                            Map.Entry::getValue));
 
             List<String> setCookies = headersLower.getOrDefault("set-cookie", List.of());
             URI finalUri = resp.uri();

@@ -2,15 +2,38 @@
 spring:
   application:
     name: WebTest
+  config:
+    import: optional:classpath:secret.properties
   jackson:
     time-zone: UTC
   mvc:
-    throw-exception-if-no-handler-found: true  # 404도 예외로 던지기
+    throw-exception-if-no-handler-found: true # 404도 예외로 던지기
   web:
     resources:
       add-mappings: false # 정적 리소스 자동 매핑 끄기
+#  autoconfigure:
+#    exclude:
+#      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+#      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+#  datasource:
+#    url: jdbc:postgresql://127.0.0.1:55432/webtest
+#    username: dev
+#    password: dev1234
+#  jpa:
+#    hibernate:
+#      ddl-auto: none
+#    properties:
+#      hibernate:
+#        jdbc:
+#          time_zone: UTC
+#    open-in-view: false
+#  sql:
+#    init:
+#      mode: always
+
 server:
   port: 8080
+
 management:
   endpoints:
     web:
@@ -25,3 +48,14 @@ management:
 spring:
   profiles:
     active: local
+  jackson:
+    serialization:
+      INDENT_OUTPUT: true
+
+app:
+  gemini:
+    # 기본 모델: 필요한 걸로 바꿔도 됨 (예: gemini-2.5-flash, gemini-1.5-pro 등)
+    model: "gemini-2.5-flash"
+    base-url: "https://generativelanguage.googleapis.com/v1beta"
+    api-key: "${GEMINI_API_KEY}"
+  allowed-origins: "http://localhost:5173,http://localhost:3000,chrome-extension://*"
