@@ -10,6 +10,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.*;
 
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+
 @Service
 @Slf4j
 public class AiRecommendationServiceImpl implements AiRecommendationService {
@@ -75,20 +77,27 @@ public class AiRecommendationServiceImpl implements AiRecommendationService {
                 "parts", List.of(Map.of("text", prompt)))));
 
         Map<String, Object> genCfg = new HashMap<>();
-        genCfg.put("response_mime_type", "application/json");
-        genCfg.put("response_schema", jsonSchema);
+        genCfg.put("responseMimeType", "application/json");
+        genCfg.put("responseSchema", jsonSchema);
         body.put("generationConfig", genCfg);
 
         String path = String.format("/models/%s:generateContent", defaultModel);
 
-        Map<?, ?> resp = geminiWebClient.post()
-                .uri(path)
-                .bodyValue(body)
-                .retrieve()
-                .bodyToMono(Map.class)
-                .block();
+        try {
 
-        return new AiResponse(extractText(resp));
+            Map<?, ?> resp = geminiWebClient.post()
+                    .uri(path)
+                    .bodyValue(body)
+                    .retrieve()
+                    .bodyToMono(Map.class)
+                    .block();
+
+            return new AiResponse(extractText(resp));
+
+        }catch(WebClientResponseException e){
+            log.error("[GEMINI] status={} body={}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw e;
+        }
     }
 
     @SuppressWarnings("unchecked")

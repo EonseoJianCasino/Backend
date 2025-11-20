@@ -15,8 +15,8 @@ public class AiSchemas {
                         "achievable_score", Map.of("type", "integer"),
                         "delta", Map.of("type", "integer")
                 ),
-                "required", List.of("metric", "current_score", "achievable_score", "delta"),
-                "additionalProperties", false
+                "required", List.of("metric", "current_score", "achievable_score", "delta")//,
+//                "additionalProperties", false
         );
 
         Map<String, Object> webElement = Map.of(
@@ -29,8 +29,8 @@ public class AiSchemas {
                         "detailed_plan", Map.of("type", "string"),
                         "benefit_summary", Map.of("type", "string")
                 ),
-                "required", List.of("element_name", "expected_gain", "related_metrics", "metric_deltas", "detailed_plan", "benefit_summary"),
-                "additionalProperties", false
+                "required", List.of("element_name", "expected_gain", "related_metrics", "metric_deltas", "detailed_plan", "benefit_summary")//,
+//                "additionalProperties", false
         );
 
         Map<String, Object> securityMetric = Map.of(
@@ -46,8 +46,8 @@ public class AiSchemas {
                         "impact_title", Map.of("type", "string"),
                         "impact_description", Map.of("type", "string")
                 ),
-                "required", List.of("metric", "current_score", "achievable_score", "delta", "expected_gain", "improvement_plan", "expected_benefit", "impact_title", "impact_description"),
-                "additionalProperties", false
+                "required", List.of("metric", "current_score", "achievable_score", "delta", "expected_gain", "improvement_plan", "expected_benefit", "impact_title", "impact_description")//,
+//                "additionalProperties", false
         );
 
         Map<String, Object> majorImprovement = Map.of(
@@ -57,8 +57,8 @@ public class AiSchemas {
                         "title", Map.of("type", "string"),
                         "description", Map.of("type", "string")
                 ),
-                "required", List.of("metric", "title", "description"),
-                "additionalProperties", false
+                "required", List.of("metric", "title", "description")//,
+//                "additionalProperties", false
         );
 
         Map<String, Object> prioritySchema = Map.of(
@@ -70,8 +70,8 @@ public class AiSchemas {
                         "expected_gain", Map.of("type", "integer"),
                         "reason", Map.of("type", "string")
                 ),
-                "required", List.of("rank", "target_type", "target_name", "expected_gain", "reason"),
-                "additionalProperties", false
+                "required", List.of("rank", "target_type", "target_name", "expected_gain", "reason")//,
+//                "additionalProperties", false
         );
 
         Map<String, Object> normalizationSchema = Map.of(
@@ -81,8 +81,8 @@ public class AiSchemas {
                         "security_total_after", Map.of("type", "integer"),
                         "overall_total_after", Map.of("type", "integer")
                 ),
-                "required", List.of("web_total_after", "security_total_after", "overall_total_after"),
-                "additionalProperties", false
+                "required", List.of("web_total_after", "security_total_after", "overall_total_after")//,
+//                "additionalProperties", false
         );
 
         return Map.of(
@@ -102,8 +102,8 @@ public class AiSchemas {
                         "normalization",
                         "major_improvements",
                         "top_priorities"
-                ),
-                "additionalProperties", false
+                )//,
+//                "additionalProperties", false
         );
 
     }
