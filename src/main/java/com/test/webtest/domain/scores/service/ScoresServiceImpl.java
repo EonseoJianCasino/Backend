@@ -108,6 +108,6 @@ public class ScoresServiceImpl implements ScoresService {
     public TotalScoreResponse getTotal(UUID testId) {
         ScoresEntity e = scoresRepository.findByTestId(testId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SCORES_NOT_READY, "totalScores not found: " + testId));
-        return TotalScoreResponse.of(e.getTotal(), e.getSecurityTotal(), e.getWebTotal());
+        return TotalScoreResponse.from(e);
     }
 }

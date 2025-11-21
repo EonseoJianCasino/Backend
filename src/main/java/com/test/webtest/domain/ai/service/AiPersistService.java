@@ -16,7 +16,6 @@ import static com.test.webtest.domain.ai.schema.AiSchemas.buildPerfAdviceSchema;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 public class AiPersistService {
 
   private final AiRecommendationService geminiService; // <- 여기서 호출
@@ -25,6 +24,18 @@ public class AiPersistService {
   private final AiEntitySaver entitySaver;
   private final AiDtoConverter dtoConverter;
 
+  public AiPersistService(
+          @Lazy AiRecommendationService geminiService,
+          AiPromptBuilder promptBuilder,
+          AiResponseParser responseParser,
+          AiEntitySaver entitySaver,
+          AiDtoConverter dtoConverter) {
+    this.geminiService = geminiService;
+    this.promptBuilder = promptBuilder;
+    this.responseParser = responseParser;
+    this.entitySaver = entitySaver;
+    this.dtoConverter = dtoConverter;
+  }
   @Transactional
   public void generateAndSave(UUID testId) {
     String prompt = promptBuilder.buildPrompt(testId);

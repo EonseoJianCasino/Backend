@@ -1,11 +1,19 @@
 package com.test.webtest.domain.scores.dto;
 
-public record TotalScoreResponse(int totalScore, int securityTotalScore, int webTotalScore) {
-    public static TotalScoreResponse of(
-            int total,
-            int securityTotal,
-            int webTotal
-    ) {
-        return new TotalScoreResponse(total, securityTotal, webTotal);
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.test.webtest.domain.scores.entity.ScoresEntity;
+
+public record TotalScoreResponse(
+        @JsonProperty("total_score") int totalScore,
+        @JsonProperty("security_score") int securityTotalScore,
+        @JsonProperty("web_score") int webTotalScore
+) {
+    public static TotalScoreResponse from(ScoresEntity e) {
+        return new TotalScoreResponse(
+            n(e.getTotal()),
+            n(e.getSecurityTotal()),
+            n(e.getSecurityTotal())
+        );
     }
+    private static int n(Integer v) {return v == null ? 0 : v;}
 }

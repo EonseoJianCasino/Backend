@@ -9,7 +9,8 @@ public record ScoresDetailResponse(
         @JsonProperty("cls_score")  int clsScore,
         @JsonProperty("inp_score")  int inpScore,
         @JsonProperty("fcp_score")  int fcpScore,
-        @JsonProperty("ttfb_score") int ttfbScore
+        @JsonProperty("ttfb_score") int ttfbScore,
+        @JsonProperty("security_total_score") int securityTotal
 ) {
     public static ScoresDetailResponse from(ScoresEntity e) {
         return new ScoresDetailResponse(
@@ -18,7 +19,8 @@ public record ScoresDetailResponse(
                 n(e.getClsScore()),
                 n(e.getInpScore()),
                 n(e.getFcpScore()),
-                n(e.getTtfbScore())
+                n(e.getTtfbScore()),
+                n(e.getSecurityTotal())
         );
     }
     private static int n(Integer v) { return v == null ? 0 : v; }

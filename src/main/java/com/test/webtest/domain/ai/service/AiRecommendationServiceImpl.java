@@ -16,7 +16,6 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 @Slf4j
 public class AiRecommendationServiceImpl implements AiRecommendationService {
 
-
     private final WebClient geminiWebClient;
     private final AiPersistService aiPersistService; // <- 여기서 호출 3
 
