@@ -1,6 +1,7 @@
 package com.test.webtest.global.error.handler;
 
 import com.test.webtest.global.error.exception.BusinessException;
+import com.test.webtest.global.error.exception.ConcurrencyException;
 import com.test.webtest.global.error.model.ErrorCode;
 import com.test.webtest.global.error.model.ErrorResponse;
 import jakarta.validation.ConstraintViolationException;
@@ -117,6 +118,13 @@ public class GlobalExceptionHandler {
         // 중복키/제약 위반 등 → 409로 응답하거나, 케이스에 따라 400
         var ec = ErrorCode.CONCURRENCY_CONFLICT;
         log.warn("[DATA_INTEGRITY] {}", ex.getMostSpecificCause().getMessage());
+        return ResponseEntity.status(ec.httpStatus).body(ErrorResponse.of(ec));
+    }
+
+    // ===== 락/동시성 경로 =====
+    @ExceptionHandler(ConcurrencyException.class)
+    public ResponseEntity<ErrorResponse> handleConcurrency(ConcurrencyException ex) {
+        var ec = ErrorCode.CONCURRENCY_CONFLICT; // httpStatus = 409
         return ResponseEntity.status(ec.httpStatus).body(ErrorResponse.of(ec));
     }
 

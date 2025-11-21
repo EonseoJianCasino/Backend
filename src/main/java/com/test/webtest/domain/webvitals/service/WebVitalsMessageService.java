@@ -3,7 +3,7 @@ package com.test.webtest.domain.webvitals.service;
 import com.test.webtest.domain.urgentlevel.entity.UrgentLevelEntity;
 import com.test.webtest.domain.webvitals.dto.WebVitalsView;
 import com.test.webtest.domain.webvitals.entity.WebVitalsEntity;
-import com.test.webtest.global.common.util.WebVitalsThreshold;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -11,51 +11,41 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
+@Slf4j
 public class WebVitalsMessageService {
 
     public WebVitalsView toView(WebVitalsEntity e, @Nullable UrgentLevelEntity urgent) {
-        List<WebVitalsView.Item> items = new ArrayList<>();
 
+        List<WebVitalsView.Item> items = new ArrayList<>();
         items.add(new WebVitalsView.Item(
                 "LCP",
                 description("LCP"),
-                urgent != null ? urgent.getLcpStatus() : null
+                urgent != null ? urgent.getLcpStatus() : null,
+                formatTimeWithUnit("LCP", e.getLcp())
         ));
         items.add(new WebVitalsView.Item(
                 "CLS",
                 description("CLS"),
-                urgent != null ? urgent.getClsStatus() : null
-        ));
+                urgent != null ? urgent.getClsStatus() : null,
+                formatTimeWithUnit("CLS", e.getCls())));
         items.add(new WebVitalsView.Item(
                 "INP",
                 description("INP"),
-                urgent != null ? urgent.getInpStatus() : null
-        ));
+                urgent != null ? urgent.getInpStatus() : null,
+                formatTimeWithUnit("INP", e.getInp())));
         items.add(new WebVitalsView.Item(
                 "FCP",
                 description("FCP"),
-                urgent != null ? urgent.getFcpStatus() : null
-        ));
+                urgent != null ? urgent.getFcpStatus() : null,
+                formatTimeWithUnit("FCP", e.getFcp())));
         items.add(new WebVitalsView.Item(
                 "TTFB",
                 description("TTFB"),
-                urgent != null ? urgent.getTtfbStatus() : null
-        ));
-
+                urgent != null ? urgent.getTtfbStatus() : null,
+                formatTimeWithUnit("TTFB", e.getTtfb())));
+        log.info("[webVitals][message] items={}", items.toString());
         return new WebVitalsView(items, e.getCreatedAt());
     }
-
-	public String getStatus(Double value, WebVitalsThreshold th) {
-		if (value == null) return null;
-
-		if (value <= th.getGood()) {
-			return "양호";
-		}
-		else if (value >= th.getPoor()) {
-			return "긴급";
-		}
-		return "주의";
-	}
 
     private String description(String metric) {
         return switch (metric) {
@@ -72,5 +62,13 @@ public class WebVitalsMessageService {
             default ->
                     "웹 성능 지표";
         };
+    }
+
+    private String formatTimeWithUnit(String metric, Double value) {
+        if (metric.equals("LCP") || metric.equals("INP") || metric.equals("FCP") || metric.equals("TTFB")) {
+            return String.format("%.0fms", value);
+        } else {
+            return String.format("%.0f점",value);
+        }
     }
 }

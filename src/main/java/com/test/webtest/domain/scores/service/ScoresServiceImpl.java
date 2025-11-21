@@ -1,6 +1,7 @@
 package com.test.webtest.domain.scores.service;
 
 import com.test.webtest.domain.scores.dto.ScoresDetailResponse;
+import com.test.webtest.domain.scores.dto.TotalScoreResponse;
 import com.test.webtest.domain.scores.entity.ScoresEntity;
 import com.test.webtest.domain.scores.repository.ScoresRepository;
 import com.test.webtest.domain.securityvitals.entity.SecurityVitalsEntity;
@@ -11,7 +12,6 @@ import com.test.webtest.domain.urgentlevel.service.UrgentLevelService;
 import com.test.webtest.domain.webvitals.entity.WebVitalsEntity;
 import com.test.webtest.domain.webvitals.repository.WebVitalsRepository;
 import com.test.webtest.global.common.util.ScoreCalculator;
-import com.test.webtest.global.common.util.WebVitalsThreshold;
 import com.test.webtest.global.error.exception.BusinessException;
 import com.test.webtest.global.error.model.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -105,23 +105,9 @@ public class ScoresServiceImpl implements ScoresService {
     }
 
     @Override
-    public int getTotal(UUID testId) {
+    public TotalScoreResponse getTotal(UUID testId) {
         ScoresEntity e = scoresRepository.findByTestId(testId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SCORES_NOT_READY, "totalScores not found: " + testId));
-        return e.getTotal() == null ? 0 : e.getTotal();
-    }
-
-    @Override
-    public int getSecurityTotal(UUID testId) {
-        ScoresEntity e = scoresRepository.findByTestId(testId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.SCORES_NOT_READY, "securityScores not found: " + testId));
-        return e.getTotal() == null ? 0 : e.getSecurityTotal();
-    }
-
-    @Override
-    public int getWebTotal(UUID testId) {
-        ScoresEntity e = scoresRepository.findByTestId(testId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.SCORES_NOT_READY, "webScores not found: " + testId));
-        return e.getTotal() == null ? 0 : e.getWebTotal();
+        return TotalScoreResponse.of(e.getTotal(), e.getSecurityTotal(), e.getWebTotal());
     }
 }
