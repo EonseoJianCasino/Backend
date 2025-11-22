@@ -8,6 +8,8 @@ import com.test.webtest.domain.securityvitals.entity.SecurityVitalsEntity;
 import com.test.webtest.domain.securityvitals.repository.SecurityVitalsRepository;
 import com.test.webtest.domain.test.entity.TestEntity;
 import com.test.webtest.domain.test.repository.TestRepository;
+import com.test.webtest.domain.urgentlevel.entity.UrgentLevelEntity;
+import com.test.webtest.domain.urgentlevel.repository.UrgentLevelRepository;
 import com.test.webtest.domain.urgentlevel.service.UrgentLevelService;
 import com.test.webtest.domain.webvitals.entity.WebVitalsEntity;
 import com.test.webtest.domain.webvitals.repository.WebVitalsRepository;
@@ -32,7 +34,7 @@ public class ScoresServiceImpl implements ScoresService {
     private final TestRepository testRepository;
     private final ScoreCalculator scoreCalculator;
     private final UrgentLevelService urgentLevelService; // 새 서비스
-
+    private final UrgentLevelRepository urgentLevelRepository;
 
     @Override
     @Transactional
@@ -99,9 +101,11 @@ public class ScoresServiceImpl implements ScoresService {
 
     @Override
     public ScoresDetailResponse getDetail(UUID testId) {
-        ScoresEntity e = scoresRepository.findByTestId(testId)
+        ScoresEntity se = scoresRepository.findByTestId(testId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SCORES_NOT_READY, "scores not found: " + testId));
-        return ScoresDetailResponse.from(e);
+        UrgentLevelEntity ue = urgentLevelRepository.findByTestId(testId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.URGENT_LEVEL_NOT_FOUND, "urgent level not found " + testId));
+        return ScoresDetailResponse.from(se, ue);
     }
 
     @Override

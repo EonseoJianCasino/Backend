@@ -68,7 +68,7 @@ public class WebVitalsMessageService {
         if (metric.equals("LCP") || metric.equals("INP") || metric.equals("FCP") || metric.equals("TTFB")) {
             return String.format("%.0fms", value);
         } else {
-            return String.format("%.0f점",value);
+            return String.format("%.2f",value);
         }
     }
 }

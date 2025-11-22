@@ -18,14 +18,13 @@ public enum ErrorCode {
 
     // 보안/권한(선택: 스프링 시큐리티 사용 시)
     ACCESS_DENIED            (HttpStatus.FORBIDDEN,              "ACCESS_DENIED",            "요청 권한이 없습니다."),
-    UNAUTHORIZED             (HttpStatus.UNAUTHORIZED,           "UNAUTHORIZED",             "인증이 필요합니다."),
 
     // 테스트/리소스
     TEST_NOT_FOUND           (HttpStatus.NOT_FOUND,              "TEST_NOT_FOUND",           "요청한 테스트가 존재하지 않습니다."),
     WEB_VITALS_NOT_FOUND     (HttpStatus.NOT_FOUND,              "WEB_VITALS_NOT_FOUND",     "웹 바이탈 데이터가 존재하지 않습니다."),
     SECURITY_VITALS_NOT_FOUND(HttpStatus.NOT_FOUND,              "SECURITY_VITALS_NOT_FOUND","보안 바이탈 데이터가 존재하지 않습니다."),
     SCORES_NOT_READY         (HttpStatus.CONFLICT,               "SCORES_NOT_READY",         "점수가 아직 집계되지 않았습니다. 잠시 후 다시 시도하세요."),
-    SCORES_NOT_FOUND         (HttpStatus.NOT_FOUND,              "SCORES_NOT_FOUND",         "점수 데이터가 존재하지 않습니다."),
+    URGENT_LEVEL_NOT_FOUND   (HttpStatus.NOT_FOUND,              "URGENT_LEVEL_NOT_FOUND",   "긴급도 상태가 존재하지 않습니다."),
 
     PRIORITIES_NOT_READY   (HttpStatus.CONFLICT,                 "PRIORITIES_NOT_READY",     "우선순위가 아직 산출되지 않았습니다. 잠시 후 다시 시도하세요."), // [추가]
     PRIORITIES_NOT_FOUND   (HttpStatus.NOT_FOUND,                "PRIORITIES_NOT_FOUND",     "우선순위 데이터가 존재하지 않습니다."), // [추가]
