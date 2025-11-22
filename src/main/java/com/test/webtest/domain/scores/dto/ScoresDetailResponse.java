@@ -24,7 +24,7 @@ public record ScoresDetailResponse(
                 metric(n(se.getClsScore()), ue.getClsStatus()),
                 metric(n(se.getInpScore()), ue.getInpStatus()),
                 metric(n(se.getFcpScore()), ue.getFcpStatus()),
-                metric(n(se.getTtfbScore()), ue.getFcpStatus()),
+                metric(n(se.getTtfbScore()), ue.getTtfbStatus()),
                 n(se.getSecurityTotal())
         );
     }

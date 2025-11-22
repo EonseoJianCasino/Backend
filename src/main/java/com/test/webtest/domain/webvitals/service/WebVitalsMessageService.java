@@ -65,6 +65,9 @@ public class WebVitalsMessageService {
     }
 
     private String formatTimeWithUnit(String metric, Double value) {
+        if (value == null) {
+            return "-";
+        }
         if (metric.equals("LCP") || metric.equals("INP") || metric.equals("FCP") || metric.equals("TTFB")) {
             return String.format("%.0fms", value);
         } else {

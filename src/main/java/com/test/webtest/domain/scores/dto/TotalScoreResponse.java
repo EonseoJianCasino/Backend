@@ -12,7 +12,7 @@ public record TotalScoreResponse(
         return new TotalScoreResponse(
             n(e.getTotal()),
             n(e.getSecurityTotal()),
-            n(e.getSecurityTotal())
+            n(e.getWebTotal())
         );
     }
     private static int n(Integer v) {return v == null ? 0 : v;}
