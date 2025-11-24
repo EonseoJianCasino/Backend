@@ -64,17 +64,9 @@ public class LogicStatusServiceImpl {
             }
 
             // 3) AI 트리거 (조건 충족 시)
-            boolean aiMarked = markAiTriggeredIfEligible(testId);
-            if (aiMarked) {
-                aiService.invokeAsync(testId);
 
-                // 커밋 후 AI_READY 롱폴 알림
-                TxAfterCommit.run(() -> {
-                    log.info("[LONGPOLL][AI_READY] triggered for testId={}", testId);
-                    longPollingManager.complete(
-                            new WaitKey(testId, LongPollingTopic.AI_READY),
-                            new PhaseReadyPayload(LongPollingTopic.AI_READY, testId, Instant.now()));
-                });
+            if (canStartAi(testId)) {
+                aiService.invokeAsync(testId);
             }
 
         } catch (PessimisticLockException | LockTimeoutException
@@ -89,8 +81,9 @@ public class LogicStatusServiceImpl {
         return !rows.isEmpty();
     }
 
-    private boolean markAiTriggeredIfEligible(UUID testId) {
-        List<Object[]> rows = repo.markAiTriggered(testId);
-        return !rows.isEmpty();
+    private boolean canStartAi(UUID testId) {
+        return repo.findById(testId)
+                .map(s -> s.isWebReceived() && s.isSecReceived() && s.isScoresReady() && !s.isAiTriggered())
+                .orElse(false);
     }
 }
