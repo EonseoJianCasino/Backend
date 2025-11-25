@@ -54,4 +54,17 @@ public interface LogicStatusRepository extends JpaRepository<LogicStatusEntity, 
         RETURNING ai_triggered
         """, nativeQuery = true)
     List<Object[]> markAiTriggered(@Param("testId") UUID testId);
+
+
+    // 5) AI 완료 마킹 (결과 준비 완료)
+    @Modifying
+    @Query(value = """
+        UPDATE logic_status
+            SET ai_ready = TRUE, updated_at = now()
+        WHERE test_id = :testId
+            AND ai_triggered = TRUE
+            AND ai_ready = FALSE
+        RETURNING ai_ready
+        """, nativeQuery = true)
+    List<Object[]> markAiReady(@Param("testId") UUID testId);
 }

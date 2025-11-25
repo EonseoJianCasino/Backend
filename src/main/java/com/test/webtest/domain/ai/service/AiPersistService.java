@@ -11,6 +11,7 @@ import com.test.webtest.global.longpoll.TxAfterCommit;
 import com.test.webtest.global.longpoll.WaitKey;
 import com.test.webtest.global.longpoll.payload.PhaseReadyPayload;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import static com.test.webtest.domain.ai.schema.AiSchemas.buildPerfAdviceSchema;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class AiPersistService {
 
   private final AiRecommendationService geminiService; // <- 여기서 호출
@@ -56,16 +58,22 @@ public class AiPersistService {
     // 1. AI 결과 저장
     entitySaver.saveAll(testId, payload);
 
-    // 2. logic_status.ai_triggered TRUE
-    logicStatusRepository.markAiTriggered(testId);
+    // 2. logic_status.ready TRUE
+    var rows = logicStatusRepository.markAiReady(testId);
+    if (!rows.isEmpty()) {
+        log.info("[AI] ai_ready marked TRUE for testId={}", testId);
 
-    // 3. 커밋 후 AI_READY 롱폴 알림
-    TxAfterCommit.run(()-> {
-      longPollingManager.complete(
-              new WaitKey(testId, LongPollingTopic.AI_READY),
-              new PhaseReadyPayload(LongPollingTopic.AI_READY, testId, java.time.Instant.now())
-      );
-    });
+        // 3. 커밋 후 AI_READY 롱폴 알림
+        TxAfterCommit.run(()-> {
+            log.info("[LONGPOLL][AI_READY] triggered for testId={}", testId);
+            longPollingManager.complete(
+                    new WaitKey(testId, LongPollingTopic.AI_READY),
+                    new PhaseReadyPayload(LongPollingTopic.AI_READY, testId, java.time.Instant.now())
+            );
+        });
+    } else {
+        log.info("[AI] markAiReady returned empty rows (already ready or not triggered), testId={}", testId);
+    }
   }
 
   @Transactional(readOnly = true)

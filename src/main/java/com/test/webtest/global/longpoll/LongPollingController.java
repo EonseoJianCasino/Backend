@@ -2,6 +2,7 @@ package com.test.webtest.global.longpoll;
 
 import com.test.webtest.domain.logicstatus.repository.LogicStatusRepository;
 import com.test.webtest.global.longpoll.payload.PhaseReadyPayload;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -10,14 +11,10 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/tests")
+@RequiredArgsConstructor
 public class LongPollingController {
     private final LongPollingManager manager;
     private final LogicStatusRepository logicStatusRepository;
-
-    public LongPollingController(LongPollingManager manger, LogicStatusRepository logicStatusRepository) {
-        this.manager = manger;
-        this.logicStatusRepository = logicStatusRepository;
-    }
 
     @GetMapping("/{testId}/wait")
     public DeferredResult<ResponseEntity<?>> waitFor(
@@ -39,7 +36,7 @@ public class LongPollingController {
         return logicStatusRepository.findById(testId)
                 .map(status -> switch (topic) {
                     case CORE_READY -> status.isScoresReady();
-                    case AI_READY -> status.isAiTriggered();
+                    case AI_READY -> status.isAiReady();
                 })
                 .orElse(false);
     }

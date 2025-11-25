@@ -64,13 +64,11 @@ public class LogicStatusServiceImpl {
             }
 
             // 3) AI 트리거 (조건 충족 시)
-
-            if (canStartAi(testId)) {
+            boolean aiMarked = markAiTriggeredIfEligible(testId);
+            if (aiMarked) {
                 aiService.invokeAsync(testId);
             }
-
-        } catch (PessimisticLockException | LockTimeoutException
-                | PessimisticLockingFailureException e) {
+        } catch (PessimisticLockException | LockTimeoutException | PessimisticLockingFailureException e) {
             // DB 락/타임아웃 → 409로 매핑
             throw new ConcurrencyException("동시 처리 충돌: testId=" + testId);
         }
@@ -81,9 +79,8 @@ public class LogicStatusServiceImpl {
         return !rows.isEmpty();
     }
 
-    private boolean canStartAi(UUID testId) {
-        return repo.findById(testId)
-                .map(s -> s.isWebReceived() && s.isSecReceived() && s.isScoresReady() && !s.isAiTriggered())
-                .orElse(false);
+    private boolean markAiTriggeredIfEligible(UUID testId) {
+        List<Object[]> rows = repo.markAiTriggered(testId);
+        return !rows.isEmpty();
     }
 }
