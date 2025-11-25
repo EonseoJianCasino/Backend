@@ -178,6 +178,7 @@ CREATE TABLE IF NOT EXISTS logic_status (
   sec_received   boolean NOT NULL DEFAULT false,
   scores_ready   boolean NOT NULL DEFAULT false,
   ai_triggered   boolean NOT NULL DEFAULT false,
+  ai_ready       boolean NOT NULL DEFAULT false,
   updated_at     timestamptz NOT NULL DEFAULT now(),
   created_at     timestamptz NOT NULL DEFAULT now()
 );

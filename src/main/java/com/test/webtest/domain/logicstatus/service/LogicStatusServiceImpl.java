@@ -67,18 +67,8 @@ public class LogicStatusServiceImpl {
             boolean aiMarked = markAiTriggeredIfEligible(testId);
             if (aiMarked) {
                 aiService.invokeAsync(testId);
-
-                // 커밋 후 AI_READY 롱폴 알림
-                TxAfterCommit.run(() -> {
-                    log.info("[LONGPOLL][AI_READY] triggered for testId={}", testId);
-                    longPollingManager.complete(
-                            new WaitKey(testId, LongPollingTopic.AI_READY),
-                            new PhaseReadyPayload(LongPollingTopic.AI_READY, testId, Instant.now()));
-                });
             }
-
-        } catch (PessimisticLockException | LockTimeoutException
-                | PessimisticLockingFailureException e) {
+        } catch (PessimisticLockException | LockTimeoutException | PessimisticLockingFailureException e) {
             // DB 락/타임아웃 → 409로 매핑
             throw new ConcurrencyException("동시 처리 충돌: testId=" + testId);
         }

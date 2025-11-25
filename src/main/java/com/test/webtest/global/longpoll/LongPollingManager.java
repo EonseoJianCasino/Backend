@@ -29,10 +29,10 @@ public class LongPollingManager {
     }
 
     public void complete(WaitKey key, Object payLoad) {
-        Set<DeferredResult<ResponseEntity<?>>> set = waiters.remove(key); // 다음 요청으로 동일한 key가 들어올 경우 중복되는 것을 방지
+        Set<DeferredResult<ResponseEntity<?>>> set = waiters.remove(key); // 다음 요청으로 동일한 key 가 들어올 경우 중복되는 것을 방지
         if(set == null) return;
         for (DeferredResult<ResponseEntity<?>> dr : set) {
-            if (!dr.hasResult()) dr.setResult(ResponseEntity.ok(payLoad));
+            if (!dr.hasResult()) dr.setResult(ResponseEntity.ok(payLoad)); // waiter 이 비었다면 응답 값을 설정함
         }
     }
 }
