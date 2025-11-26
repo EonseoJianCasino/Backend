@@ -5,12 +5,12 @@ import com.test.webtest.domain.ai.dto.AiAnalysisSummaryResponse;
 import com.test.webtest.domain.ai.dto.AiResponse;
 import com.test.webtest.domain.ai.dto.TopPrioritiesResponse;
 import com.test.webtest.domain.logicstatus.repository.LogicStatusRepository;
+import com.test.webtest.global.logging.Monitored;
 import com.test.webtest.global.longpoll.LongPollingManager;
 import com.test.webtest.global.longpoll.LongPollingTopic;
 import com.test.webtest.global.longpoll.TxAfterCommit;
 import com.test.webtest.global.longpoll.WaitKey;
 import com.test.webtest.global.longpoll.payload.PhaseReadyPayload;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -51,6 +51,7 @@ public class AiPersistService {
   }
 
   @Transactional
+  @Monitored("ai.generateAndSave")
   public void generateAndSave(UUID testId) {
     String prompt = promptBuilder.buildPrompt(testId);
     AiResponse response = geminiService.generateWithSchema(prompt, buildPerfAdviceSchema());

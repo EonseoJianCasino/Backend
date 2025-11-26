@@ -160,17 +160,6 @@ CREATE TABLE IF NOT EXISTS urgent_level (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
--- priorities
-CREATE TABLE IF NOT EXISTS priorities (
-  id         uuid PRIMARY KEY,
-  test_id    uuid NOT NULL REFERENCES tests(id) ON DELETE CASCADE,
-  type       varchar(20) NOT NULL, -- PERFORMANCE / SECURITY
-  metric     varchar(50) NOT NULL,
-  reason     text,
-  rank       int NOT NULL,
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-
 -- logic_status
 CREATE TABLE IF NOT EXISTS logic_status (
   test_id        uuid PRIMARY KEY REFERENCES tests(id) ON DELETE CASCADE,

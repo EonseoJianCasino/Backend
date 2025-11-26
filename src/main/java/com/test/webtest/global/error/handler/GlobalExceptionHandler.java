@@ -35,7 +35,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleBusiness(BusinessException ex) {
         var ec = ex.getErrorCode();
         var traceId = currentTraceId();
-        log.warn("[BUSINESS] code={} msg={}", traceId, ec.code, ex.getMessage());
+        log.warn("[BUSINESS] traceId={} code={} msg={}", traceId, ec.code, ex.getMessage());
         return ResponseEntity
                 .status(ec.httpStatus)
                 .body(ErrorResponse.of(ec, ex.getMessage(), traceId)); // 도메인 메시지는 그대로
@@ -49,7 +49,7 @@ public class GlobalExceptionHandler {
                 .collect(java.util.stream.Collectors.joining(", "));
         var ec = ErrorCode.VALIDATION_FAILED;
         var traceId = currentTraceId();
-        log.warn("[VALIDATION] {}", traceId, msg);
+        log.warn("[VALIDATION] traceId={} code={} msg={}", traceId, ec.code, msg);
         return ResponseEntity.status(ec.httpStatus).body(ErrorResponse.of(ec, msg, traceId));
     }
 
@@ -61,7 +61,7 @@ public class GlobalExceptionHandler {
                 .collect(java.util.stream.Collectors.joining(", "));
         var ec = ErrorCode.VALIDATION_FAILED;
         var traceId = currentTraceId();
-        log.warn("[CONSTRAINT] {}", traceId, msg);
+        log.warn("[CONSTRAINT] traceId={} code={} msg={}", traceId, ec.code, msg);
         return ResponseEntity.status(ec.httpStatus).body(ErrorResponse.of(ec, msg, traceId));
     }
 
@@ -70,7 +70,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
         var ec = ErrorCode.INVALID_PATH_VARIABLE;
         var traceId = currentTraceId();
-        log.warn("[TYPE_MISMATCH] name={} value={}", traceId, ex.getName(), ex.getValue());
+        log.warn("[TYPE_MISMATCH] traceId={} name={} value={}", traceId, ec.code, ex.getMessage());
         return ResponseEntity.status(ec.httpStatus).body(ErrorResponse.of(ec, null, traceId));
     }
 
@@ -79,7 +79,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleBadJson(HttpMessageNotReadableException ex) {
         var ec = ErrorCode.MESSAGE_NOT_READABLE;
         var traceId = currentTraceId();
-        log.warn("[BAD_JSON] {}", traceId, ex.getMessage());
+        log.warn("[BAD_JSON] traceId={} code={} msg={}", traceId, ec.code, ex.getMessage());
         return ResponseEntity.status(ec.httpStatus).body(ErrorResponse.of(ec, null, traceId));
     }
 
@@ -89,7 +89,7 @@ public class GlobalExceptionHandler {
         var ec = ErrorCode.MISSING_REQUEST_PARAM;
         var msg = "필수 파라미터가 누락되었습니다: " + ex.getParameterName();
         var traceId = currentTraceId();
-        log.warn("[MISSING_PARAM] {}", traceId, msg);
+        log.warn("[MISSING_PARAM] traceId={} code={} msg={}", traceId, ec.code, msg);
         return ResponseEntity.status(ec.httpStatus).body(ErrorResponse.of(ec, msg, traceId));
     }
 
@@ -98,7 +98,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleMethodNotAllowed(HttpRequestMethodNotSupportedException ex) {
         var ec = ErrorCode.METHOD_NOT_ALLOWED;
         var traceId = currentTraceId();
-        log.warn("[METHOD_NOT_ALLOWED] {}", traceId, ex.getMethod());
+        log.warn("[METHOD_NOT_ALLOWED] traceId={} code={} msg={}", traceId, ec.code, ex.getMessage());
         return ResponseEntity.status(ec.httpStatus).body(ErrorResponse.of(ec, null, traceId));
     }
 
@@ -106,7 +106,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleUnsupportedMediaType(HttpMediaTypeNotSupportedException ex) {
         var ec = ErrorCode.UNSUPPORTED_MEDIA_TYPE;
         var traceId = currentTraceId();
-        log.warn("[UNSUPPORTED_MEDIA_TYPE] {}", traceId, ex.getContentType());
+        log.warn("[UNSUPPORTED_MEDIA_TYPE] traceId={} code={} msg={}", traceId, ec.code, ex.getMessage());
         return ResponseEntity.status(ec.httpStatus).body(ErrorResponse.of(ec, null, traceId));
     }
 
@@ -115,7 +115,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleNoHandler(NoHandlerFoundException ex) {
         var ec = ErrorCode.NO_HANDLER_FOUND;
         var traceId = currentTraceId();
-        log.warn("[NO_HANDLER] {} {}", traceId, ex.getHttpMethod(), ex.getRequestURL());
+        log.warn("[NO_HANDLER] traceId={} code={} msg={}", traceId, ec.code, ex.getMessage());
         return ResponseEntity.status(ec.httpStatus).body(ErrorResponse.of(ec, null, traceId));
     }
 
@@ -124,7 +124,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
         var ec = ErrorCode.ACCESS_DENIED;
         var traceId = currentTraceId();
-        log.warn("[ACCESS_DENIED] {}", traceId, ex.getMessage());
+        log.warn("[ACCESS_DENIED] traceID={} code={} msg={}", traceId, ec.code, ex.getMessage());
         return ResponseEntity.status(ec.httpStatus).body(ErrorResponse.of(ec, null, traceId));
     }
 
@@ -134,7 +134,7 @@ public class GlobalExceptionHandler {
         // 중복키/제약 위반 등 → 409로 응답하거나, 케이스에 따라 400
         var ec = ErrorCode.CONCURRENCY_CONFLICT;
         var traceId = currentTraceId();
-        log.warn("[DATA_INTEGRITY] {}", traceId, ex.getMostSpecificCause().getMessage());
+        log.warn("[DATA_INTEGRITY] traceId={} code={} msg={}", traceId, ec.code, ex.getMostSpecificCause().getMessage());
         return ResponseEntity.status(ec.httpStatus).body(ErrorResponse.of(ec, null, traceId));
     }
 
@@ -143,7 +143,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleConcurrency(ConcurrencyException ex) {
         var ec = ErrorCode.CONCURRENCY_CONFLICT; // httpStatus = 409
         var traceId = currentTraceId();
-        log.warn("[CONCURRENCY] traceId={} msg={}", traceId, ex.getMessage());
+        log.warn("[CONCURRENCY] traceId={} code={} msg={}", traceId, ec.code, ex.getMessage());
         return ResponseEntity.status(ec.httpStatus).body(ErrorResponse.of(ec, null, traceId));
     }
 
@@ -152,7 +152,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAny(Exception ex) {
         var ec = ErrorCode.INTERNAL_ERROR;
         var traceId = currentTraceId();
-        log.error("[UNHANDLED] {}", traceId, ex.getMessage(), ex);
+        log.error("[UNHANDLED] traceId={} code={} msg={}", traceId, ec.code, ex.getMessage());
         return ResponseEntity.status(ec.httpStatus).body(ErrorResponse.of(ec, null, traceId));
     }
 }
