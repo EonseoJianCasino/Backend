@@ -1,5 +1,6 @@
 package com.test.webtest.global.config;
 
+import com.test.webtest.global.logging.MdcTaskDecorator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -20,7 +21,9 @@ public class AsyncConfig {
         executor.setMaxPoolSize(16);
         executor.setQueueCapacity(200);
         executor.setThreadNamePrefix("logic-");
+        executor.setTaskDecorator(new MdcTaskDecorator());
         executor.initialize();
+
         return executor;
     }
 }

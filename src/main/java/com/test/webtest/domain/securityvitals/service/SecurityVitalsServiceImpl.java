@@ -45,7 +45,7 @@ public class SecurityVitalsServiceImpl implements SecurityVitalsService {
         try {
             result = securityScanner.scan(test.getUrl());
         } catch (Exception e) {
-            log.warn("[SEC][SCAN][FAIL] testId={} url={}, ex={}",testId, test.getUrl(), e.toString());
+            log.warn("[SEC][SCAN][FAIL] testId={} url={}, msg={}",testId, test.getUrl(), e.toString());
             result = SaveCommand.failed(); // 실패 플래그/기본값 채우는 팩토리(없다면 만들어도 됨)
         }
 
@@ -69,14 +69,15 @@ public class SecurityVitalsServiceImpl implements SecurityVitalsService {
 
         if (!exists) {
             // 방어적: 매핑/제약 문제면 바로 알기 위해 예외
-            log.error("[SEC][UPSERT][INCONSISTENT] row not visible in same tx testId={}", testId);
-            throw new IllegalStateException("[SEC] save failed (no row visible in same tx) testId=" + testId);
+            log.error("[SEC][UPSERT][INCONSISTENT]  testId={} url={} msg={}", testId, test.getUrl(), "row not visible in same tx");
+            throw new IllegalStateException("[SEC][UPSERT][INCONSISTENT] save failed (no row visible in same tx) testId=" + testId);
         }
 
         // 5) 상태 플래그 업데이트 (같은 트랜잭션에서)
         logicStatusService.onPartialUpdate(testId, Channel.SECURITY);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public SecurityVitalsView getView(UUID testId) {
 
