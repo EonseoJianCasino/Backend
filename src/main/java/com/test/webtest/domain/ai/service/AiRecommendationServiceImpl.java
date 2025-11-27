@@ -1,6 +1,7 @@
 package com.test.webtest.domain.ai.service;
 
 import com.test.webtest.domain.ai.dto.AiResponse;
+import com.test.webtest.global.logging.Monitored;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,9 +30,9 @@ public class AiRecommendationServiceImpl implements AiRecommendationService {
     }
 
     @Override
+    @Monitored("ai.invokeAsync")
     @Async("logicExecutor")
     public void invokeAsync(UUID testId) {
-        log.info("[AI] invoke recommendations for testId={}", testId);
         aiPersistService.generateAndSave(testId);
     }
 

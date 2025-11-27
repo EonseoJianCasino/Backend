@@ -13,6 +13,7 @@ import com.test.webtest.global.common.constants.Channel;
 import com.test.webtest.global.error.exception.BusinessException;
 import com.test.webtest.global.error.exception.EntityNotFoundException;
 import com.test.webtest.global.error.model.ErrorCode;
+import com.test.webtest.global.logging.Monitored;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class SecurityVitalsServiceImpl implements SecurityVitalsService {
     private final UrgentLevelRepository urgentLevelRepository;
 
     @Override
+    @Monitored("security.scanAndSave")
     @Transactional(propagation = Propagation.REQUIRES_NEW) // ← 커밋 보장
     public void scanAndSave(UUID testId) {
         // 1) 테스트 존재 보장 (프록시 대신 실조회)
@@ -43,7 +45,7 @@ public class SecurityVitalsServiceImpl implements SecurityVitalsService {
         try {
             result = securityScanner.scan(test.getUrl());
         } catch (Exception e) {
-            log.warn("[SEC][SCAN][FAIL] url={}, ex={}", test.getUrl(), e.toString());
+            log.warn("[SEC][SCAN][FAIL] testId={} url={}, msg={}",testId, test.getUrl(), e.toString());
             result = SaveCommand.failed(); // 실패 플래그/기본값 채우는 팩토리(없다면 만들어도 됨)
         }
 
@@ -53,31 +55,29 @@ public class SecurityVitalsServiceImpl implements SecurityVitalsService {
         securityVitalsRepository.findByTest_Id(testId).ifPresentOrElse(
                 found -> {
                     found.updateFrom(finalResult);
-                    log.info("[SEC] updated testId={}", testId);
                     // 변경감지에만 의존하지 말고 확실히
                     securityVitalsRepository.flush();
                 },
                 () -> {
                     SecurityVitalsEntity created = SecurityVitalsEntity.create(test, finalResult1);
                     securityVitalsRepository.saveAndFlush(created); // ← 즉시 flush
-                    log.info("[SEC] inserted testId={}", testId);
                 }
         );
 
         // 4) 같은 트랜잭션 안에서 즉시 검증
-        long cnt = securityVitalsRepository.count();
         boolean exists = securityVitalsRepository.existsByTest_Id(testId);
-        log.info("[SEC][TX] count={}, exists(testId)={}", cnt, exists);
 
         if (!exists) {
             // 방어적: 매핑/제약 문제면 바로 알기 위해 예외
-            throw new IllegalStateException("[SEC] save failed (no row visible in same tx) testId=" + testId);
+            log.error("[SEC][UPSERT][INCONSISTENT]  testId={} url={} msg={}", testId, test.getUrl(), "row not visible in same tx");
+            throw new IllegalStateException("[SEC][UPSERT][INCONSISTENT] save failed (no row visible in same tx) testId=" + testId);
         }
 
         // 5) 상태 플래그 업데이트 (같은 트랜잭션에서)
         logicStatusService.onPartialUpdate(testId, Channel.SECURITY);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public SecurityVitalsView getView(UUID testId) {
 
