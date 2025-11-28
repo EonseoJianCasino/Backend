@@ -17,11 +17,16 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics,prometheus
   endpoint:
     health:
+      show-details: always
       probes:
         enabled: true
+    metrics:
+      tags:
+        application: webtest
+        env: local
 # 실행 시 미지정이면 local
 ---
 spring:

@@ -11,6 +11,7 @@ import com.test.webtest.global.longpoll.LongPollingTopic;
 import com.test.webtest.global.longpoll.TxAfterCommit;
 import com.test.webtest.global.longpoll.WaitKey;
 import com.test.webtest.global.longpoll.payload.PhaseReadyPayload;
+import com.test.webtest.global.monitoring.PipelineMetrics;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ public class AiPersistService {
   private final AiDtoConverter dtoConverter;
   private final LogicStatusRepository logicStatusRepository;
   private final LongPollingManager longPollingManager;
+  private final PipelineMetrics pipelineMetrics;
 
   public AiPersistService(
           @Lazy AiRecommendationService geminiService,
@@ -39,7 +41,8 @@ public class AiPersistService {
           AiEntitySaver entitySaver,
           AiDtoConverter dtoConverter,
           LogicStatusRepository logicStatusRepository,
-          LongPollingManager longPollingManager
+          LongPollingManager longPollingManager,
+          PipelineMetrics pipelineMetrics
   ) {
     this.geminiService = geminiService;
     this.promptBuilder = promptBuilder;
@@ -48,6 +51,7 @@ public class AiPersistService {
     this.dtoConverter = dtoConverter;
     this.logicStatusRepository = logicStatusRepository;
     this.longPollingManager = longPollingManager;
+    this.pipelineMetrics = pipelineMetrics;
   }
 
   @Transactional
@@ -62,18 +66,24 @@ public class AiPersistService {
     // 2. logic_status.ready TRUE
     var rows = logicStatusRepository.markAiReady(testId);
     if (!rows.isEmpty()) {
-        log.info("[AI] ai_ready marked TRUE for testId={}", testId);
+        log.info("[AI][SAVE][SUCCESS] ai_ready marked TRUE for testId={}", testId);
 
         // 3. 커밋 후 AI_READY 롱폴 알림
         TxAfterCommit.run(()-> {
-            log.info("[LONGPOLL][AI_READY] triggered for testId={}", testId);
-            longPollingManager.complete(
-                    new WaitKey(testId, LongPollingTopic.AI_READY),
-                    new PhaseReadyPayload(LongPollingTopic.AI_READY, testId, java.time.Instant.now())
-            );
+            try {
+                longPollingManager.complete(
+                        new WaitKey(testId, LongPollingTopic.AI_READY),
+                        new PhaseReadyPayload(LongPollingTopic.AI_READY, testId, java.time.Instant.now())
+                );
+                pipelineMetrics.incAiReadySuccess();
+            } catch (Exception e) {
+                pipelineMetrics.incAiReadyFailure();
+                log.warn("[AI][METRICS-AI_READY][FAIL] AI_READY long-poll complete 실패 testId={}", testId, e);
+            }
+
         });
     } else {
-        log.info("[AI] markAiReady returned empty rows (already ready or not triggered), testId={}", testId);
+        log.info("[AI][SAVE][FAIL] markAiReady returned empty rows (already ready or not triggered), testId={}", testId);
     }
   }
 

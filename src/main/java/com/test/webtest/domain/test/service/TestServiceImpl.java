@@ -12,6 +12,7 @@ import com.test.webtest.global.error.exception.BusinessException;
 import com.test.webtest.global.error.exception.DuplicateRequestException;
 import com.test.webtest.global.error.exception.InvalidRequestException;
 import com.test.webtest.global.error.model.ErrorCode;
+import com.test.webtest.global.monitoring.DuplicateRequestMetrics;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,7 @@ public class TestServiceImpl implements TestService{
     private final LogicStatusRepository logicStatusRepository;
     private final RateLimitService rateLimitService;
     private final SecurityVitalsServiceImpl securityVitalsService;
+    private final DuplicateRequestMetrics duplicateRequestMetrics;
 
     @Override
     @Transactional
@@ -40,6 +42,7 @@ public class TestServiceImpl implements TestService{
 
          var result = rateLimitService.checkAndMark(normalizedKey);
          if (!result.allowed()) {
+             duplicateRequestMetrics.increment();
             throw new DuplicateRequestException(
                     "동일 URL로 10초 내 중복 요청이 차단되었습니다. 남은 대기(ms): " + result.remainingMillis()
             );
