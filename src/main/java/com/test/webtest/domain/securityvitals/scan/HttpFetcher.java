@@ -1,7 +1,6 @@
 package com.test.webtest.domain.securityvitals.scan;
 
 import com.test.webtest.domain.securityvitals.scan.model.FetchResult;
-import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.net.http.*;
@@ -15,7 +14,6 @@ import java.util.stream.Collectors;
  * - 응답 헤더를 소문자 키로 변환
  * - 최종 URI와 Set-Cookie 목록을 포함한 FetchResult를 반환
  */
-@Component
 public class HttpFetcher {
 
     private final HttpClient client;

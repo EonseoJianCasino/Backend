@@ -9,6 +9,7 @@ import com.test.webtest.domain.webvitals.repository.WebVitalsRepository;
 import com.test.webtest.domain.webvitals.service.WebVitalsMessageService;
 import com.test.webtest.global.common.constants.Channel;
 import com.test.webtest.global.error.exception.ConcurrencyException;
+import com.test.webtest.global.logging.Monitored;
 import com.test.webtest.global.longpoll.LongPollingManager;
 import com.test.webtest.global.longpoll.LongPollingTopic;
 import com.test.webtest.global.longpoll.TxAfterCommit;
@@ -41,6 +42,7 @@ public class LogicStatusServiceImpl {
     private final LongPollingManager longPollingManager;
 
     @Transactional
+    @Monitored("logicStatus.onPartialUpdate")
     public void onPartialUpdate(UUID testId, Channel channel) {
         try {
             // 1) 채널 플래그 마킹 (조건부 UPDATE)
@@ -56,7 +58,6 @@ public class LogicStatusServiceImpl {
 
                 // 커밋 후 CORE_READY 롱폴 알림
                 TxAfterCommit.run(() -> {
-                    log.info("[LONGPOLL][CORE_READY] triggered for testId={}", testId);
                     longPollingManager.complete(
                             new WaitKey(testId, LongPollingTopic.CORE_READY),
                             new PhaseReadyPayload(LongPollingTopic.CORE_READY, testId, Instant.now()));
@@ -67,18 +68,8 @@ public class LogicStatusServiceImpl {
             boolean aiMarked = markAiTriggeredIfEligible(testId);
             if (aiMarked) {
                 aiService.invokeAsync(testId);
-
-                // 커밋 후 AI_READY 롱폴 알림
-                TxAfterCommit.run(() -> {
-                    log.info("[LONGPOLL][AI_READY] triggered for testId={}", testId);
-                    longPollingManager.complete(
-                            new WaitKey(testId, LongPollingTopic.AI_READY),
-                            new PhaseReadyPayload(LongPollingTopic.AI_READY, testId, Instant.now()));
-                });
             }
-
-        } catch (PessimisticLockException | LockTimeoutException
-                | PessimisticLockingFailureException e) {
+        } catch (PessimisticLockException | LockTimeoutException | PessimisticLockingFailureException e) {
             // DB 락/타임아웃 → 409로 매핑
             throw new ConcurrencyException("동시 처리 충돌: testId=" + testId);
         }

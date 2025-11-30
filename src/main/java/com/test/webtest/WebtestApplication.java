@@ -23,9 +23,9 @@ public class WebtestApplication {
             // try-with-resources 사용으로 Connection 자동 반환
             try (var connection = ds.getConnection()) {
                 String url = connection.getMetaData().getURL();
-                log.info("[DS] url = {}", url); // System.out.println 대신 로그 사용
+                log.info("[BOOT][DS] datasource connected url={}", url);
             } catch (SQLException e) {
-                log.error("[DS] 데이터소스 연결 실패", e);
+                log.error("[BOOT][DS][FAIL] cannot connect datasource msg={}", e.getMessage(), e);
                 throw new RuntimeException("데이터소스 연결 중 오류 발생", e);
             }
         };

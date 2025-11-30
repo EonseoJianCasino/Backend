@@ -36,6 +36,9 @@ public class LogicStatusEntity {
     @Column(name = "ai_triggered", nullable = false)
     private boolean aiTriggered;
 
+    @Column(name = "ai_ready", nullable = false)
+    private boolean aiReady;
+
     @UpdateTimestamp
     @Column(name = "updated_at")
     private Instant updatedAt;
@@ -50,6 +53,7 @@ public class LogicStatusEntity {
                 .webReceived(false)
                 .secReceived(false)
                 .scoresReady(false)
+                .aiTriggered(false)
                 .aiTriggered(false)
                 .build();
     }

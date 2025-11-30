@@ -1,19 +1,22 @@
 package com.test.webtest.domain.scores.service;
 
 import com.test.webtest.domain.scores.dto.ScoresDetailResponse;
+import com.test.webtest.domain.scores.dto.TotalScoreResponse;
 import com.test.webtest.domain.scores.entity.ScoresEntity;
 import com.test.webtest.domain.scores.repository.ScoresRepository;
 import com.test.webtest.domain.securityvitals.entity.SecurityVitalsEntity;
 import com.test.webtest.domain.securityvitals.repository.SecurityVitalsRepository;
 import com.test.webtest.domain.test.entity.TestEntity;
 import com.test.webtest.domain.test.repository.TestRepository;
+import com.test.webtest.domain.urgentlevel.entity.UrgentLevelEntity;
+import com.test.webtest.domain.urgentlevel.repository.UrgentLevelRepository;
 import com.test.webtest.domain.urgentlevel.service.UrgentLevelService;
 import com.test.webtest.domain.webvitals.entity.WebVitalsEntity;
 import com.test.webtest.domain.webvitals.repository.WebVitalsRepository;
 import com.test.webtest.global.common.util.ScoreCalculator;
-import com.test.webtest.global.common.util.WebVitalsThreshold;
 import com.test.webtest.global.error.exception.BusinessException;
 import com.test.webtest.global.error.model.ErrorCode;
+import com.test.webtest.global.logging.Monitored;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,16 +35,16 @@ public class ScoresServiceImpl implements ScoresService {
     private final TestRepository testRepository;
     private final ScoreCalculator scoreCalculator;
     private final UrgentLevelService urgentLevelService; // 새 서비스
-
+    private final UrgentLevelRepository urgentLevelRepository;
 
     @Override
+    @Monitored("scores.calcAndSave")
     @Transactional
     public void calcAndSave(UUID testId) {
         doCalcAndSave(testId);
     }
 
     private void doCalcAndSave(UUID testId) {
-        log.info("[SCORES] Calculating scores for testId={}", testId);
 
         WebVitalsEntity web = webVitalsRepository.findByTest_Id(testId).orElse(null);
         SecurityVitalsEntity sec = securityVitalsRepository.findByTest_Id(testId).orElse(null);
@@ -51,14 +54,8 @@ public class ScoresServiceImpl implements ScoresService {
 
         int securityHalf = scoreCalculator.toSecurityHalfScore(sec);
         int total = scoreCalculator.total(webScore, securityHalf);
-
-        // Status 계산 (WebVitalsEntity의 원본 수치 사용)
-        String lcpStatus = scoreCalculator.calculateStatus(web != null ? web.getLcp() : null, WebVitalsThreshold.LCP);
-        String clsStatus = scoreCalculator.calculateStatus(web != null ? web.getCls() : null, WebVitalsThreshold.CLS);
-        String inpStatus = scoreCalculator.calculateStatus(web != null ? web.getInp() : null, WebVitalsThreshold.INP);
-        String fcpStatus = scoreCalculator.calculateStatus(web != null ? web.getFcp() : null, WebVitalsThreshold.FCP);
-        String ttfbStatus = scoreCalculator.calculateStatus(web != null ? web.getTtfb() : null,
-                WebVitalsThreshold.TTFB);
+        int securityTotal = securityHalf*2;
+        int webTotal = scoreCalculator.toWebHalfScore(webScore)*2;
 
         TestEntity test = testRepository.getReferenceById(testId);
 
@@ -66,7 +63,7 @@ public class ScoresServiceImpl implements ScoresService {
         scoresRepository.findByTestId(testId).ifPresentOrElse(
                 found -> {
                     found.update(
-                            total,
+                            total, securityTotal, webTotal,
                             webScore.lcp(), webScore.cls(), webScore.inp(),
                             webScore.fcp(), webScore.ttfb(),
                             secScores.hsts(),
@@ -77,12 +74,11 @@ public class ScoresServiceImpl implements ScoresService {
                             secScores.cookies(),
                             secScores.csp()
                     );
-                    log.info("[SCORES] updated testId={} total={}", testId, total);
                 },
                 () -> {
                     ScoresEntity created = ScoresEntity.create(
                             test,
-                            total,
+                            total, securityTotal, webTotal,
                             webScore.lcp(), webScore.cls(), webScore.inp(),
                             webScore.fcp(), webScore.ttfb(),
                             secScores.hsts(),
@@ -94,7 +90,6 @@ public class ScoresServiceImpl implements ScoresService {
                             secScores.csp()
                     );
                     scoresRepository.save(created);
-                    log.info("[SCORES] inserted testId={} total={}", testId, total);
                 });
 
         urgentLevelService.calcAndSave(testId);
@@ -102,15 +97,17 @@ public class ScoresServiceImpl implements ScoresService {
 
     @Override
     public ScoresDetailResponse getDetail(UUID testId) {
-        ScoresEntity e = scoresRepository.findByTestId(testId)
+        ScoresEntity se = scoresRepository.findByTestId(testId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SCORES_NOT_READY, "scores not found: " + testId));
-        return ScoresDetailResponse.from(e);
+        UrgentLevelEntity ue = urgentLevelRepository.findByTestId(testId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.URGENT_LEVEL_NOT_FOUND, "urgent level not found " + testId));
+        return ScoresDetailResponse.from(se, ue);
     }
 
     @Override
-    public int getTotal(UUID testId) {
+    public TotalScoreResponse getTotal(UUID testId) {
         ScoresEntity e = scoresRepository.findByTestId(testId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.SCORES_NOT_READY, "scores not found: " + testId));
-        return e.getTotal() == null ? 0 : e.getTotal();
+                .orElseThrow(() -> new BusinessException(ErrorCode.SCORES_NOT_READY, "totalScores not found: " + testId));
+        return TotalScoreResponse.from(e);
     }
 }

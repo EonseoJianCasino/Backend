@@ -120,14 +120,16 @@ CREATE TABLE IF NOT EXISTS security_vitals (
 
 -- scores
 CREATE TABLE IF NOT EXISTS scores (
-  id           uuid PRIMARY KEY,
-  test_id      uuid NOT NULL REFERENCES tests(id) ON DELETE CASCADE,
-  total        int  NOT NULL, -- 0~100
-  lcp_score    int,
-  cls_score    int,
-  inp_score    int,
-  fcp_score    int,
-  ttfb_score   int,
+  id             uuid PRIMARY KEY,
+  test_id        uuid NOT NULL REFERENCES tests(id) ON DELETE CASCADE,
+  total          int  NOT NULL, -- 0~100
+  security_total int NOT NULL,
+  web_total      int NOT NULL,
+  lcp_score      int,
+  cls_score      int,
+  inp_score      int,
+  fcp_score      int,
+  ttfb_score     int,
   hsts_score               int,
   frame_ancestors_score    int,
   ssl_score                int,
@@ -158,17 +160,6 @@ CREATE TABLE IF NOT EXISTS urgent_level (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
--- priorities
-CREATE TABLE IF NOT EXISTS priorities (
-  id         uuid PRIMARY KEY,
-  test_id    uuid NOT NULL REFERENCES tests(id) ON DELETE CASCADE,
-  type       varchar(20) NOT NULL, -- PERFORMANCE / SECURITY
-  metric     varchar(50) NOT NULL,
-  reason     text,
-  rank       int NOT NULL,
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-
 -- logic_status
 CREATE TABLE IF NOT EXISTS logic_status (
   test_id        uuid PRIMARY KEY REFERENCES tests(id) ON DELETE CASCADE,
@@ -176,6 +167,7 @@ CREATE TABLE IF NOT EXISTS logic_status (
   sec_received   boolean NOT NULL DEFAULT false,
   scores_ready   boolean NOT NULL DEFAULT false,
   ai_triggered   boolean NOT NULL DEFAULT false,
+  ai_ready       boolean NOT NULL DEFAULT false,
   updated_at     timestamptz NOT NULL DEFAULT now(),
   created_at     timestamptz NOT NULL DEFAULT now()
 );

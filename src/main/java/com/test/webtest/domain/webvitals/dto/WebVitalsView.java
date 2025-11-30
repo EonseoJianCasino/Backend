@@ -13,6 +13,7 @@ public record WebVitalsView(
     public record Item(
             String metric,
             String message,
-            String urgentStatus
-    ) {}
+            String urgentStatus,
+            String value
+            ) {}
 }

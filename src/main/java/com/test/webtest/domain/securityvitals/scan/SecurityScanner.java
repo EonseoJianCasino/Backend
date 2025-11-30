@@ -5,7 +5,6 @@ import com.test.webtest.domain.securityvitals.scan.model.FetchResult;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
-import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
