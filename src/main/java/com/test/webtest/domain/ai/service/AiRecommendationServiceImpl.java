@@ -12,6 +12,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.util.*;
 
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import com.test.webtest.global.error.exception.AiCallFailedException;
 
 @Service
 @Slf4j
@@ -96,7 +97,7 @@ public class AiRecommendationServiceImpl implements AiRecommendationService {
 
         }catch(WebClientResponseException e){
             log.error("[GEMINI] status={} body={}", e.getStatusCode(), e.getResponseBodyAsString());
-            throw e;
+            throw new AiCallFailedException(e);
         }
     }
 
