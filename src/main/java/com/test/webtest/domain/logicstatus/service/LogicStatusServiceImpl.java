@@ -1,6 +1,5 @@
 package com.test.webtest.domain.logicstatus.service;
 
-import com.test.webtest.domain.ai.service.AiRecommendationService;
 import com.test.webtest.domain.logicstatus.repository.LogicStatusRepository;
 import com.test.webtest.domain.scores.repository.ScoresRepository;
 import com.test.webtest.domain.securityvitals.repository.SecurityVitalsRepository;
@@ -38,7 +37,6 @@ public class LogicStatusServiceImpl {
     private final SecurityMessageService securityMessageService;
     private final WebVitalsMessageService webVitalsMessageService;
     private final com.test.webtest.domain.scores.service.ScoresService scoresService;
-    private final AiRecommendationService aiService;
     private final LongPollingManager longPollingManager;
 
     @Transactional
@@ -63,12 +61,6 @@ public class LogicStatusServiceImpl {
                             new PhaseReadyPayload(LongPollingTopic.CORE_READY, testId, Instant.now()));
                 });
             }
-
-            // 3) AI 트리거 (조건 충족 시)
-            boolean aiMarked = markAiTriggeredIfEligible(testId);
-            if (aiMarked) {
-                aiService.invokeAsync(testId);
-            }
         } catch (PessimisticLockException | LockTimeoutException | PessimisticLockingFailureException e) {
             // DB 락/타임아웃 → 409로 매핑
             throw new ConcurrencyException("동시 처리 충돌: testId=" + testId);
@@ -77,11 +69,6 @@ public class LogicStatusServiceImpl {
 
     private boolean markScoresReadyIfEligible(UUID testId) {
         List<Object[]> rows = repo.markScoresReady(testId);
-        return !rows.isEmpty();
-    }
-
-    private boolean markAiTriggeredIfEligible(UUID testId) {
-        List<Object[]> rows = repo.markAiTriggered(testId);
         return !rows.isEmpty();
     }
 }
