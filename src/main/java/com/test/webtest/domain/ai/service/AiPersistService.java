@@ -42,14 +42,14 @@ public class AiPersistService {
    * 비동기로 AI 생성 (LogicStatusServiceImpl에서 호출)
    */
   @Async("logicExecutor")
+  @Transactional
   @Monitored("ai.invokeAsync")
   public void invokeAsync(UUID testId) {
     generateAndSave(testId);
   }
 
-  @Transactional
   @Monitored("ai.generateAndSave")
-  public void generateAndSave(UUID testId) {
+  private void generateAndSave(UUID testId) {
     // 이미 데이터가 있으면 스킵
     if (summaryRepository.findByTestId(testId).isPresent()) {
       log.info("[AI] 이미 데이터 존재, 생성 스킵: testId={}", testId);
