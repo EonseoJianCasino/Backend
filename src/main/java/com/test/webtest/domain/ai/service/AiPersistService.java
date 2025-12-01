@@ -12,6 +12,7 @@ import com.test.webtest.global.longpoll.LongPollingTopic;
 import com.test.webtest.global.longpoll.TxAfterCommit;
 import com.test.webtest.global.longpoll.WaitKey;
 import com.test.webtest.global.longpoll.payload.PhaseReadyPayload;
+import com.test.webtest.global.monitoring.PipelineMetrics;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -20,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static com.test.webtest.domain.ai.schema.AiSchemas.buildPerfAdviceSchema;
 
-import java.time.Instant;
 import java.util.UUID;
 
 @Service
@@ -36,19 +36,20 @@ public class AiPersistService {
   private final AiAnalysisSummaryRepository summaryRepository;
   private final LogicStatusRepository logicStatusRepository;
   private final LongPollingManager longPollingManager;
+  private final PipelineMetrics pipelineMetrics;
 
   /**
    * 비동기로 AI 생성 (LogicStatusServiceImpl에서 호출)
    */
   @Async("logicExecutor")
+  @Transactional
   @Monitored("ai.invokeAsync")
   public void invokeAsync(UUID testId) {
     generateAndSave(testId);
   }
 
-  @Transactional
   @Monitored("ai.generateAndSave")
-  public void generateAndSave(UUID testId) {
+  private void generateAndSave(UUID testId) {
     // 이미 데이터가 있으면 스킵
     if (summaryRepository.findByTestId(testId).isPresent()) {
       log.info("[AI] 이미 데이터 존재, 생성 스킵: testId={}", testId);
@@ -64,18 +65,24 @@ public class AiPersistService {
     // 2. logic_status.ai_ready TRUE
     var rows = logicStatusRepository.markAiReady(testId);
     if (!rows.isEmpty()) {
-      log.info("[AI] ai_ready marked TRUE for testId={}", testId);
+      log.info("[AI][SAVE][SUCCESS] ai_ready marked TRUE for testId={}", testId);
 
       // 3. 커밋 후 AI_READY 롱폴 알림
-      TxAfterCommit.run(() -> {
-        log.info("[LONGPOLL][AI_READY] triggered for testId={}", testId);
-        longPollingManager.complete(
-                new WaitKey(testId, LongPollingTopic.AI_READY),
-                new PhaseReadyPayload(LongPollingTopic.AI_READY, testId, Instant.now())
-        );
+      TxAfterCommit.run(()-> {
+          try {
+              longPollingManager.complete(
+                      new WaitKey(testId, LongPollingTopic.AI_READY),
+                      new PhaseReadyPayload(LongPollingTopic.AI_READY, testId, java.time.Instant.now())
+              );
+              pipelineMetrics.incAiReadySuccess();
+          } catch (Exception e) {
+              pipelineMetrics.incAiReadyFailure();
+              log.warn("[AI][METRICS_AI_READY][FAIL] AI_READY long-poll complete 실패 testId={}", testId, e);
+          }
       });
     } else {
-      log.info("[AI] markAiReady returned empty rows (already ready or not triggered), testId={}", testId);
+
+        log.info("[AI][SAVE][FAIL] markAiReady returned empty rows (already ready or not triggered), testId={}", testId);
     }
   }
 
@@ -84,7 +91,7 @@ public class AiPersistService {
   public AiAnalysisResponse getAnalysis(UUID testId) {
     // 데이터가 없으면 AI 호출 → 저장
     if (summaryRepository.findByTestId(testId).isEmpty()) {
-      log.info("[AI] 데이터 없음, AI 생성 시작: testId={}", testId);
+      log.info("[AI][GET_ANALYSIS][FAIL] 데이터 없음, AI 생성 시작: testId={}", testId);
       generateAndSave(testId);
     }
     return dtoConverter.getAnalysis(testId);
@@ -100,7 +107,7 @@ public class AiPersistService {
   public TopPrioritiesResponse getTopPriorities(UUID testId) {
     // 데이터가 없으면 AI 호출 → 저장
     if (summaryRepository.findByTestId(testId).isEmpty()) {
-      log.info("[AI] 데이터 없음, AI 생성 시작: testId={}", testId);
+      log.info("[AI][GET_TOP_PRIORITIES][FAIL] 데이터 없음, AI 생성 시작: testId={}", testId);
       generateAndSave(testId);
     }
     return dtoConverter.getTopPriorities(testId);

@@ -30,7 +30,7 @@ public class SecurityRulesLoader {
     }
 
     private RuleSet readFromClasspath() {
-        try (InputStream in = new ClassPathResource("priorities/security.rules.json").getInputStream()) {
+        try (InputStream in = new ClassPathResource("security/security.rules.json").getInputStream()) {
             Map<String, Object> root = objectMapper.readValue(in, new TypeReference<>() {});
             String version = String.valueOf(root.getOrDefault("version", "1.0.0"));
             @SuppressWarnings("unchecked")

@@ -17,12 +17,21 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics,prometheus
   endpoint:
     health:
+      show-details: always
       probes:
         enabled: true
-# 실행 시 미지정이면 local
+  metrics:
+    tags:
+      application: webtest
+      env: compose
+    distribution:
+      percentiles:
+        http.server.requests: 0.5,0.9,0.95,0.99
+      percentiles-histogram:
+        http.server.requests: true
 ---
 spring:
   profiles:

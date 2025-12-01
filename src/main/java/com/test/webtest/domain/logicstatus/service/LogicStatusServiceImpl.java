@@ -15,6 +15,7 @@ import com.test.webtest.global.longpoll.LongPollingTopic;
 import com.test.webtest.global.longpoll.TxAfterCommit;
 import com.test.webtest.global.longpoll.WaitKey;
 import com.test.webtest.global.longpoll.payload.PhaseReadyPayload;
+import com.test.webtest.global.monitoring.PipelineMetrics;
 import jakarta.persistence.LockTimeoutException;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.PessimisticLockException;
@@ -32,14 +33,10 @@ import java.util.UUID;
 @Slf4j
 public class LogicStatusServiceImpl {
     private final LogicStatusRepository repo;
-    private final ScoresRepository scoresRepository;
-    private final SecurityVitalsRepository securityVitalsRepository;
-    private final WebVitalsRepository webVitalsRepository;
-    private final SecurityMessageService securityMessageService;
-    private final WebVitalsMessageService webVitalsMessageService;
     private final com.test.webtest.domain.scores.service.ScoresService scoresService;
     private final AiPersistService aiPersistService;
     private final LongPollingManager longPollingManager;
+    private final PipelineMetrics pipelineMetrics;
 
     @Transactional
     @Monitored("logicStatus.onPartialUpdate")
@@ -58,9 +55,15 @@ public class LogicStatusServiceImpl {
 
                 // 커밋 후 CORE_READY 롱폴 알림
                 TxAfterCommit.run(() -> {
-                    longPollingManager.complete(
-                            new WaitKey(testId, LongPollingTopic.CORE_READY),
-                            new PhaseReadyPayload(LongPollingTopic.CORE_READY, testId, Instant.now()));
+                    try{
+                        longPollingManager.complete(
+                                new WaitKey(testId, LongPollingTopic.CORE_READY),
+                                new PhaseReadyPayload(LongPollingTopic.CORE_READY, testId, Instant.now()));
+                        pipelineMetrics.incCoreReadySuccess();
+                    } catch (Exception e) {
+                        pipelineMetrics.incCoreReadyFailure();
+                        log.warn("[LOGICSTATUS][METRICS-CORE_READY][FAIL] CORE_READY long-poll complete 실패 testId={}", testId, e);
+                    }
                 });
             }
 
