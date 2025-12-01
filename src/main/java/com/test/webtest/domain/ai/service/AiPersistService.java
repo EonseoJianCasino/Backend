@@ -14,6 +14,7 @@ import com.test.webtest.global.longpoll.WaitKey;
 import com.test.webtest.global.longpoll.payload.PhaseReadyPayload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,9 +37,24 @@ public class AiPersistService {
   private final LogicStatusRepository logicStatusRepository;
   private final LongPollingManager longPollingManager;
 
+  /**
+   * 비동기로 AI 생성 (LogicStatusServiceImpl에서 호출)
+   */
+  @Async("logicExecutor")
+  @Monitored("ai.invokeAsync")
+  public void invokeAsync(UUID testId) {
+    generateAndSave(testId);
+  }
+
   @Transactional
   @Monitored("ai.generateAndSave")
   public void generateAndSave(UUID testId) {
+    // 이미 데이터가 있으면 스킵
+    if (summaryRepository.findByTestId(testId).isPresent()) {
+      log.info("[AI] 이미 데이터 존재, 생성 스킵: testId={}", testId);
+      return;
+    }
+
     String prompt = promptBuilder.buildPrompt(testId);
     AiResponse response = geminiService.generateWithSchema(prompt, buildPerfAdviceSchema());
     var payload = responseParser.parseResponse(response);
