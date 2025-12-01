@@ -203,7 +203,7 @@ public class WebVitalsAIServiceImpl implements WebVitalsAIService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public WebVitalsAIResponse getWebVitalsAI(UUID testId) {
         // 1. TestEntity 존재 여부 확인
         testRepository.findById(testId)
