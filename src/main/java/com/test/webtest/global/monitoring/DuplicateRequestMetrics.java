@@ -2,7 +2,9 @@ package com.test.webtest.global.monitoring;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import org.springframework.stereotype.Component;
 
+@Component
 public class DuplicateRequestMetrics {
     private final Counter duplicateRequestCounter;
     public DuplicateRequestMetrics(MeterRegistry registry) {

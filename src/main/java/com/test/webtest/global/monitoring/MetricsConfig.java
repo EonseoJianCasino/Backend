@@ -9,15 +9,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class MetricsConfig {
     @Bean
-    public MeterRegistryCustomizer<MeterRegistry> metricsCommonTags() {
-        return registry -> registry.config()
-                .commonTags(
-                        "application", "webtest",
-                        "env", "local"
-                );
-    }
-
-    @Bean
     public MeterFilter denyJvmThreadMetrics() {
         return MeterFilter.denyNameStartsWith("jvm.threads");
     }

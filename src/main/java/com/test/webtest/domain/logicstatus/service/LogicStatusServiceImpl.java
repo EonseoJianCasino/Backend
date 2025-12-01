@@ -33,11 +33,6 @@ import java.util.UUID;
 @Slf4j
 public class LogicStatusServiceImpl {
     private final LogicStatusRepository repo;
-    private final ScoresRepository scoresRepository;
-    private final SecurityVitalsRepository securityVitalsRepository;
-    private final WebVitalsRepository webVitalsRepository;
-    private final SecurityMessageService securityMessageService;
-    private final WebVitalsMessageService webVitalsMessageService;
     private final com.test.webtest.domain.scores.service.ScoresService scoresService;
     private final AiRecommendationService aiService;
     private final LongPollingManager longPollingManager;

@@ -12,6 +12,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/tests")
 @RequiredArgsConstructor
+
 public class LongPollingController {
     private final LongPollingManager manager;
     private final LogicStatusRepository logicStatusRepository;
