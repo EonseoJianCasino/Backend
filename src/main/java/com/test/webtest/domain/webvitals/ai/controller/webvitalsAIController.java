@@ -12,7 +12,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/tests")
 @RequiredArgsConstructor
-public class webvitalsAIController {
+public class WebVitalsAIController {
 
     private final WebVitalsAIService webVitalsAIService;
 
