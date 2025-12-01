@@ -1,4 +1,4 @@
-package com.test.webtest.domain.webvitals.ai.dto;
+package com.test.webtest.domain.webvitals.sub.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +11,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class WebVitalsAIResponse {
+public class WebVitalsSubResponse {
     private FcpResponse fcp;
     private TtfbResponse ttfb;
     private LcpResponse lcp;

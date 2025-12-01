@@ -1,10 +1,10 @@
-package com.test.webtest.domain.webvitals.ai.service;
+package com.test.webtest.domain.webvitals.sub.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.test.webtest.domain.test.entity.TestEntity;
 import com.test.webtest.domain.test.repository.TestRepository;
-import com.test.webtest.domain.webvitals.ai.dto.*;
+import com.test.webtest.domain.webvitals.sub.dto.*;
 import com.test.webtest.domain.webvitals.entity.*;
 import com.test.webtest.domain.webvitals.repository.*;
 import com.test.webtest.global.error.exception.BusinessException;
@@ -17,7 +17,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class WebVitalsAIServiceImpl implements WebVitalsAIService {
+public class WebVitalsSubServiceImpl implements WebVitalsSubService {
 
     private final TestRepository testRepository;
     private final FcpRepository fcpRepository;
@@ -29,7 +29,7 @@ public class WebVitalsAIServiceImpl implements WebVitalsAIService {
 
     @Override
     @Transactional
-    public void saveWebVitalsAI(UUID testId, WebVitalsAIRequest request) {
+    public void saveWebVitalsSub(UUID testId, WebVitalsSubRequest request) {
         // 1. TestEntity 조회
         TestEntity testEntity = testRepository.findById(testId)
                 .orElseThrow(() -> new BusinessException(
@@ -204,7 +204,7 @@ public class WebVitalsAIServiceImpl implements WebVitalsAIService {
 
     @Override
     @Transactional
-    public WebVitalsAIResponse getWebVitalsAI(UUID testId) {
+    public WebVitalsSubResponse getWebVitalsSub(UUID testId) {
         // 1. TestEntity 존재 여부 확인
         testRepository.findById(testId)
                 .orElseThrow(() -> new BusinessException(
@@ -213,16 +213,16 @@ public class WebVitalsAIServiceImpl implements WebVitalsAIService {
                 ));
 
         // 2. 각 지표별 데이터 조회 및 Response 생성
-        WebVitalsAIResponse.FcpResponse fcpResponse = fcpRepository.findByTest_Id(testId)
-                .map(entity -> WebVitalsAIResponse.FcpResponse.builder()
+        WebVitalsSubResponse.FcpResponse fcpResponse = fcpRepository.findByTest_Id(testId)
+                .map(entity -> WebVitalsSubResponse.FcpResponse.builder()
                         .entryType(entity.getEntryType())
                         .startTime(entity.getStartTime())
                         .createdAt(entity.getCreatedAt())
                         .build())
                 .orElse(null);
 
-        WebVitalsAIResponse.TtfbResponse ttfbResponse = ttfbRepository.findByTest_Id(testId)
-                .map(entity -> WebVitalsAIResponse.TtfbResponse.builder()
+        WebVitalsSubResponse.TtfbResponse ttfbResponse = ttfbRepository.findByTest_Id(testId)
+                .map(entity -> WebVitalsSubResponse.TtfbResponse.builder()
                         .entryType(entity.getEntryType())
                         .startTime(entity.getStartTime())
                         .responseStart(entity.getResponseStart())
@@ -234,8 +234,8 @@ public class WebVitalsAIServiceImpl implements WebVitalsAIService {
                         .build())
                 .orElse(null);
 
-        WebVitalsAIResponse.LcpResponse lcpResponse = lcpRepository.findByTest_Id(testId)
-                .map(entity -> WebVitalsAIResponse.LcpResponse.builder()
+        WebVitalsSubResponse.LcpResponse lcpResponse = lcpRepository.findByTest_Id(testId)
+                .map(entity -> WebVitalsSubResponse.LcpResponse.builder()
                         .startTime(entity.getStartTime())
                         .renderTime(entity.getRenderTime())
                         .renderedSize(entity.getRenderedSize())
@@ -244,8 +244,8 @@ public class WebVitalsAIServiceImpl implements WebVitalsAIService {
                         .build())
                 .orElse(null);
 
-        WebVitalsAIResponse.InpResponse inpResponse = inpRepository.findByTest_Id(testId)
-                .map(entity -> WebVitalsAIResponse.InpResponse.builder()
+        WebVitalsSubResponse.InpResponse inpResponse = inpRepository.findByTest_Id(testId)
+                .map(entity -> WebVitalsSubResponse.InpResponse.builder()
                         .entryType(entity.getEntryType())
                         .name(entity.getName())
                         .startTime(entity.getStartTime())
@@ -258,8 +258,8 @@ public class WebVitalsAIServiceImpl implements WebVitalsAIService {
                         .build())
                 .orElse(null);
 
-        WebVitalsAIResponse.ClsResponse clsResponse = clsRepository.findByTest_Id(testId)
-                .map(entity -> WebVitalsAIResponse.ClsResponse.builder()
+        WebVitalsSubResponse.ClsResponse clsResponse = clsRepository.findByTest_Id(testId)
+                .map(entity -> WebVitalsSubResponse.ClsResponse.builder()
                         .entryType(entity.getEntryType())
                         .startTime(entity.getStartTime())
                         .clsValue(entity.getClsValue())
@@ -270,7 +270,7 @@ public class WebVitalsAIServiceImpl implements WebVitalsAIService {
                         .build())
                 .orElse(null);
 
-        return WebVitalsAIResponse.builder()
+        return WebVitalsSubResponse.builder()
                 .fcp(fcpResponse)
                 .ttfb(ttfbResponse)
                 .lcp(lcpResponse)

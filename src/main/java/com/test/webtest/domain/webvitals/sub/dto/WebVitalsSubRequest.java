@@ -1,4 +1,4 @@
-package com.test.webtest.domain.webvitals.ai.dto;
+package com.test.webtest.domain.webvitals.sub.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class WebVitalsAIRequest {
+public class WebVitalsSubRequest {
     @JsonProperty("FCP")
     private FcpDto fcp;
 
