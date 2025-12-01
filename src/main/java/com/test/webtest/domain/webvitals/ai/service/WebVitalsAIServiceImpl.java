@@ -9,7 +9,7 @@ import com.test.webtest.domain.webvitals.entity.*;
 import com.test.webtest.domain.webvitals.repository.*;
 import com.test.webtest.global.error.exception.BusinessException;
 import com.test.webtest.global.error.model.ErrorCode;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
