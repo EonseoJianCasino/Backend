@@ -86,14 +86,10 @@ public class AiPersistService {
     }
   }
 
-  @Transactional
+  @Transactional(readOnly = true)
   @Monitored("ai.getAnalysis")
   public AiAnalysisResponse getAnalysis(UUID testId) {
-    // 데이터가 없으면 AI 호출 → 저장
-    if (summaryRepository.findByTestId(testId).isEmpty()) {
-      log.info("[AI][GET_ANALYSIS][FAIL] 데이터 없음, AI 생성 시작: testId={}", testId);
-      generateAndSave(testId);
-    }
+    // DB에서 조회만 수행 (AI 호출은 invokeAsync에서만 수행)
     return dtoConverter.getAnalysis(testId);
   }
 
@@ -102,14 +98,10 @@ public class AiPersistService {
     return dtoConverter.getAnalysisSummary(testId);
   }
 
-  @Transactional
+  @Transactional(readOnly = true)
   @Monitored("ai.getTopPriorities")
   public TopPrioritiesResponse getTopPriorities(UUID testId) {
-    // 데이터가 없으면 AI 호출 → 저장
-    if (summaryRepository.findByTestId(testId).isEmpty()) {
-      log.info("[AI][GET_TOP_PRIORITIES][FAIL] 데이터 없음, AI 생성 시작: testId={}", testId);
-      generateAndSave(testId);
-    }
+    // DB에서 조회만 수행 (AI 호출은 invokeAsync에서만 수행)
     return dtoConverter.getTopPriorities(testId);
   }
 }
