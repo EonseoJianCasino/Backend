@@ -226,7 +226,7 @@ public class WebVitalsAIServiceImpl implements WebVitalsAIService {
                         .entryType(entity.getEntryType())
                         .startTime(entity.getStartTime())
                         .responseStart(entity.getResponseStart())
-                        .requestStart(entity.getReqeustStart())
+                        .requestStart(entity.getRequestStart())
                         .domainLookupStart(entity.getDomainLookupStart())
                         .connectStart(entity.getConnectStart())
                         .connectEnd(entity.getConnectEnd())
