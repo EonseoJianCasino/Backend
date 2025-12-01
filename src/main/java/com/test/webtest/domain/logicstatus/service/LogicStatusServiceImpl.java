@@ -1,6 +1,6 @@
 package com.test.webtest.domain.logicstatus.service;
 
-import com.test.webtest.domain.ai.service.AiRecommendationService;
+import com.test.webtest.domain.ai.service.AiPersistService;
 import com.test.webtest.domain.logicstatus.repository.LogicStatusRepository;
 import com.test.webtest.domain.scores.repository.ScoresRepository;
 import com.test.webtest.domain.securityvitals.repository.SecurityVitalsRepository;
@@ -34,7 +34,7 @@ import java.util.UUID;
 public class LogicStatusServiceImpl {
     private final LogicStatusRepository repo;
     private final com.test.webtest.domain.scores.service.ScoresService scoresService;
-    private final AiRecommendationService aiService;
+    private final AiPersistService aiPersistService;
     private final LongPollingManager longPollingManager;
     private final PipelineMetrics pipelineMetrics;
 
@@ -70,7 +70,7 @@ public class LogicStatusServiceImpl {
             // 3) AI 트리거 (조건 충족 시)
             boolean aiMarked = markAiTriggeredIfEligible(testId);
             if (aiMarked) {
-                aiService.invokeAsync(testId);
+                aiPersistService.invokeAsync(testId);
             }
         } catch (PessimisticLockException | LockTimeoutException | PessimisticLockingFailureException e) {
             // DB 락/타임아웃 → 409로 매핑
