@@ -170,7 +170,7 @@ public class WebVitalsAIServiceImpl implements WebVitalsAIService {
                     }
                 }
             } catch (JsonProcessingException e) {
-                throw new RuntimeException("CLS sources/previousRect JSON 변환 실패", e);
+                throw new BusinessException(ErrorCode.INTERNAL_ERROR, "CLS sources/previousRect JSON 변환 실패", e);
             }
             
             String finalSourcesJson = sourcesJson;
