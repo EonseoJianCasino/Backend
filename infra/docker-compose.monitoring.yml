@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: webtest-prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - "9090:9090"    # 로컬 브라우저에서 http://localhost:9090 접속용
+    networks:
+      - webtest-net
+
+  # (선택) 나중에 Grafana 붙이고 싶으면 아래 주석 해제해서 같이 띄워도 된다.
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   container_name: webtest-grafana
+  #   ports:
+  #     - "3001:3000"          # http://localhost:3001
+  #   networks:
+  #     - webtest-net
+
+networks:
+  webtest-net:
+    external: true
+    name: webtest_default   # ← 기존 docker-compose.yml이 만든 기본 네트워크 이름
