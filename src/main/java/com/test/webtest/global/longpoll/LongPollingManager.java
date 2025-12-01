@@ -1,5 +1,8 @@
 package com.test.webtest.global.longpoll;
 
+import com.test.webtest.global.error.model.ErrorCode;
+import com.test.webtest.global.error.model.ErrorResponse;
+import org.slf4j.MDC;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -33,6 +36,22 @@ public class LongPollingManager {
         if(set == null) return;
         for (DeferredResult<ResponseEntity<?>> dr : set) {
             if (!dr.hasResult()) dr.setResult(ResponseEntity.ok(payLoad)); // waiter 이 비었다면 응답 값을 설정함
+        }
+    }
+
+    public void completeError(WaitKey key, ErrorCode ec, String messageOverride) {
+        Set<DeferredResult<ResponseEntity<?>>> set = waiters.remove(key);
+        if (set == null) return;
+
+        String traceId = MDC.get("traceId");
+        ErrorResponse body = ErrorResponse.of(ec, messageOverride, traceId);
+
+        for (DeferredResult<ResponseEntity<?>> dr : set) {
+            if (!dr.hasResult()) {
+                dr.setResult(ResponseEntity
+                        .status(ec.httpStatus)
+                        .body(body));
+            }
         }
     }
 }

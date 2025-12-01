@@ -6,6 +6,8 @@ import com.test.webtest.domain.ai.dto.AiResponse;
 import com.test.webtest.domain.ai.dto.TopPrioritiesResponse;
 import com.test.webtest.domain.ai.repository.AiAnalysisSummaryRepository;
 import com.test.webtest.domain.logicstatus.repository.LogicStatusRepository;
+import com.test.webtest.global.error.exception.AiCallFailedException;
+import com.test.webtest.global.error.model.ErrorCode;
 import com.test.webtest.global.logging.Monitored;
 import com.test.webtest.global.longpoll.LongPollingManager;
 import com.test.webtest.global.longpoll.LongPollingTopic;
@@ -42,10 +44,27 @@ public class AiPersistService {
    * 비동기로 AI 생성 (LogicStatusServiceImpl에서 호출)
    */
   @Async("logicExecutor")
-  @Transactional
   @Monitored("ai.invokeAsync")
   public void invokeAsync(UUID testId) {
-    generateAndSave(testId);
+    try{
+      generateAndSave(testId);
+    } catch(AiCallFailedException ex) {
+      log.warn("[AI][ASYNC][FAIL] Gemini 호출 실패 testId={} msg={}", testId, ex.getMessage());
+
+      longPollingManager.completeError(
+              new WaitKey(testId, LongPollingTopic.AI_READY),
+              ErrorCode.AI_CALL_FAILED,
+              ex.getMessage()
+      );
+    } catch (Exception ex) {
+      log.error("[AI][ASYNC][FAIL] 예기치 못한 오류 testId={} ex={}", testId, ex.toString());
+
+      longPollingManager.completeError(
+              new WaitKey(testId, LongPollingTopic.AI_READY),
+              ErrorCode.INTERNAL_ERROR,
+              "AI 분석 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+      );
+    }
   }
 
   @Monitored("ai.generateAndSave")

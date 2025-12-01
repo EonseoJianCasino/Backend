@@ -26,8 +26,6 @@ public enum ErrorCode {
     SCORES_NOT_READY         (HttpStatus.CONFLICT,               "SCORES_NOT_READY",         "점수가 아직 집계되지 않았습니다. 잠시 후 다시 시도하세요."),
     URGENT_LEVEL_NOT_FOUND   (HttpStatus.NOT_FOUND,              "URGENT_LEVEL_NOT_FOUND",   "긴급도 상태가 존재하지 않습니다."),
 
-    PRIORITIES_NOT_READY   (HttpStatus.CONFLICT,                 "PRIORITIES_NOT_READY",     "우선순위가 아직 산출되지 않았습니다. 잠시 후 다시 시도하세요."), // [추가]
-    PRIORITIES_NOT_FOUND   (HttpStatus.NOT_FOUND,                "PRIORITIES_NOT_FOUND",     "우선순위 데이터가 존재하지 않습니다."), // [추가]
     AI_NOT_READY             (HttpStatus.CONFLICT,               "AI_NOT_READY",             "AI 분석 결과가 아직 준비되지 않았습니다."),
 
     // 비즈니스 룰
@@ -37,7 +35,8 @@ public enum ErrorCode {
     // 외부 연동
     AI_CALL_FAILED           (HttpStatus.BAD_GATEWAY,            "AI_CALL_FAILED",           "AI 서버 호출에 실패했습니다."),
     AI_PARSE_FAILED          (HttpStatus.INTERNAL_SERVER_ERROR,  "AI_PARSE_FAILED",          "AI 응답 파싱에 실패했습니다."),
-    EXTERNAL_SERVICE_TIMEOUT (HttpStatus.GATEWAY_TIMEOUT,        "EXTERNAL_SERVICE_TIMEOUT", "외부 서비스 응답 지연으로 실패했습니다.");
+    SECURITY_SCAN_FAILED     (HttpStatus.BAD_GATEWAY,            "SECURITY_SCAN_FAILED",     "보안 지표 수집에 실패했습니다.");
+
 
     public final HttpStatus httpStatus;
     public final String code;

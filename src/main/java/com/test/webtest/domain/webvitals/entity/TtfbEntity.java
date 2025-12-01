@@ -37,7 +37,7 @@ public class TtfbEntity {
     private Double responseStart;
 
     @Column(name = "request_start")
-    private Double reqeustStart;
+    private Double requestStart;
 
     @Column(name = "domain_lookup_start")
     private Double domainLookupStart;
