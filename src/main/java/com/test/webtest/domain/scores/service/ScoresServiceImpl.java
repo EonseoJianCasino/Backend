@@ -16,6 +16,7 @@ import com.test.webtest.domain.webvitals.repository.WebVitalsRepository;
 import com.test.webtest.global.common.util.ScoreCalculator;
 import com.test.webtest.global.error.exception.BusinessException;
 import com.test.webtest.global.error.model.ErrorCode;
+import com.test.webtest.global.logging.Monitored;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,13 +38,13 @@ public class ScoresServiceImpl implements ScoresService {
     private final UrgentLevelRepository urgentLevelRepository;
 
     @Override
+    @Monitored("scores.calcAndSave")
     @Transactional
     public void calcAndSave(UUID testId) {
         doCalcAndSave(testId);
     }
 
     private void doCalcAndSave(UUID testId) {
-        log.info("[SCORES] Calculating scores for testId={}", testId);
 
         WebVitalsEntity web = webVitalsRepository.findByTest_Id(testId).orElse(null);
         SecurityVitalsEntity sec = securityVitalsRepository.findByTest_Id(testId).orElse(null);
@@ -53,9 +54,6 @@ public class ScoresServiceImpl implements ScoresService {
 
         int securityHalf = scoreCalculator.toSecurityHalfScore(sec);
         int total = scoreCalculator.total(webScore, securityHalf);
-        log.info("[SCORES] Calculated webScore={}", scoreCalculator.toWebHalfScore(webScore));
-        log.info("[SCORES] Calculated securityScore={}", securityHalf);
-        log.info("[SCORES] Calculated totalScore={}", total);
         int securityTotal = securityHalf*2;
         int webTotal = scoreCalculator.toWebHalfScore(webScore)*2;
 
@@ -76,7 +74,6 @@ public class ScoresServiceImpl implements ScoresService {
                             secScores.cookies(),
                             secScores.csp()
                     );
-                    log.info("[SCORES] updated testId={} total={}", testId, total);
                 },
                 () -> {
                     ScoresEntity created = ScoresEntity.create(
@@ -93,7 +90,6 @@ public class ScoresServiceImpl implements ScoresService {
                             secScores.csp()
                     );
                     scoresRepository.save(created);
-                    log.info("[SCORES] inserted testId={} total={}", testId, total);
                 });
 
         urgentLevelService.calcAndSave(testId);

@@ -2,6 +2,7 @@ package com.test.webtest.domain.ai.service;
 
 import com.test.webtest.domain.ai.AiSavePayload;
 import com.test.webtest.domain.ai.dto.AiResponse;
+import com.test.webtest.global.error.exception.AiParseFailedException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +19,7 @@ public class AiResponseParser {
         try {
             return objectMapper.readValue(response.getText(), AiSavePayload.class);
         } catch (Exception e) {
-            throw new IllegalStateException("AI JSON parse failed: " + response.getText(), e);
+            throw new AiParseFailedException(e);
         }
     }
 }

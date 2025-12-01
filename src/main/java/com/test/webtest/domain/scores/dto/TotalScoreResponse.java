@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.test.webtest.domain.scores.entity.ScoresEntity;
 
 public record TotalScoreResponse(
-        @JsonProperty("total_score") int totalScore,
-        @JsonProperty("security_score") int securityTotalScore,
-        @JsonProperty("web_score") int webTotalScore
+        @JsonProperty("totalScore") int totalScore,
+        @JsonProperty("securityTotalScore") int securityTotalScore,
+        @JsonProperty("webTotalScore") int webTotalScore
 ) {
     public static TotalScoreResponse from(ScoresEntity e) {
         return new TotalScoreResponse(

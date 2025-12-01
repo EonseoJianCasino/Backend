@@ -36,6 +36,7 @@ public enum ErrorCode {
 
     // 외부 연동
     AI_CALL_FAILED           (HttpStatus.BAD_GATEWAY,            "AI_CALL_FAILED",           "AI 서버 호출에 실패했습니다."),
+    AI_PARSE_FAILED          (HttpStatus.INTERNAL_SERVER_ERROR,  "AI_PARSE_FAILED",          "AI 응답 파싱에 실패했습니다."),
     EXTERNAL_SERVICE_TIMEOUT (HttpStatus.GATEWAY_TIMEOUT,        "EXTERNAL_SERVICE_TIMEOUT", "외부 서비스 응답 지연으로 실패했습니다.");
 
     public final HttpStatus httpStatus;

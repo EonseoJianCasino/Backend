@@ -1,6 +1,7 @@
 package com.test.webtest.domain.ai.service;
 
 import com.test.webtest.domain.ai.dto.AiResponse;
+import com.test.webtest.global.logging.Monitored;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +12,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.util.*;
 
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import com.test.webtest.global.error.exception.AiCallFailedException;
 
 @Service
 @Slf4j
@@ -29,9 +31,9 @@ public class AiRecommendationServiceImpl implements AiRecommendationService {
     }
 
     @Override
+    @Monitored("ai.invokeAsync")
     @Async("logicExecutor")
     public void invokeAsync(UUID testId) {
-        log.info("[AI] invoke recommendations for testId={}", testId);
         aiPersistService.generateAndSave(testId);
     }
 
@@ -95,7 +97,7 @@ public class AiRecommendationServiceImpl implements AiRecommendationService {
 
         }catch(WebClientResponseException e){
             log.error("[GEMINI] status={} body={}", e.getStatusCode(), e.getResponseBodyAsString());
-            throw e;
+            throw new AiCallFailedException(e);
         }
     }
 
