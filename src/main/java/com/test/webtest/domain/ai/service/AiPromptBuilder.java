@@ -98,7 +98,7 @@ public class AiPromptBuilder {
         String ttfbEntryType = ttfbResults.map(TtfbEntity::getEntryType).orElse("N/A");
         String ttfbStartTime = ttfbResults.map(TtfbEntity::getStartTime).map(Object::toString).orElse("N/A");
         String ttfbResponseStart = ttfbResults.map(TtfbEntity::getResponseStart).map(Object::toString).orElse("N/A");
-        String ttfbRequestStart = ttfbResults.map(TtfbEntity::getReqeustStart).map(Object::toString).orElse("N/A");
+        String ttfbRequestStart = ttfbResults.map(TtfbEntity::getRequestStart).map(Object::toString).orElse("N/A");
         String ttfbDnsStart = ttfbResults.map(TtfbEntity::getDomainLookupStart).map(Object::toString).orElse("N/A");
         String ttfbConnectStart = ttfbResults.map(TtfbEntity::getConnectStart).map(Object::toString).orElse("N/A");
         String ttfbConnectEnd = ttfbResults.map(TtfbEntity::getConnectEnd).map(Object::toString).orElse("N/A");
