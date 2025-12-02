@@ -67,6 +67,7 @@ public class AiPersistService {
     }
   }
 
+  @Transactional
   @Monitored("ai.generateAndSave")
   private void generateAndSave(UUID testId) {
     // 이미 데이터가 있으면 스킵
