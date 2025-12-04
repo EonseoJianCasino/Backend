@@ -1,6 +1,6 @@
 package com.test.webtest.domain.ai.service;
 
-import com.test.webtest.domain.ai.AiSavePayload;
+import com.test.webtest.domain.ai.dto.AiSavePayload;
 import com.test.webtest.domain.ai.entity.AiAnalysisSummary;
 import com.test.webtest.domain.ai.entity.AiMetricAdvice;
 import com.test.webtest.domain.ai.entity.Metric;
