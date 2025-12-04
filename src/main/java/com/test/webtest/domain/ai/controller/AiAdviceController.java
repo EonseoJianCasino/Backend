@@ -3,6 +3,8 @@ package com.test.webtest.domain.ai.controller;
 import com.test.webtest.domain.ai.dto.AiAnalysisResponse;
 import com.test.webtest.domain.ai.dto.TopPrioritiesResponse;
 import com.test.webtest.domain.ai.service.AiPersistService;
+import com.test.webtest.domain.scores.dto.TotalScoreResponse;
+import com.test.webtest.domain.scores.service.ScoresService;
 import com.test.webtest.global.api.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,13 +20,16 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AiAdviceController {
 
-    private final AiPersistService aiPersistService; // <- 여기서 호출
+    private final AiPersistService aiPersistService;
+    private final ScoresService scoresService;
 
     @GetMapping("/{testId}/ai/recommendations")
     public ResponseEntity<ApiResponse<AiAnalysisResponse>> getRecommendations(
             @PathVariable UUID testId) {
         AiAnalysisResponse data = aiPersistService.getAnalysis(testId);
-        return ResponseEntity.ok(ApiResponse.ok("AI 분석 결과를 조회했습니다.", data));
+        TotalScoreResponse total = scoresService.getTotal(testId);
+        AiAnalysisResponse response = data.withOverallTotalBefore(total.totalScore());
+        return ResponseEntity.ok(ApiResponse.ok("AI 분석 결과를 조회했습니다.", response));
     }
 
     @GetMapping("/{testId}/ai/priorities")
