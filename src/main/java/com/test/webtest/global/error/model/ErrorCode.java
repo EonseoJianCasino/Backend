@@ -29,6 +29,7 @@ public enum ErrorCode {
     PRIORITIES_NOT_READY   (HttpStatus.CONFLICT,                 "PRIORITIES_NOT_READY",     "우선순위가 아직 산출되지 않았습니다. 잠시 후 다시 시도하세요."), // [추가]
     PRIORITIES_NOT_FOUND   (HttpStatus.NOT_FOUND,                "PRIORITIES_NOT_FOUND",     "우선순위 데이터가 존재하지 않습니다."), // [추가]
     AI_NOT_READY             (HttpStatus.CONFLICT,               "AI_NOT_READY",             "AI 분석 결과가 아직 준비되지 않았습니다."),
+    AI_RESULT_NOT_FOUND      (HttpStatus.NOT_FOUND,              "AI_RESULT_NOT_FOUND",      "요청한 테스트의 AI 분석 결과가 존재하지 않습니다."),
 
     // 비즈니스 룰
     DUPLICATE_REQUEST        (HttpStatus.TOO_MANY_REQUESTS,      "DUPLICATE_REQUEST",        "동일 URL로 10초 내 중복 요청이 차단되었습니다."),

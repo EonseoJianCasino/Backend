@@ -6,6 +6,7 @@ import com.test.webtest.domain.ai.dto.AiResponse;
 import com.test.webtest.domain.ai.dto.TopPrioritiesResponse;
 import com.test.webtest.domain.ai.repository.AiAnalysisSummaryRepository;
 import com.test.webtest.domain.logicstatus.repository.LogicStatusRepository;
+import com.test.webtest.global.error.exception.AiResultNotFoundException;
 import com.test.webtest.global.logging.Monitored;
 import com.test.webtest.global.longpoll.LongPollingManager;
 import com.test.webtest.global.longpoll.LongPollingTopic;
@@ -89,6 +90,10 @@ public class AiPersistService {
   @Transactional(readOnly = true)
   @Monitored("ai.getAnalysis")
   public AiAnalysisResponse getAnalysis(UUID testId) {
+    // 데이터가 존재하지 않으면 예외 발생
+    if (summaryRepository.findByTestId(testId).isEmpty()) {
+      throw AiResultNotFoundException.of();
+    }
     // DB에서 조회만 수행 (AI 호출은 invokeAsync에서만 수행)
     return dtoConverter.getAnalysis(testId);
   }
@@ -101,6 +106,10 @@ public class AiPersistService {
   @Transactional(readOnly = true)
   @Monitored("ai.getTopPriorities")
   public TopPrioritiesResponse getTopPriorities(UUID testId) {
+    // 데이터가 존재하지 않으면 예외 발생
+    if (summaryRepository.findByTestId(testId).isEmpty()) {
+      throw AiResultNotFoundException.of();
+    }
     // DB에서 조회만 수행 (AI 호출은 invokeAsync에서만 수행)
     return dtoConverter.getTopPriorities(testId);
   }
