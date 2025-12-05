@@ -18,12 +18,13 @@ public record ScoresDetailResponse(
             String urgentStatus
     ) {}
     public static ScoresDetailResponse from(ScoresEntity se, UrgentLevelEntity ue) {
-        List<Metric> charData = new ArrayList<>();
-        charData.add(metric("lcp", se.getLcpScore(), ue.getLcpStatus()));
-        charData.add(metric("cls", se.getClsScore(), ue.getClsStatus()));
-        charData.add(metric("inp", se.getInpScore(), ue.getInpStatus()));
-        charData.add(metric("fcp", se.getFcpScore(), ue.getFcpStatus()));
-        charData.add(metric("ttfb", se.getTtfbScore(), ue.getTtfbStatus()));
+        List<Metric> charData = List.of(
+                metric("lcp", se.getLcpScore(), ue.getLcpStatus()),
+                metric("cls", se.getClsScore(), ue.getClsStatus()),
+                metric("inp", se.getInpScore(), ue.getInpStatus()),
+                metric("fcp", se.getFcpScore(), ue.getFcpStatus()),
+                metric("ttfb", se.getTtfbScore(), ue.getTtfbStatus())
+        );
 
         return new ScoresDetailResponse(
                 n(se.getTotal()),
@@ -32,7 +33,7 @@ public record ScoresDetailResponse(
     }
     private static int n(Integer v) { return v == null ? 0 : v; }
 
-    private static Metric metric(String name, int score, String urgentStatus) {
+    private static Metric metric(String name, Integer score, String urgentStatus) {
         return new Metric(name, n(score), urgentStatus);
     }
 }
