@@ -53,6 +53,6 @@ public class WebVitalsController {
         );
         webVitalsService.saveWebVitals(testId, cmd);
         WebVitalsView view = webVitalsService.getView(testId);
-        return ResponseEntity.ok(ApiResponse.ok("웹 바이탈 조회를 성공했습니다.", view));
+        return ResponseEntity.ok(ApiResponse.ok("웹 바이탈 재저장을 성공했습니다.", view));
     }
 }

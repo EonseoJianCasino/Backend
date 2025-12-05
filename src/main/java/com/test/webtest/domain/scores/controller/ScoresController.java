@@ -47,6 +47,6 @@ public class ScoresController {
     ) {
         scoresService.calcAndSave(testId);
         TotalScoreResponse total = scoresService.getTotal(testId);
-        return ResponseEntity.ok(ApiResponse.ok("총점 조회를 성공했습니다.", total));
+        return ResponseEntity.ok(ApiResponse.ok("총점 재계산을 성공했습니다.", total));
     }
 }
