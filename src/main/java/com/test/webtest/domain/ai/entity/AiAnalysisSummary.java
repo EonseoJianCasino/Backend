@@ -28,9 +28,6 @@ public class AiAnalysisSummary {
     @OneToMany(mappedBy = "summary", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AiMajorImprovement> majorImprovements = new ArrayList<>();
 
-    @OneToMany(mappedBy = "summary", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<AiTopPriority> topPriorities = new ArrayList<>();
-
     @Column(name = "created_at", insertable = false, updatable = false)
     private OffsetDateTime createdAt;
 
@@ -52,11 +49,6 @@ public class AiAnalysisSummary {
     public void addMajorImprovement(int ord, String metric, String title, String description) {
         AiMajorImprovement m = new AiMajorImprovement(this, ord, metric, title, description);
         majorImprovements.add(m);
-    }
-
-    public void addTopPriority(int rank, String targetType, String targetName, int expectedGain, String reason) {
-        AiTopPriority p = new AiTopPriority(this, rank, targetType, targetName, expectedGain, reason);
-        topPriorities.add(p);
     }
 }
 

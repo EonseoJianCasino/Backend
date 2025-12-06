@@ -7,6 +7,7 @@ import com.test.webtest.domain.ai.entity.AiMetricAdvice;
 import com.test.webtest.domain.ai.entity.AiTopPriority;
 import com.test.webtest.domain.ai.repository.AiAnalysisSummaryRepository;
 import com.test.webtest.domain.ai.repository.AiMetricAdviceRepository;
+import com.test.webtest.domain.ai.repository.AiTopPriorityRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,12 +21,15 @@ public class AiDtoConverter {
 
     private final AiMetricAdviceRepository adviceRepo;
     private final AiAnalysisSummaryRepository summaryRepo;
+    private final AiTopPriorityRepository topPriorityRepo;
 
     public AiDtoConverter(
             AiMetricAdviceRepository adviceRepo,
-            AiAnalysisSummaryRepository summaryRepo) {
+            AiAnalysisSummaryRepository summaryRepo,
+            AiTopPriorityRepository topPriorityRepo) {
         this.adviceRepo = adviceRepo;
         this.summaryRepo = summaryRepo;
+        this.topPriorityRepo = topPriorityRepo;
     }
 
     @Transactional(readOnly = true)
@@ -101,8 +105,8 @@ public class AiDtoConverter {
                         m.getDescription()))
                 .toList();
 
-        List<AiAnalysisSummaryResponse.TopPriorityDto> topPriorities = summary.getTopPriorities().stream()
-                .sorted(Comparator.comparingInt(AiTopPriority::getRank))
+        // top_priorities는 별도 테이블에서 조회
+        List<AiAnalysisSummaryResponse.TopPriorityDto> topPriorities = topPriorityRepo.findByTestIdOrderByRankAsc(testId).stream()
                 .map(p -> new AiAnalysisSummaryResponse.TopPriorityDto(
                         p.getRank(),
                         p.getTargetType(),
@@ -150,16 +154,8 @@ public class AiDtoConverter {
 
     @Transactional(readOnly = true)
     public TopPrioritiesResponse getTopPriorities(UUID testId) {
-        Optional<AiAnalysisSummary> summaryOpt = summaryRepo.findByTestId(testId);
-
-        if (summaryOpt.isEmpty()) {
-            return new TopPrioritiesResponse(List.of());
-        }
-
-        AiAnalysisSummary summary = summaryOpt.get();
-
-        List<TopPrioritiesResponse.TopPriorityDto> topPriorities = summary.getTopPriorities().stream()
-                .sorted(Comparator.comparingInt(AiTopPriority::getRank))
+        // top_priorities는 별도 테이블에서 직접 조회
+        List<TopPrioritiesResponse.TopPriorityDto> topPriorities = topPriorityRepo.findByTestIdOrderByRankAsc(testId).stream()
                 .map(p -> new TopPrioritiesResponse.TopPriorityDto(
                         p.getRank(),
                         p.getTargetType(),

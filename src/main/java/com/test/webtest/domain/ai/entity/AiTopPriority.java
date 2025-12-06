@@ -3,6 +3,8 @@ package com.test.webtest.domain.ai.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 
+import java.util.UUID;
+
 @Getter
 @Entity
 @Table(name = "ai_top_priority")
@@ -12,9 +14,8 @@ public class AiTopPriority {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "summary_id", nullable = false)
-    private AiAnalysisSummary summary;
+    @Column(name = "test_id", nullable = false)
+    private UUID testId;
 
     @Column(nullable = false)
     private int rank;
@@ -33,13 +34,15 @@ public class AiTopPriority {
 
     protected AiTopPriority() {}
 
-    public AiTopPriority(AiAnalysisSummary summary, int rank, String targetType, String targetName, int expectedGain, String reason) {
-        this.summary = summary;
-        this.rank = rank;
-        this.targetType = targetType;
-        this.targetName = targetName;
-        this.expectedGain = expectedGain;
-        this.reason = reason;
+    public static AiTopPriority of(UUID testId, int rank, String targetType, String targetName, int expectedGain, String reason) {
+        AiTopPriority p = new AiTopPriority();
+        p.testId = testId;
+        p.rank = rank;
+        p.targetType = targetType;
+        p.targetName = targetName;
+        p.expectedGain = expectedGain;
+        p.reason = reason;
+        return p;
     }
 }
 

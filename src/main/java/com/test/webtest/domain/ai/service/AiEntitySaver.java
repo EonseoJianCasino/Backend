@@ -3,9 +3,11 @@ package com.test.webtest.domain.ai.service;
 import com.test.webtest.domain.ai.dto.AiSavePayload;
 import com.test.webtest.domain.ai.entity.AiAnalysisSummary;
 import com.test.webtest.domain.ai.entity.AiMetricAdvice;
+import com.test.webtest.domain.ai.entity.AiTopPriority;
 import com.test.webtest.domain.ai.entity.Metric;
 import com.test.webtest.domain.ai.repository.AiAnalysisSummaryRepository;
 import com.test.webtest.domain.ai.repository.AiMetricAdviceRepository;
+import com.test.webtest.domain.ai.repository.AiTopPriorityRepository;
 import com.test.webtest.domain.logicstatus.repository.LogicStatusRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,14 +22,17 @@ public class AiEntitySaver {
 
     private final AiMetricAdviceRepository adviceRepo;
     private final AiAnalysisSummaryRepository summaryRepo;
+    private final AiTopPriorityRepository topPriorityRepo;
     private final LogicStatusRepository logicStatusRepo;
 
     public AiEntitySaver(
             AiMetricAdviceRepository adviceRepo,
             AiAnalysisSummaryRepository summaryRepo,
+            AiTopPriorityRepository topPriorityRepo,
             LogicStatusRepository logicStatusRepo) {
         this.adviceRepo = adviceRepo;
         this.summaryRepo = summaryRepo;
+        this.topPriorityRepo = topPriorityRepo;
         this.logicStatusRepo = logicStatusRepo;
     }
 
@@ -127,17 +132,26 @@ public class AiEntitySaver {
             }
         }
 
+        summaryRepo.save(summary);
+
+        // top_priorities는 별도 테이블에 저장
+        saveTopPriorities(testId, payload);
+    }
+
+    private void saveTopPriorities(UUID testId, AiSavePayload payload) {
+        topPriorityRepo.deleteByTestId(testId);
+
         if (payload.top_priorities != null) {
             for (AiSavePayload.TopPriority priority : payload.top_priorities) {
-                summary.addTopPriority(
+                AiTopPriority entity = AiTopPriority.of(
+                        testId,
                         priority.rank,
                         priority.target_type,
                         priority.target_name,
                         priority.expected_gain,
                         priority.reason);
+                topPriorityRepo.save(entity);
             }
         }
-
-        summaryRepo.save(summary);
     }
 }
