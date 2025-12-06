@@ -24,7 +24,7 @@ public record AiAnalysisResponse(
     }
 
     public record WebElementDto(
-            String elementName,
+            String name,
             String status,
             String benefitSummary,
             Integer expectedScoreGain,
@@ -41,7 +41,7 @@ public record AiAnalysisResponse(
     }
 
     public record SecurityMetricDto(
-            String metricName,
+            String name,
             String status,
             String benefitSummary,
             Integer delta,

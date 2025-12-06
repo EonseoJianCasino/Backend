@@ -128,7 +128,7 @@ public class AiDtoConverter {
                 .toList();
 
         return new AiAnalysisResponse.WebElementDto(
-                entity.getElementName(),
+                entity.getElementName(),  // name
                 entity.getStatus(),
                 entity.getBenefitSummary(),
                 entity.getExpectedScoreGain(),
@@ -143,7 +143,7 @@ public class AiDtoConverter {
                 .toList();
 
         return new AiAnalysisResponse.SecurityMetricDto(
-                entity.getMetricName(),
+                entity.getMetricName(),  // name
                 entity.getStatus(),
                 entity.getBenefitSummary(),
                 entity.getDelta(),
