@@ -18,7 +18,7 @@ public class AiMajorImprovement {
     private UUID testId;
 
     @Column(nullable = false)
-    private int ord;
+    private int rank;
 
     @Column(name = "metric", length = 50)
     private String metric;
@@ -31,14 +31,13 @@ public class AiMajorImprovement {
 
     protected AiMajorImprovement() {}
 
-    public static AiMajorImprovement of(UUID testId, int ord, String metric, String title, String description) {
+    public static AiMajorImprovement of(UUID testId, int rank, String metric, String title, String description) {
         AiMajorImprovement m = new AiMajorImprovement();
         m.testId = testId;
-        m.ord = ord;
+        m.rank = rank;
         m.metric = metric;
         m.title = title;
         m.description = description;
         return m;
     }
 }
-

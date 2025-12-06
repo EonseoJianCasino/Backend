@@ -8,6 +8,7 @@ public record AiAnalysisSummaryResponse(
         List<MajorImprovementDto> majorImprovements,
         List<TopPriorityDto> topPriorities) {
     public record MajorImprovementDto(
+            Integer rank,
             String metric,
             String title,
             String description) {
@@ -15,9 +16,9 @@ public record AiAnalysisSummaryResponse(
 
     public record TopPriorityDto(
             Integer rank,
+            String status,
             String targetType,
             String targetName,
-            Integer expectedGain,
             String reason) {
     }
 }

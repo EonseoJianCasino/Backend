@@ -20,29 +20,28 @@ public class AiTopPriority {
     @Column(nullable = false)
     private int rank;
 
+    @Column(name = "status", length = 20)
+    private String status;  // 양호|주의|긴급
+
     @Column(name = "target_type", length = 50)
     private String targetType;
 
     @Column(name = "target_name", length = 100)
     private String targetName;
 
-    @Column(name = "expected_gain", nullable = false)
-    private Integer expectedGain;
-
     @Column(name = "reason", columnDefinition = "text")
     private String reason;
 
     protected AiTopPriority() {}
 
-    public static AiTopPriority of(UUID testId, int rank, String targetType, String targetName, int expectedGain, String reason) {
+    public static AiTopPriority of(UUID testId, int rank, String status, String targetType, String targetName, String reason) {
         AiTopPriority p = new AiTopPriority();
         p.testId = testId;
         p.rank = rank;
+        p.status = status;
         p.targetType = targetType;
         p.targetName = targetName;
-        p.expectedGain = expectedGain;
         p.reason = reason;
         return p;
     }
 }
-
