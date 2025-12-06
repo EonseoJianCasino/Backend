@@ -3,6 +3,8 @@ package com.test.webtest.domain.ai.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 
+import java.util.UUID;
+
 @Getter
 @Entity
 @Table(name = "ai_major_improvement")
@@ -12,9 +14,8 @@ public class AiMajorImprovement {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "summary_id", nullable = false)
-    private AiAnalysisSummary summary;
+    @Column(name = "test_id", nullable = false)
+    private UUID testId;
 
     @Column(nullable = false)
     private int ord;
@@ -30,12 +31,14 @@ public class AiMajorImprovement {
 
     protected AiMajorImprovement() {}
 
-    public AiMajorImprovement(AiAnalysisSummary summary, int ord, String metric, String title, String description) {
-        this.summary = summary;
-        this.ord = ord;
-        this.metric = metric;
-        this.title = title;
-        this.description = description;
+    public static AiMajorImprovement of(UUID testId, int ord, String metric, String title, String description) {
+        AiMajorImprovement m = new AiMajorImprovement();
+        m.testId = testId;
+        m.ord = ord;
+        m.metric = metric;
+        m.title = title;
+        m.description = description;
+        return m;
     }
 }
 

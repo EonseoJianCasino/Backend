@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -25,9 +23,6 @@ public class AiAnalysisSummary {
     @Column(name = "overall_total_after")
     private Integer overallTotalAfter;
 
-    @OneToMany(mappedBy = "summary", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<AiMajorImprovement> majorImprovements = new ArrayList<>();
-
     @Column(name = "created_at", insertable = false, updatable = false)
     private OffsetDateTime createdAt;
 
@@ -44,11 +39,6 @@ public class AiAnalysisSummary {
         s.overallExpectedImprovement = overallExpectedImprovement;
         s.overallTotalAfter = overallTotalAfter;
         return s;
-    }
-
-    public void addMajorImprovement(int ord, String metric, String title, String description) {
-        AiMajorImprovement m = new AiMajorImprovement(this, ord, metric, title, description);
-        majorImprovements.add(m);
     }
 }
 

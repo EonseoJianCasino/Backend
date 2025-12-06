@@ -2,10 +2,9 @@ package com.test.webtest.domain.ai.converter;
 
 import com.test.webtest.domain.ai.dto.*;
 import com.test.webtest.domain.ai.entity.AiAnalysisSummary;
-import com.test.webtest.domain.ai.entity.AiMajorImprovement;
 import com.test.webtest.domain.ai.entity.AiMetricAdvice;
-import com.test.webtest.domain.ai.entity.AiTopPriority;
 import com.test.webtest.domain.ai.repository.AiAnalysisSummaryRepository;
+import com.test.webtest.domain.ai.repository.AiMajorImprovementRepository;
 import com.test.webtest.domain.ai.repository.AiMetricAdviceRepository;
 import com.test.webtest.domain.ai.repository.AiTopPriorityRepository;
 import org.springframework.stereotype.Component;
@@ -21,14 +20,17 @@ public class AiDtoConverter {
 
     private final AiMetricAdviceRepository adviceRepo;
     private final AiAnalysisSummaryRepository summaryRepo;
+    private final AiMajorImprovementRepository majorImprovementRepo;
     private final AiTopPriorityRepository topPriorityRepo;
 
     public AiDtoConverter(
             AiMetricAdviceRepository adviceRepo,
             AiAnalysisSummaryRepository summaryRepo,
+            AiMajorImprovementRepository majorImprovementRepo,
             AiTopPriorityRepository topPriorityRepo) {
         this.adviceRepo = adviceRepo;
         this.summaryRepo = summaryRepo;
+        this.majorImprovementRepo = majorImprovementRepo;
         this.topPriorityRepo = topPriorityRepo;
     }
 
@@ -97,8 +99,8 @@ public class AiDtoConverter {
 
         AiAnalysisSummary summary = summaryOpt.get();
 
-        List<AiAnalysisSummaryResponse.MajorImprovementDto> majorImprovements = summary.getMajorImprovements().stream()
-                .sorted(Comparator.comparingInt(AiMajorImprovement::getOrd))
+        // major_improvements는 별도 테이블에서 조회
+        List<AiAnalysisSummaryResponse.MajorImprovementDto> majorImprovements = majorImprovementRepo.findByTestIdOrderByOrdAsc(testId).stream()
                 .map(m -> new AiAnalysisSummaryResponse.MajorImprovementDto(
                         m.getMetric(),
                         m.getTitle(),
@@ -136,8 +138,8 @@ public class AiDtoConverter {
 
         AiAnalysisSummary summary = summaryOpt.get();
 
-        List<AiAnalysisResponse.MajorImprovementDto> majorImprovements = summary.getMajorImprovements().stream()
-                .sorted(Comparator.comparingInt(AiMajorImprovement::getOrd))
+        // major_improvements는 별도 테이블에서 조회
+        List<AiAnalysisResponse.MajorImprovementDto> majorImprovements = majorImprovementRepo.findByTestIdOrderByOrdAsc(testId).stream()
                 .map(m -> new AiAnalysisResponse.MajorImprovementDto(
                         m.getMetric(),
                         m.getTitle(),

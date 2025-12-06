@@ -2,10 +2,12 @@ package com.test.webtest.domain.ai.service;
 
 import com.test.webtest.domain.ai.dto.AiSavePayload;
 import com.test.webtest.domain.ai.entity.AiAnalysisSummary;
+import com.test.webtest.domain.ai.entity.AiMajorImprovement;
 import com.test.webtest.domain.ai.entity.AiMetricAdvice;
 import com.test.webtest.domain.ai.entity.AiTopPriority;
 import com.test.webtest.domain.ai.entity.Metric;
 import com.test.webtest.domain.ai.repository.AiAnalysisSummaryRepository;
+import com.test.webtest.domain.ai.repository.AiMajorImprovementRepository;
 import com.test.webtest.domain.ai.repository.AiMetricAdviceRepository;
 import com.test.webtest.domain.ai.repository.AiTopPriorityRepository;
 import com.test.webtest.domain.logicstatus.repository.LogicStatusRepository;
@@ -22,16 +24,19 @@ public class AiEntitySaver {
 
     private final AiMetricAdviceRepository adviceRepo;
     private final AiAnalysisSummaryRepository summaryRepo;
+    private final AiMajorImprovementRepository majorImprovementRepo;
     private final AiTopPriorityRepository topPriorityRepo;
     private final LogicStatusRepository logicStatusRepo;
 
     public AiEntitySaver(
             AiMetricAdviceRepository adviceRepo,
             AiAnalysisSummaryRepository summaryRepo,
+            AiMajorImprovementRepository majorImprovementRepo,
             AiTopPriorityRepository topPriorityRepo,
             LogicStatusRepository logicStatusRepo) {
         this.adviceRepo = adviceRepo;
         this.summaryRepo = summaryRepo;
+        this.majorImprovementRepo = majorImprovementRepo;
         this.topPriorityRepo = topPriorityRepo;
         this.logicStatusRepo = logicStatusRepo;
     }
@@ -125,17 +130,30 @@ public class AiEntitySaver {
                 payload.overall_expected_improvement,
                 payload.overall_total_after);
 
-        if (payload.major_improvements != null) {
-            int ord = 0;
-            for (AiSavePayload.MajorImprovement improvement : payload.major_improvements) {
-                summary.addMajorImprovement(ord++, improvement.metric, improvement.title, improvement.description);
-            }
-        }
-
         summaryRepo.save(summary);
+
+        // major_improvements는 별도 테이블에 저장
+        saveMajorImprovements(testId, payload);
 
         // top_priorities는 별도 테이블에 저장
         saveTopPriorities(testId, payload);
+    }
+
+    private void saveMajorImprovements(UUID testId, AiSavePayload payload) {
+        majorImprovementRepo.deleteByTestId(testId);
+
+        if (payload.major_improvements != null) {
+            int ord = 0;
+            for (AiSavePayload.MajorImprovement improvement : payload.major_improvements) {
+                AiMajorImprovement entity = AiMajorImprovement.of(
+                        testId,
+                        ord++,
+                        improvement.metric,
+                        improvement.title,
+                        improvement.description);
+                majorImprovementRepo.save(entity);
+            }
+        }
     }
 
     private void saveTopPriorities(UUID testId, AiSavePayload payload) {
