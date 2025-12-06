@@ -1,4 +1,4 @@
-package com.test.webtest.domain.ai;
+package com.test.webtest.domain.ai.dto;
 
 import java.util.List;
 
