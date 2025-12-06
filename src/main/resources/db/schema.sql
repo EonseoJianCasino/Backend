@@ -218,14 +218,12 @@ CREATE TABLE IF NOT EXISTS ai_metric_related_metric (
         ON DELETE CASCADE
 );
 
--- ai_analysis_summary: 전체 분석 요약 + 총점 변화
+-- ai_analysis_summary: 전체 분석 요약
 CREATE TABLE IF NOT EXISTS ai_analysis_summary (
     id                           uuid         NOT NULL PRIMARY KEY,
     test_id                      uuid         NOT NULL UNIQUE
                                               REFERENCES tests(id) ON DELETE CASCADE,
     overall_expected_improvement INT          NOT NULL,
-    web_total_after              INT          NULL,
-    security_total_after         INT          NULL,
     overall_total_after          INT          NULL,
     created_at                   timestamptz  NOT NULL DEFAULT now()
 );

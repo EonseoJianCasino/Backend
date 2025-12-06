@@ -86,7 +86,7 @@ public class AiDtoConverter {
 
         if (summaryOpt.isEmpty()) {
             return new AiAnalysisSummaryResponse(
-                    null, null, null, null,
+                    null, null,
                     List.of(),
                     List.of());
         }
@@ -113,8 +113,6 @@ public class AiDtoConverter {
 
         return new AiAnalysisSummaryResponse(
                 summary.getOverallExpectedImprovement(),
-                summary.getWebTotalAfter(),
-                summary.getSecurityTotalAfter(),
                 summary.getOverallTotalAfter(),
                 majorImprovements,
                 topPriorities);
@@ -128,7 +126,7 @@ public class AiDtoConverter {
         if (summaryOpt.isEmpty()) {
             return new AiAnalysisResponse(
                     metrics,
-                    null, null, null, null, null,
+                    null, null, null,
                     List.of());
         }
 
@@ -145,8 +143,6 @@ public class AiDtoConverter {
         return new AiAnalysisResponse(
                 metrics,
                 summary.getOverallExpectedImprovement(),
-                summary.getWebTotalAfter(),
-                summary.getSecurityTotalAfter(),
                 summary.getOverallTotalAfter(),
                 null,  // overallTotalBefore는 컨트롤러에서 설정
                 majorImprovements);

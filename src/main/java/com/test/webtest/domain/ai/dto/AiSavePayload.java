@@ -5,9 +5,9 @@ import java.util.List;
 public class AiSavePayload {
 
     public int overall_expected_improvement;
+    public int overall_total_after;
     public List<WebElement> web_elements;
     public List<SecurityMetric> security_metrics;
-    public Normalization normalization;
     public List<MajorImprovement> major_improvements;
     public List<TopPriority> top_priorities;
 
@@ -37,12 +37,6 @@ public class AiSavePayload {
         public String expected_benefit;
         public String impact_title;
         public String impact_description;
-    }
-
-    public static class Normalization {
-        public int web_total_after;
-        public int security_total_after;
-        public int overall_total_after;
     }
 
     public static class MajorImprovement {

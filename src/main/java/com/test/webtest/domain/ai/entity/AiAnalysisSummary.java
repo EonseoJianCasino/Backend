@@ -22,12 +22,6 @@ public class AiAnalysisSummary {
     @Column(name = "overall_expected_improvement", nullable = false)
     private Integer overallExpectedImprovement;
 
-    @Column(name = "web_total_after")
-    private Integer webTotalAfter;
-
-    @Column(name = "security_total_after")
-    private Integer securityTotalAfter;
-
     @Column(name = "overall_total_after")
     private Integer overallTotalAfter;
 
@@ -45,16 +39,12 @@ public class AiAnalysisSummary {
     public static AiAnalysisSummary of(
             UUID testId,
             int overallExpectedImprovement,
-            Integer webTotalAfter,
-            Integer securityTotalAfter,
             Integer overallTotalAfter
     ) {
         AiAnalysisSummary s = new AiAnalysisSummary();
         s.id = UUID.randomUUID();
         s.testId = testId;
         s.overallExpectedImprovement = overallExpectedImprovement;
-        s.webTotalAfter = webTotalAfter;
-        s.securityTotalAfter = securityTotalAfter;
         s.overallTotalAfter = overallTotalAfter;
         return s;
     }

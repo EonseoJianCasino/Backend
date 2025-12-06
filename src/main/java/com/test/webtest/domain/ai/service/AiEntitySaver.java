@@ -118,9 +118,7 @@ public class AiEntitySaver {
         AiAnalysisSummary summary = AiAnalysisSummary.of(
                 testId,
                 payload.overall_expected_improvement,
-                payload.normalization != null ? payload.normalization.web_total_after : null,
-                payload.normalization != null ? payload.normalization.security_total_after : null,
-                payload.normalization != null ? payload.normalization.overall_total_after : null);
+                payload.overall_total_after);
 
         if (payload.major_improvements != null) {
             int ord = 0;

@@ -4,8 +4,6 @@ import java.util.List;
 
 public record AiAnalysisSummaryResponse(
         Integer overallExpectedImprovement,
-        Integer webTotalAfter,
-        Integer securityTotalAfter,
         Integer overallTotalAfter,
         List<MajorImprovementDto> majorImprovements,
         List<TopPriorityDto> topPriorities) {

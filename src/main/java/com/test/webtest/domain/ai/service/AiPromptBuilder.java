@@ -173,15 +173,18 @@ public class AiPromptBuilder {
                         [SCORING MODEL]
                         - Web half-score (0~50) weights: 9(LCP)+9(CLS)+8(INP)+8(FCP)+8(TTFB). Each contribution = weight * (achievable_score/100). Sum (max 42) must be scaled by 50/42 and rounded.
                         - Security half-score (0~50) weights: 7(HSTS)+7(FRAME-ANCESTORS/XFO)+8(SSL)+7(XCTO)+7(REFERRER-POLICY)+7(COOKIES)+7(CSP). Sum weight*(achievable/100) and round.
-                        - `overall_total_after = min(100, web_total_after + security_total_after)`.
+                        - `overall_total_after = min(100, web_half_after + security_half_after)`.
+                        - expected_gain for web_elements = sum of all delta values in its metric_deltas array.
+                        - expected_gain for security_metrics = delta value for that metric.
 
                         [OUTPUT SCHEMA]
                         {
                           "overall_expected_improvement": int,
+                          "overall_total_after": int,
                           "web_elements": [
                             {
                               "element_name": "string<=15chars",
-                              "expected_gain": int,
+                              "expected_gain": int (= sum of all delta values in metric_deltas),
                               "related_metrics": ["LCP", ...],
                               "metric_deltas": [
                                 {
@@ -201,18 +204,13 @@ public class AiPromptBuilder {
                               "current_score": int,
                               "achievable_score": int,
                               "delta": int,
-                              "expected_gain": int,
+                              "expected_gain": int (= delta value for this metric),
                               "improvement_plan": "세부 방안(한글)",
                               "expected_benefit": "효과 설명(한글)",
                               "impact_title": "≤10자",
                               "impact_description": "≤20자"
                             }
                           ],
-                          "normalization": {
-                            "web_total_after": int,
-                            "security_total_after": int,
-                            "overall_total_after": int
-                          },
                           "major_improvements": [
                             {
                               "metric": "지표명",
@@ -235,10 +233,12 @@ public class AiPromptBuilder {
                         1. Web 항목은 요소 단위로, Security 항목은 지표 단위로 작성한다.
                         2. 모든 delta는 metric별 남은 여유(100-current)를 넘지 말고, 동일 지표에 대한 여러 항목의 delta 총합이 remaining을 초과하지 않게 관리한다.
                         3. `overall_expected_improvement`는 웹·보안 모든 지표 delta를 합산한 값이다.
-                        4. Normalization 값들은 achievable_score 기반으로 ScoreCalculator 규칙을 적용해 계산한다.
-                        5. `impact_title`와 `major_improvements[].title`은 10자 이내, 설명은 20자 이내로 한다.
-                        6. `top_priorities`는 웹 요소와 보안 지표를 통틀어 영향도가 가장 큰 3가지를 선택한다. expected_gain은 해당 대상이 기여하는 총 delta를 사용한다.
-                        7. JSON 외의 텍스트 금지, 모든 서술은 한국어로 작성하되 평가 기준·필드명 등은 스펙을 유지한다.
+                        4. `overall_total_after`는 achievable_score 기반으로 ScoreCalculator 규칙을 적용해 계산한다.
+                        5. `web_elements[].expected_gain`은 해당 요소의 `metric_deltas` 내 모든 delta 값의 합이다.
+                        6. `security_metrics[].expected_gain`은 해당 보안 지표의 delta 값과 동일하다.
+                        7. `impact_title`와 `major_improvements[].title`은 10자 이내, 설명은 20자 이내로 한다.
+                        8. `top_priorities`는 웹 요소와 보안 지표를 통틀어 영향도가 가장 큰 3가지를 선택한다. expected_gain은 해당 대상이 기여하는 총 delta를 사용한다.
+                        9. JSON 외의 텍스트 금지, 모든 서술은 한국어로 작성하되 평가 기준·필드명 등은 스펙을 유지한다.
                         """,
                 testId.toString(),
                 currentTotal,

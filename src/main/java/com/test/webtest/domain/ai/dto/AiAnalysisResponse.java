@@ -7,8 +7,6 @@ public record AiAnalysisResponse(
         AiMetricAdviceBundleResponse metrics,
         // 요약 정보 (top_priorities 제외)
         Integer overallExpectedImprovement,
-        Integer webTotalAfter,
-        Integer securityTotalAfter,
         Integer overallTotalAfter,
         Integer overallTotalBefore,
         List<MajorImprovementDto> majorImprovements) {
@@ -17,8 +15,6 @@ public record AiAnalysisResponse(
         return new AiAnalysisResponse(
                 metrics,
                 overallExpectedImprovement,
-                webTotalAfter,
-                securityTotalAfter,
                 overallTotalAfter,
                 overallTotalBefore,
                 majorImprovements

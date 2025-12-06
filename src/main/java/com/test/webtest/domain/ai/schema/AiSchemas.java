@@ -74,32 +74,21 @@ public class AiSchemas {
 //                "additionalProperties", false
         );
 
-        Map<String, Object> normalizationSchema = Map.of(
-                "type", "object",
-                "properties", Map.of(
-                        "web_total_after", Map.of("type", "integer"),
-                        "security_total_after", Map.of("type", "integer"),
-                        "overall_total_after", Map.of("type", "integer")
-                ),
-                "required", List.of("web_total_after", "security_total_after", "overall_total_after")//,
-//                "additionalProperties", false
-        );
-
         return Map.of(
                 "type", "object",
                 "properties", Map.of(
                         "overall_expected_improvement", Map.of("type", "integer"),
+                        "overall_total_after", Map.of("type", "integer"),
                         "web_elements", Map.of("type", "array", "items", webElement),
                         "security_metrics", Map.of("type", "array", "items", securityMetric),
-                        "normalization", normalizationSchema,
                         "major_improvements", Map.of("type", "array", "items", majorImprovement),
                         "top_priorities", Map.of("type", "array", "items", prioritySchema)
                 ),
                 "required", List.of(
                         "overall_expected_improvement",
+                        "overall_total_after",
                         "web_elements",
                         "security_metrics",
-                        "normalization",
                         "major_improvements",
                         "top_priorities"
                 )//,
