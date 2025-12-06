@@ -1,5 +1,6 @@
 package com.test.webtest.domain.ai.service;
 
+import com.test.webtest.domain.ai.converter.AiDtoConverter;
 import com.test.webtest.domain.ai.dto.AiAnalysisResponse;
 import com.test.webtest.domain.ai.dto.AiAnalysisSummaryResponse;
 import com.test.webtest.domain.ai.dto.AiResponse;
@@ -8,6 +9,7 @@ import com.test.webtest.domain.ai.repository.AiAnalysisSummaryRepository;
 import com.test.webtest.domain.logicstatus.repository.LogicStatusRepository;
 import com.test.webtest.global.error.exception.AiCallFailedException;
 import com.test.webtest.global.error.model.ErrorCode;
+import com.test.webtest.global.error.exception.AiResultNotFoundException;
 import com.test.webtest.global.logging.Monitored;
 import com.test.webtest.global.longpoll.LongPollingManager;
 import com.test.webtest.global.longpoll.LongPollingTopic;
@@ -106,14 +108,14 @@ public class AiPersistService {
     }
   }
 
-  @Transactional
+  @Transactional(readOnly = true)
   @Monitored("ai.getAnalysis")
   public AiAnalysisResponse getAnalysis(UUID testId) {
-    // 데이터가 없으면 AI 호출 → 저장
+    // 데이터가 존재하지 않으면 예외 발생
     if (summaryRepository.findByTestId(testId).isEmpty()) {
-      log.info("[AI][GET_ANALYSIS][FAIL] 데이터 없음, AI 생성 시작: testId={}", testId);
-      generateAndSave(testId);
+      throw AiResultNotFoundException.of();
     }
+    // DB에서 조회만 수행 (AI 호출은 invokeAsync에서만 수행)
     return dtoConverter.getAnalysis(testId);
   }
 
@@ -122,14 +124,14 @@ public class AiPersistService {
     return dtoConverter.getAnalysisSummary(testId);
   }
 
-  @Transactional
+  @Transactional(readOnly = true)
   @Monitored("ai.getTopPriorities")
   public TopPrioritiesResponse getTopPriorities(UUID testId) {
-    // 데이터가 없으면 AI 호출 → 저장
+    // 데이터가 존재하지 않으면 예외 발생
     if (summaryRepository.findByTestId(testId).isEmpty()) {
-      log.info("[AI][GET_TOP_PRIORITIES][FAIL] 데이터 없음, AI 생성 시작: testId={}", testId);
-      generateAndSave(testId);
+      throw AiResultNotFoundException.of();
     }
+    // DB에서 조회만 수행 (AI 호출은 invokeAsync에서만 수행)
     return dtoConverter.getTopPriorities(testId);
   }
 }

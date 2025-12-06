@@ -10,7 +10,21 @@ public record AiAnalysisResponse(
         Integer webTotalAfter,
         Integer securityTotalAfter,
         Integer overallTotalAfter,
+        Integer overallTotalBefore,
         List<MajorImprovementDto> majorImprovements) {
+
+    public AiAnalysisResponse withOverallTotalBefore(Integer overallTotalBefore) {
+        return new AiAnalysisResponse(
+                metrics,
+                overallExpectedImprovement,
+                webTotalAfter,
+                securityTotalAfter,
+                overallTotalAfter,
+                overallTotalBefore,
+                majorImprovements
+        );
+    }
+
     public record MajorImprovementDto(
             String metric,
             String title,

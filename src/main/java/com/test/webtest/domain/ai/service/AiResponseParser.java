@@ -1,6 +1,6 @@
 package com.test.webtest.domain.ai.service;
 
-import com.test.webtest.domain.ai.AiSavePayload;
+import com.test.webtest.domain.ai.dto.AiSavePayload;
 import com.test.webtest.domain.ai.dto.AiResponse;
 import com.test.webtest.global.error.exception.AiParseFailedException;
 import com.fasterxml.jackson.databind.ObjectMapper;

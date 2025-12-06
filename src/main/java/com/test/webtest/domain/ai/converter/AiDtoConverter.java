@@ -1,4 +1,4 @@
-package com.test.webtest.domain.ai.service;
+package com.test.webtest.domain.ai.converter;
 
 import com.test.webtest.domain.ai.dto.*;
 import com.test.webtest.domain.ai.entity.AiAnalysisSummary;
@@ -128,7 +128,7 @@ public class AiDtoConverter {
         if (summaryOpt.isEmpty()) {
             return new AiAnalysisResponse(
                     metrics,
-                    null, null, null, null,
+                    null, null, null, null, null,
                     List.of());
         }
 
@@ -148,6 +148,7 @@ public class AiDtoConverter {
                 summary.getWebTotalAfter(),
                 summary.getSecurityTotalAfter(),
                 summary.getOverallTotalAfter(),
+                null,  // overallTotalBefore는 컨트롤러에서 설정
                 majorImprovements);
     }
 
@@ -174,3 +175,4 @@ public class AiDtoConverter {
         return new TopPrioritiesResponse(topPriorities);
     }
 }
+
