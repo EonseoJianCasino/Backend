@@ -12,8 +12,12 @@ import com.test.webtest.domain.urgentlevel.repository.UrgentLevelRepository;
 import com.test.webtest.global.common.constants.Channel;
 import com.test.webtest.global.error.exception.BusinessException;
 import com.test.webtest.global.error.exception.EntityNotFoundException;
+import com.test.webtest.global.error.exception.SecurityScanFailedException;
 import com.test.webtest.global.error.model.ErrorCode;
 import com.test.webtest.global.logging.Monitored;
+import com.test.webtest.global.longpoll.LongPollingManager;
+import com.test.webtest.global.longpoll.LongPollingTopic;
+import com.test.webtest.global.longpoll.WaitKey;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +35,7 @@ public class SecurityVitalsServiceImpl implements SecurityVitalsService {
     private final SecurityScanner securityScanner;
     private final SecurityMessageService messageService;
     private final UrgentLevelRepository urgentLevelRepository;
+    private final LongPollingManager longPollingManager;
 
     @Override
     @Monitored("security.scanAndSave")
@@ -46,20 +51,24 @@ public class SecurityVitalsServiceImpl implements SecurityVitalsService {
             result = securityScanner.scan(test.getUrl());
         } catch (Exception e) {
             log.warn("[SEC][SCAN][FAIL] testId={} url={}, msg={}",testId, test.getUrl(), e.toString());
-            result = SaveCommand.failed(); // 실패 플래그/기본값 채우는 팩토리(없다면 만들어도 됨)
+            longPollingManager.completeError(
+                    new WaitKey(testId, LongPollingTopic.CORE_READY),
+                    ErrorCode.SECURITY_SCAN_FAILED,
+                    "보안 지표 수집 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+            );
+            throw new SecurityScanFailedException(
+                    "보안 지표 스캔 실패: testId=" + testId);
         }
 
         // 3) upsert
-        SaveCommand finalResult = result;
-        SaveCommand finalResult1 = result;
         securityVitalsRepository.findByTest_Id(testId).ifPresentOrElse(
                 found -> {
-                    found.updateFrom(finalResult);
+                    found.updateFrom(result);
                     // 변경감지에만 의존하지 말고 확실히
                     securityVitalsRepository.flush();
                 },
                 () -> {
-                    SecurityVitalsEntity created = SecurityVitalsEntity.create(test, finalResult1);
+                    SecurityVitalsEntity created = SecurityVitalsEntity.create(test, result);
                     securityVitalsRepository.saveAndFlush(created); // ← 즉시 flush
                 }
         );
