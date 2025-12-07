@@ -179,8 +179,8 @@ public class AiPromptBuilder {
 
                         [OUTPUT SCHEMA]
                         {
-                          "overall_expected_improvement": int,
-                          "overall_total_after": int (= current_total + overall_expected_improvement),
+                          "overall_total_after": int,
+                          "overall_expected_improvement": int(= overall_total_after - current_total),
                           "top_priorities": [
                             {
                               "rank": 1,
@@ -230,15 +230,14 @@ public class AiPromptBuilder {
                         }
 
                         [INSTRUCTIONS]
-                        1. 각 지표별 delta 값을 계산할 때에는 ScoreCalculator 규칙을 염두에 두고 값을 제안한다.
-                        2. Web 항목은 요소 단위로, Security 항목은 지표 단위로 작성한다.
-                        3. 모든 delta는 metric별 남은 여유(100-current)를 넘지 말고, 동일 지표에 대한 여러 항목의 delta 총합이 remaining을 초과하지 않게 관리한다.
-                        4. `overall_expected_improvement`는 웹·보안 모든 지표 delta를 합산한 값이다.
-                        5. `web_elements[].expected_score_gain`은 해당 요소의 `metric_deltas` 내 모든 delta 값의 합이다.
-                        6. `security_metrics[].expected_score_gain`은 해당 보안 지표의 delta 값과 동일하다.
-                        7. `major_improvements[].title`은 10자 이내, 설명은 20자 이내로 한다.
-                        8. `top_priorities`는 웹 요소와 보안 지표를 통틀어 영향도가 가장 큰 3가지를 선택한다.
-                        9. JSON 외의 텍스트 금지, 모든 서술은 한국어로 작성하되 평가 기준·필드명 등은 스펙을 유지한다.
+                        1. Pick the top 3 `top_priorities` across both web elements and security metrics by total impact.
+                        2. Web items are written per element; security items are written per metric.
+                        3. Do not exceed remaining room (100 - current_score) for any metric; the sum of deltas for the same metric must not exceed the remaining room.
+                        4. `web_elements[].expected_score_gain` is the sum of all deltas in `metric_deltas`, respecting the Web half-score (0~50) weights.
+                        5. `security_metrics[].expected_score_gain` equals the delta for that security metric.
+                        6. `overall_total_after` is computed from all deltas using the SCORING MODEL (Web half-score weights & Security half-score weights).
+                        7. `major_improvements[].title` ≤ 10 chars, `description` ≤ 20 chars.
+                        8. Output strictly JSON only; use Korean for textual content but keep field names and specs in English.
                         """,
                 testId.toString(),
                 currentTotal,
