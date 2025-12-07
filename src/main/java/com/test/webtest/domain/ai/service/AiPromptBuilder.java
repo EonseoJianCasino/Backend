@@ -230,10 +230,10 @@ public class AiPromptBuilder {
                         }
 
                         [INSTRUCTIONS]
-                        1. Web 항목은 요소 단위로, Security 항목은 지표 단위로 작성한다.
-                        2. 모든 delta는 metric별 남은 여유(100-current)를 넘지 말고, 동일 지표에 대한 여러 항목의 delta 총합이 remaining을 초과하지 않게 관리한다.
-                        3. `overall_expected_improvement`는 웹·보안 모든 지표 delta를 합산한 값이다.
-                        4. `overall_total_after`는 achievable_score 기반으로 ScoreCalculator 규칙을 적용해 계산한다.
+                        1. 각 지표별 delta 값을 계산할 때에는 ScoreCalculator 규칙을 염두에 두고 값을 제안한다.
+                        2. Web 항목은 요소 단위로, Security 항목은 지표 단위로 작성한다.
+                        3. 모든 delta는 metric별 남은 여유(100-current)를 넘지 말고, 동일 지표에 대한 여러 항목의 delta 총합이 remaining을 초과하지 않게 관리한다.
+                        4. `overall_expected_improvement`는 웹·보안 모든 지표 delta를 합산한 값이다.
                         5. `web_elements[].expected_score_gain`은 해당 요소의 `metric_deltas` 내 모든 delta 값의 합이다.
                         6. `security_metrics[].expected_score_gain`은 해당 보안 지표의 delta 값과 동일하다.
                         7. `major_improvements[].title`은 10자 이내, 설명은 20자 이내로 한다.
