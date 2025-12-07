@@ -3,6 +3,8 @@ package com.test.webtest.domain.ai.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 
+import java.util.UUID;
+
 @Getter
 @Entity
 @Table(name = "ai_top_priority")
@@ -12,12 +14,14 @@ public class AiTopPriority {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "summary_id", nullable = false)
-    private AiAnalysisSummary summary;
+    @Column(name = "test_id", nullable = false)
+    private UUID testId;
 
     @Column(nullable = false)
     private int rank;
+
+    @Column(name = "status", length = 20)
+    private String status;  // 양호|주의|긴급
 
     @Column(name = "target_type", length = 50)
     private String targetType;
@@ -25,21 +29,19 @@ public class AiTopPriority {
     @Column(name = "target_name", length = 100)
     private String targetName;
 
-    @Column(name = "expected_gain", nullable = false)
-    private Integer expectedGain;
-
     @Column(name = "reason", columnDefinition = "text")
     private String reason;
 
     protected AiTopPriority() {}
 
-    public AiTopPriority(AiAnalysisSummary summary, int rank, String targetType, String targetName, int expectedGain, String reason) {
-        this.summary = summary;
-        this.rank = rank;
-        this.targetType = targetType;
-        this.targetName = targetName;
-        this.expectedGain = expectedGain;
-        this.reason = reason;
+    public static AiTopPriority of(UUID testId, int rank, String status, String targetType, String targetName, String reason) {
+        AiTopPriority p = new AiTopPriority();
+        p.testId = testId;
+        p.rank = rank;
+        p.status = status;
+        p.targetType = targetType;
+        p.targetName = targetName;
+        p.reason = reason;
+        return p;
     }
 }
-

@@ -6,9 +6,9 @@ public record TopPrioritiesResponse(
         List<TopPriorityDto> topPriorities) {
     public record TopPriorityDto(
             Integer rank,
+            String status,
             String targetType,
             String targetName,
-            Integer expectedGain,
             String reason) {
     }
 }
