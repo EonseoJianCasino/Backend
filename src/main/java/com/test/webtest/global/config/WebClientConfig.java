@@ -1,4 +1,4 @@
-package com.test.webtest.domain.ai.config;
+package com.test.webtest.global.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
