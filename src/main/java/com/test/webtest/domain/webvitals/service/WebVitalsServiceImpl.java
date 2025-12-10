@@ -30,7 +30,8 @@ public class WebVitalsServiceImpl implements WebVitalsService {
     @Override
     @Transactional
     public void saveWebVitals(UUID testId, WebVitalsSaveCommand cmd) {
-        validateOrThrow(cmd);
+        WebVitalsSaveCommand msCmd = normalizeToMillis(cmd);
+        validateOrThrow(msCmd);
 
         // 테스트 존재 보장(실조회)
         TestEntity test = testRepository.findById(testId)
@@ -38,9 +39,9 @@ public class WebVitalsServiceImpl implements WebVitalsService {
 
         // upsert
         webVitalsRepository.findByTest_Id(testId).ifPresentOrElse(
-                found -> found.updateFrom(cmd.lcp(), cmd.cls(), cmd.inp(), cmd.fcp(), cmd.ttfb()),
+                found -> found.updateFrom(msCmd.lcp(), msCmd.cls(), msCmd.inp(), msCmd.fcp(), msCmd.ttfb()),
                 () -> webVitalsRepository.saveAndFlush(WebVitalsEntity.create(
-                        test, cmd.lcp(), cmd.cls(), cmd.inp(), cmd.fcp(), cmd.ttfb())));
+                        test, msCmd.lcp(), msCmd.cls(), msCmd.inp(), msCmd.fcp(), msCmd.ttfb())));
 
         // 같은 트랜잭션에서 상태 플래그 갱신
         logicStatusService.onPartialUpdate(testId, Channel.WEB);
@@ -83,13 +84,29 @@ public class WebVitalsServiceImpl implements WebVitalsService {
         if (c.cls() != null && (c.cls() < 0.0 || c.cls() > 1.0)) {
             throw new InvalidRequestException("CLS는 0~1 범위여야 합니다. (예: 0.07)");
         }
-        // LCP/FCP (초): 0~60s
-        rejectIfOutOfRange(c.lcp(), 0.0, 60.0, "LCP", "초(s)");
-        rejectIfOutOfRange(c.fcp(), 0.0, 60.0, "FCP", "초(s)");
-        // TTFB (초): 0~30s
-        rejectIfOutOfRange(c.ttfb(), 0.0, 30.0, "TTFB", "초(s)");
-        // INP (ms): 0~10000ms
+        // LCP/FCP (ms): 0~60,000ms
+        rejectIfOutOfRange(c.lcp(), 0.0, 60000.0, "LCP", "밀리초(ms)");
+        rejectIfOutOfRange(c.fcp(), 0.0, 60000.0, "FCP", "밀리초(ms)");
+        // TTFB (ms): 0~30,000ms
+        rejectIfOutOfRange(c.ttfb(), 0.0, 30000.0, "TTFB", "밀리초(ms)");
+        // INP (ms): 0~10,000ms
         rejectIfOutOfRange(c.inp(), 0.0, 10000.0, "INP", "밀리초(ms)");
+    }
+
+    // 초 단위로 들어오는 값을 ms로 통일 (CLS는 비율이므로 제외)
+    private WebVitalsSaveCommand normalizeToMillis(WebVitalsSaveCommand c) {
+        return new WebVitalsSaveCommand(
+                toMillis(c.lcp()),
+                c.cls(),
+                toMillis(c.inp()),
+                toMillis(c.fcp()),
+                toMillis(c.ttfb())
+        );
+    }
+
+    private Double toMillis(Double secondsValue) {
+        if (secondsValue == null) return null;
+        return secondsValue * 1000.0;
     }
 
     private void rejectIfNaN(Double v, String name) {
@@ -110,7 +127,7 @@ public class WebVitalsServiceImpl implements WebVitalsService {
         if (v < min || v > max) {
             throw new InvalidRequestException(
                     name + " 값이 허용 범위를 벗어났습니다. (" + min + " ~ " + max + " " + unit + ")\n" +
-                            "단위 안내: LCP/FCP/TTFB=초(s), INP=밀리초(ms), CLS=0~1");
+                            "단위 안내: LCP/FCP/TTFB=밀리초(ms), INP=밀리초(ms), CLS=0~1");
         }
     }
 }
