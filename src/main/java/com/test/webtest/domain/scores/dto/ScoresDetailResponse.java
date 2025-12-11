@@ -23,7 +23,8 @@ public record ScoresDetailResponse(
                 metric("cls", se.getClsScore(), ue.getClsStatus()),
                 metric("inp", se.getInpScore(), ue.getInpStatus()),
                 metric("fcp", se.getFcpScore(), ue.getFcpStatus()),
-                metric("ttfb", se.getTtfbScore(), ue.getTtfbStatus())
+                metric("ttfb", se.getTtfbScore(), ue.getTtfbStatus()),
+                metric("security", se.getSecurityTotal(), null)
         );
 
         return new ScoresDetailResponse(
