@@ -47,6 +47,7 @@ public class AiPersistService {
    */
   @Async("logicExecutor")
   @Monitored("ai.invokeAsync")
+  @Transactional
   public void invokeAsync(UUID testId) {
     try{
       generateAndSave(testId);
@@ -69,9 +70,8 @@ public class AiPersistService {
     }
   }
 
-  @Transactional
   @Monitored("ai.generateAndSave")
-  private void generateAndSave(UUID testId) {
+  void generateAndSave(UUID testId) {
     // 이미 데이터가 있으면 스킵
     if (summaryRepository.findByTestId(testId).isPresent()) {
       log.info("[AI] 이미 데이터 존재, 생성 스킵: testId={}", testId);

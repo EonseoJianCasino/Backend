@@ -5,16 +5,5 @@ import org.springframework.web.servlet.config.annotation.*;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
-    @Override
-    public void addCorsMappings(CorsRegistry r) {
-        r.addMapping("/api/**")
-                .allowedOrigins("http://localhost:5173") // 크롬 확장/프론트 도메인 추가 예정
-                .allowedOriginPatterns(                                                    
-                        "chrome-extension://*",                                                    
-                        "https://"                                                                 
-                    )           
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-                .allowedHeaders("*")
-                .maxAge(3600);
-    }
+    // 앞으로 인터셉터, 메시지 컨버터, 포맷터 등 MVC 관련 설정만 추가
 }

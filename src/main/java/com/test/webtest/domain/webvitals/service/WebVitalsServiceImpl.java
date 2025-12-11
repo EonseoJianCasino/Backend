@@ -34,13 +34,13 @@ public class WebVitalsServiceImpl implements WebVitalsService {
 
         // 테스트 존재 보장(실조회)
         TestEntity test = testRepository.findById(testId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.TEST_NOT_FOUND, "test not found: " + testId));
+            .orElseThrow(() -> new BusinessException(ErrorCode.TEST_NOT_FOUND, "test not found: " + testId));
 
         // upsert
         webVitalsRepository.findByTest_Id(testId).ifPresentOrElse(
-                found -> found.updateFrom(cmd.lcp(), cmd.cls(), cmd.inp(), cmd.fcp(), cmd.ttfb()),
-                () -> webVitalsRepository.saveAndFlush(WebVitalsEntity.create(
-                        test, cmd.lcp(), cmd.cls(), cmd.inp(), cmd.fcp(), cmd.ttfb())));
+            found -> found.updateFrom(cmd.lcp(), cmd.cls(), cmd.inp(), cmd.fcp(), cmd.ttfb()),
+            () -> webVitalsRepository.saveAndFlush(WebVitalsEntity.create(
+                test, cmd.lcp(), cmd.cls(), cmd.inp(), cmd.fcp(), cmd.ttfb())));
 
         // 같은 트랜잭션에서 상태 플래그 갱신
         logicStatusService.onPartialUpdate(testId, Channel.WEB);
@@ -50,7 +50,7 @@ public class WebVitalsServiceImpl implements WebVitalsService {
     @Transactional(readOnly = true)
     public WebVitalsView getView(UUID testId) {
         var entity = webVitalsRepository.findByTest_Id(testId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.WEB_VITALS_NOT_FOUND));
+            .orElseThrow(() -> new BusinessException(ErrorCode.WEB_VITALS_NOT_FOUND));
         var urgent = urgentLevelRepository.findByTestId(testId).orElse(null);
 
         return messageService.toView(entity, urgent);
@@ -60,7 +60,7 @@ public class WebVitalsServiceImpl implements WebVitalsService {
     private void validateOrThrow(WebVitalsSaveCommand c) {
         // 1) 전부 null이면 저장 무의미
         if (c.lcp() == null && c.cls() == null && c.inp() == null &&
-                c.fcp() == null && c.ttfb() == null) {
+            c.fcp() == null && c.ttfb() == null) {
             throw new InvalidRequestException("최소 하나 이상의 지표가 필요합니다.");
         }
 
@@ -109,8 +109,8 @@ public class WebVitalsServiceImpl implements WebVitalsService {
             return;
         if (v < min || v > max) {
             throw new InvalidRequestException(
-                    name + " 값이 허용 범위를 벗어났습니다. (" + min + " ~ " + max + " " + unit + ")\n" +
-                            "단위 안내: LCP/FCP/TTFB=초(s), INP=밀리초(ms), CLS=0~1");
+                name + " 값이 허용 범위를 벗어났습니다. (" + min + " ~ " + max + " " + unit + ")\n" +
+                    "단위 안내: LCP/FCP/TTFB=초(s), INP=밀리초(ms), CLS=0~1");
         }
     }
 }
