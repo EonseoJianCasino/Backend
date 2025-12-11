@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Service
@@ -74,7 +75,7 @@ public class WebVitalsServiceImpl implements WebVitalsService {
             return null;
         }
         // 모든 값은 0 이상이므로 floor 기반 버림 사용
-        return Math.floor(v * 100.0) / 100.0;
+        return BigDecimal.valueOf(v).setScale(2, java.math.RoundingMode.DOWN).doubleValue();
     }
 
     // 웹 지표 입력 값 검증
