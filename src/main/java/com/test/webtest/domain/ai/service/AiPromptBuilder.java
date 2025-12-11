@@ -204,7 +204,7 @@ public class AiPromptBuilder {
                                   "delta": int
                                 }
                               ],
-                              "related_metrics": ["LCP", ...],
+                          "related_metrics": ["LCP", ...],
                               "benefit_detail": "세부 실행 방안(한글)"
                             }
                           ],
@@ -215,7 +215,6 @@ public class AiPromptBuilder {
                               "benefit_summary": "효과 설명(한글)",
                               "delta": int,
                               "expected_score_gain": int (= delta value for this metric),
-                              "related_metrics": ["HSTS", ...],
                               "benefit_detail": "세부 방안(한글)"
                             }
                           ],

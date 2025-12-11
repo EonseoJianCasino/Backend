@@ -150,14 +150,6 @@ public class AiEntitySaver {
                         metric.expected_score_gain,
                         metric.benefit_detail);
 
-                // related_metrics 추가
-                if (metric.related_metrics != null) {
-                    int ord = 0;
-                    for (String related : metric.related_metrics) {
-                        entity.addRelatedMetric(ord++, related);
-                    }
-                }
-
                 securityMetricRepo.save(entity);
             }
         }
