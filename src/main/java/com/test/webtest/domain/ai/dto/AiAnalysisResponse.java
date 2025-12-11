@@ -46,7 +46,6 @@ public record AiAnalysisResponse(
             String benefitSummary,
             Integer delta,
             Integer expectedScoreGain,
-            List<String> relatedMetrics,
             String benefitDetail) {
     }
 

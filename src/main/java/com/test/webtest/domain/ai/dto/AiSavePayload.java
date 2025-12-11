@@ -42,7 +42,6 @@ public class AiSavePayload {
         public String benefit_summary;
         public int delta;
         public int expected_score_gain;
-        public List<String> related_metrics;
         public String benefit_detail;
     }
 

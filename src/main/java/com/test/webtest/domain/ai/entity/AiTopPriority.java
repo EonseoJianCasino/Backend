@@ -21,7 +21,7 @@ public class AiTopPriority {
     private int rank;
 
     @Column(name = "status", length = 20)
-    private String status;  // 양호|주의|긴급
+    private String status;  // good|warning|poor
 
     @Column(name = "target_type", length = 50)
     private String targetType;

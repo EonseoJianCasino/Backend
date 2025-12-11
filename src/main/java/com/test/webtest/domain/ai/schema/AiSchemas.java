@@ -22,7 +22,9 @@ public class AiSchemas {
                 "type", "object",
                 "properties", Map.of(
                         "element_name", Map.of("type", "string"),
-                        "status", Map.of("type", "string"),
+                        "status", Map.of(
+                                "type", "string",
+                                "enum", List.of("양호", "주의", "긴급")),
                         "benefit_summary", Map.of("type", "string"),
                         "expected_score_gain", Map.of("type", "integer"),
                         "metric_deltas", Map.of("type", "array", "items", metricDelta),
@@ -36,14 +38,15 @@ public class AiSchemas {
                 "type", "object",
                 "properties", Map.of(
                         "metric_name", Map.of("type", "string"),
-                        "status", Map.of("type", "string"),
+                        "status", Map.of(
+                                "type", "string",
+                                "enum", List.of("양호", "주의", "긴급")),
                         "benefit_summary", Map.of("type", "string"),
                         "delta", Map.of("type", "integer"),
                         "expected_score_gain", Map.of("type", "integer"),
-                        "related_metrics", Map.of("type", "array", "items", Map.of("type", "string")),
                         "benefit_detail", Map.of("type", "string")
                 ),
-                "required", List.of("metric_name", "status", "benefit_summary", "delta", "expected_score_gain", "related_metrics", "benefit_detail")
+                "required", List.of("metric_name", "status", "benefit_summary", "delta", "expected_score_gain", "benefit_detail")
         );
 
         Map<String, Object> majorImprovement = Map.of(
@@ -61,7 +64,9 @@ public class AiSchemas {
                 "type", "object",
                 "properties", Map.of(
                         "rank", Map.of("type", "integer"),
-                        "status", Map.of("type", "string"),
+                        "status", Map.of(
+                                "type", "string",
+                                "enum", List.of("good", "warning", "poor")),
                         "target_type", Map.of("type", "string"),
                         "target_name", Map.of("type", "string"),
                         "reason", Map.of("type", "string")
