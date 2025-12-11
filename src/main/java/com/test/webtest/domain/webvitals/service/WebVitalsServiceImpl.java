@@ -30,19 +30,29 @@ public class WebVitalsServiceImpl implements WebVitalsService {
     @Override
     @Transactional
     public void saveWebVitals(UUID testId, WebVitalsSaveCommand cmd) {
+        // 1) 입력값 검증 (단위/범위 등 체크)
         validateOrThrow(cmd);
 
-        // 테스트 존재 보장(실조회)
+        // 2) ms 단위 지표들만 소수 둘째 자리까지 "버림" 정규화
+        Double normLcp  = truncateMillis(cmd.lcp());   // ms
+        Double normCls  = cmd.cls();                   // 그대로 (0~1 스코어)
+        Double normInp  = truncateMillis(cmd.inp());   // ms
+        Double normFcp  = truncateMillis(cmd.fcp());   // ms
+        Double normTtfb = truncateMillis(cmd.ttfb());  // ms
+
+        // 3) 테스트 존재 보장(실조회)
         TestEntity test = testRepository.findById(testId)
             .orElseThrow(() -> new BusinessException(ErrorCode.TEST_NOT_FOUND, "test not found: " + testId));
 
-        // upsert
+        // 4) upsert (정규화된 값으로 저장)
         webVitalsRepository.findByTest_Id(testId).ifPresentOrElse(
-            found -> found.updateFrom(cmd.lcp(), cmd.cls(), cmd.inp(), cmd.fcp(), cmd.ttfb()),
-            () -> webVitalsRepository.saveAndFlush(WebVitalsEntity.create(
-                test, cmd.lcp(), cmd.cls(), cmd.inp(), cmd.fcp(), cmd.ttfb())));
+            found -> found.updateFrom(normLcp, normCls, normInp, normFcp, normTtfb),
+            () -> webVitalsRepository.saveAndFlush(
+                WebVitalsEntity.create(test, normLcp, normCls, normInp, normFcp, normTtfb)
+            )
+        );
 
-        // 같은 트랜잭션에서 상태 플래그 갱신
+        // 5) 같은 트랜잭션에서 상태 플래그 갱신
         logicStatusService.onPartialUpdate(testId, Channel.WEB);
     }
 
@@ -54,6 +64,17 @@ public class WebVitalsServiceImpl implements WebVitalsService {
         var urgent = urgentLevelRepository.findByTestId(testId).orElse(null);
 
         return messageService.toView(entity, urgent);
+    }
+
+    // ====== 여기부터 검증/도우미 메서드 ======
+
+    // ms 값 소수 둘째 자리까지 "버림" (반올림 X)
+    private Double truncateMillis(Double v) {
+        if (v == null) {
+            return null;
+        }
+        // 모든 값은 0 이상이므로 floor 기반 버림 사용
+        return Math.floor(v * 100.0) / 100.0;
     }
 
     // 웹 지표 입력 값 검증
@@ -83,12 +104,12 @@ public class WebVitalsServiceImpl implements WebVitalsService {
         if (c.cls() != null && (c.cls() < 0.0 || c.cls() > 1.0)) {
             throw new InvalidRequestException("CLS는 0~1 범위여야 합니다. (예: 0.07)");
         }
-        // LCP/FCP (초): 0~60s
-        rejectIfOutOfRange(c.lcp(), 0.0, 60.0, "LCP", "초(s)");
-        rejectIfOutOfRange(c.fcp(), 0.0, 60.0, "FCP", "초(s)");
-        // TTFB (초): 0~30s
-        rejectIfOutOfRange(c.ttfb(), 0.0, 30.0, "TTFB", "초(s)");
-        // INP (ms): 0~10000ms
+        // LCP/FCP (ms): 0~60,000ms
+        rejectIfOutOfRange(c.lcp(), 0.0, 60000.0, "LCP", "밀리초(ms)");
+        rejectIfOutOfRange(c.fcp(), 0.0, 60000.0, "FCP", "밀리초(ms)");
+        // TTFB (ms): 0~30,000ms
+        rejectIfOutOfRange(c.ttfb(), 0.0, 30000.0, "TTFB", "밀리초(ms)");
+        // INP (ms): 0~10,000ms
         rejectIfOutOfRange(c.inp(), 0.0, 10000.0, "INP", "밀리초(ms)");
     }
 
@@ -105,12 +126,13 @@ public class WebVitalsServiceImpl implements WebVitalsService {
     }
 
     private void rejectIfOutOfRange(Double v, double min, double max, String name, String unit) {
-        if (v == null)
+        if (v == null) {
             return;
+        }
         if (v < min || v > max) {
             throw new InvalidRequestException(
                 name + " 값이 허용 범위를 벗어났습니다. (" + min + " ~ " + max + " " + unit + ")\n" +
-                    "단위 안내: LCP/FCP/TTFB=초(s), INP=밀리초(ms), CLS=0~1");
+                    "단위 안내: LCP/FCP/TTFB=밀리초(ms), INP=밀리초(ms), CLS=0~1");
         }
     }
 }
