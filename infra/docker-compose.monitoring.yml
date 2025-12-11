@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: webtest-prometheus
+    volumes:
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus       # 메트릭 데이터 영속화
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+    networks:
+      - webtest_default
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: webtest-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana     # 대시보드/설정 영속화
+    restart: unless-stopped
+    networks:
+      - webtest_default
+
+volumes:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  webtest_default:
+    external: true
+    name: webtest_default
