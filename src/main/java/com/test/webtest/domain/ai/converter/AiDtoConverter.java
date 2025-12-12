@@ -138,17 +138,12 @@ public class AiDtoConverter {
     }
 
     private AiAnalysisResponse.SecurityMetricDto toSecurityMetricDto(AiSecurityMetric entity) {
-        List<String> relatedMetrics = entity.getRelatedMetrics().stream()
-                .map(AiSecurityMetricRelated::getMetricText)
-                .toList();
-
         return new AiAnalysisResponse.SecurityMetricDto(
                 entity.getMetricName(),  // name
                 entity.getStatus(),
                 entity.getBenefitSummary(),
                 entity.getDelta(),
                 entity.getExpectedScoreGain(),
-                relatedMetrics,
                 entity.getBenefitDetail());
     }
 
