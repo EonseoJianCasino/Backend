@@ -40,5 +40,18 @@ jobs:
       - name: Build Jar
         run: ./gradlew bootJar --no-daemon --stacktrace
 
-      - name: Build Docker image
-        run: docker build -t webtest:ci .
+      #GHCR 로그인 및 이미지 푸시
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & Push Docker image
+        env:
+          IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/webtest-backend
+        run: |
+          TAG=latest    # 필요하면 main-${GITHUB_SHA::7} 같이 버전 태깅도 가능
+          docker build -t $IMAGE_NAME:$TAG .
+          docker push $IMAGE_NAME:$TAG

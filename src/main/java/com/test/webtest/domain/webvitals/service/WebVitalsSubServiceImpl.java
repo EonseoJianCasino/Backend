@@ -1,10 +1,10 @@
-package com.test.webtest.domain.webvitals.sub.service;
+package com.test.webtest.domain.webvitals.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.test.webtest.domain.test.entity.TestEntity;
 import com.test.webtest.domain.test.repository.TestRepository;
-import com.test.webtest.domain.webvitals.sub.dto.*;
+import com.test.webtest.domain.webvitals.dto.*;
 import com.test.webtest.domain.webvitals.entity.*;
 import com.test.webtest.domain.webvitals.repository.*;
 import com.test.webtest.global.error.exception.BusinessException;
@@ -279,4 +279,3 @@ public class WebVitalsSubServiceImpl implements WebVitalsSubService {
                 .build();
     }
 }
-

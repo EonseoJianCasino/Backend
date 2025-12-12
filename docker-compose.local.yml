@@ -2,29 +2,7 @@ version: "3.9"
 name: webtest
 
 services:
-  db:
-    image: postgres:16
-    container_name: webtest-db
-    env_file:
-      - ./.env
-    environment:
-      # .env 값이 없으면 기본값 사용
-      POSTGRES_DB: ${DB_NAME:-webtest}
-      POSTGRES_USER: ${DB_USER:-dev}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-dev1234}
-    ports:
-      - "55432:5432"              # 로컬에서 DB GUI/CLI로 접속하려면 유지, 운영에선 제거 권장
-    volumes:
-      - db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-dev} -d ${DB_NAME:-webtest}" ]
-      interval: 5s
-      timeout: 3s
-      retries: 12
-    restart: unless-stopped
-
   app:
-    # 네 스크린샷 기준으로 compose와 Dockerfile이 루트에 있으니 context/dockefile 경로를 이렇게 추천
     build:
       context: .
       dockerfile: ./Dockerfile
@@ -49,6 +27,27 @@ services:
       interval: 15s
       timeout: 3s
       retries: 10
+    restart: unless-stopped
+
+  db:
+    image: postgres:16
+    container_name: webtest-db
+    env_file:
+      - ./.env
+    environment:
+      # .env 값이 없으면 기본값 사용
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "55432:5432"              # 로컬에서 DB GUI/CLI로 접속하려면 유지, 운영에선 제거 권장
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-dev} -d ${DB_NAME:-webtest}" ]
+      interval: 5s
+      timeout: 3s
+      retries: 12
     restart: unless-stopped
 
   nginx:

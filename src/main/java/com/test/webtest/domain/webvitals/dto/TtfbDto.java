@@ -1,4 +1,4 @@
-package com.test.webtest.domain.webvitals.sub.dto;
+package com.test.webtest.domain.webvitals.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
