@@ -15,9 +15,19 @@ public interface LogicStatusRepository extends JpaRepository<LogicStatusEntity, 
         UPDATE logic_status
            SET web_received = TRUE, updated_at = now()
          WHERE test_id = :testId
-        RETURNING web_received, sec_received, scores_ready, ai_triggered
+        RETURNING web_received, web_sub_received, sec_received, scores_ready, ai_triggered
         """, nativeQuery = true)
     List<Object[]> markWebReceived(@Param("testId") UUID testId);
+
+    // 1-1) 웹 서브 플래그 ON
+    @Modifying
+    @Query(value = """
+        UPDATE logic_status
+           SET web_sub_received = TRUE, updated_at = now()
+         WHERE test_id = :testId
+        RETURNING web_received, web_sub_received, sec_received, scores_ready, ai_triggered
+        """, nativeQuery = true)
+    List<Object[]> markWebSubReceived(@Param("testId") UUID testId);
 
     // 2) 보안 플래그 ON
     @Modifying
@@ -25,7 +35,7 @@ public interface LogicStatusRepository extends JpaRepository<LogicStatusEntity, 
         UPDATE logic_status
            SET sec_received = TRUE, updated_at = now()
          WHERE test_id = :testId
-        RETURNING web_received, sec_received, scores_ready, ai_triggered
+        RETURNING web_received, web_sub_received, sec_received, scores_ready, ai_triggered
         """, nativeQuery = true)
     List<Object[]> markSecReceived(@Param("testId") UUID testId);
 
@@ -48,6 +58,7 @@ public interface LogicStatusRepository extends JpaRepository<LogicStatusEntity, 
            SET ai_triggered = TRUE, updated_at = now()
          WHERE test_id = :testId
            AND web_received = TRUE
+           AND web_sub_received = TRUE
            AND sec_received = TRUE
            AND scores_ready = TRUE
            AND ai_triggered = FALSE
