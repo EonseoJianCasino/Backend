@@ -3,24 +3,10 @@ version: "3.9"
 services:
   app:
     image: ghcr.io/eonseojiancasino/webtest-backend:latest
-    container_name: webtest-app
     env_file:
-      - ./.env
-    environment:
-      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - .env.prod
     ports:
       - "8080:8080"
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
-      interval: 15s
-      timeout: 3s
-      retries: 10
     restart: unless-stopped
 
   nginx:
