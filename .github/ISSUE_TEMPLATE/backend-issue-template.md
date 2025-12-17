@@ -1,7 +1,7 @@
 ---
 name: Backend issue template
 about: "[FEAT]"
-title: ''
+title: '[FEAT]'
 labels: ''
 assignees: ''
 
