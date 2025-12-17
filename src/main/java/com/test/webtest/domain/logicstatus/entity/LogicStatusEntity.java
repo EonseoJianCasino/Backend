@@ -27,6 +27,9 @@ public class LogicStatusEntity {
     @Column(name = "web_received", nullable = false)
     private boolean webReceived;
 
+    @Column(name = "web_sub_received", nullable = false)
+    private boolean webSubReceived;
+
     @Column(name = "sec_received", nullable = false)
     private boolean secReceived;
 
@@ -51,10 +54,11 @@ public class LogicStatusEntity {
         return LogicStatusEntity.builder()
                 .testId(testId)
                 .webReceived(false)
+                .webSubReceived(false)
                 .secReceived(false)
                 .scoresReady(false)
                 .aiTriggered(false)
-                .aiTriggered(false)
+                .aiReady(false)
                 .build();
     }
 }

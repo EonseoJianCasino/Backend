@@ -1,12 +1,14 @@
-package com.test.webtest.domain.webvitals.sub.service;
+package com.test.webtest.domain.webvitals.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.test.webtest.domain.test.entity.TestEntity;
 import com.test.webtest.domain.test.repository.TestRepository;
-import com.test.webtest.domain.webvitals.sub.dto.*;
+import com.test.webtest.domain.logicstatus.service.LogicStatusServiceImpl;
+import com.test.webtest.domain.webvitals.dto.*;
 import com.test.webtest.domain.webvitals.entity.*;
 import com.test.webtest.domain.webvitals.repository.*;
+import com.test.webtest.global.common.constants.Channel;
 import com.test.webtest.global.error.exception.BusinessException;
 import com.test.webtest.global.error.model.ErrorCode;
 import jakarta.transaction.Transactional;
@@ -26,6 +28,7 @@ public class WebVitalsSubServiceImpl implements WebVitalsSubService {
     private final InpRepository inpRepository;
     private final ClsRepository clsRepository;
     private final ObjectMapper objectMapper;
+    private final LogicStatusServiceImpl logicStatusService;
 
     @Override
     @Transactional
@@ -200,6 +203,9 @@ public class WebVitalsSubServiceImpl implements WebVitalsSubService {
                             }
                     );
         }
+
+        // 7. 상태 플래그 업데이트 (AI 트리거 조건 반영)
+        logicStatusService.onPartialUpdate(testId, Channel.WEB_SUB);
     }
 
     @Override
@@ -279,4 +285,3 @@ public class WebVitalsSubServiceImpl implements WebVitalsSubService {
                 .build();
     }
 }
-

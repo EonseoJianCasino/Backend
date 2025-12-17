@@ -165,6 +165,7 @@ CREATE TABLE IF NOT EXISTS urgent_level (
 CREATE TABLE IF NOT EXISTS logic_status (
   test_id        uuid PRIMARY KEY REFERENCES tests(id) ON DELETE CASCADE,
   web_received   boolean NOT NULL DEFAULT false,
+  web_sub_received boolean NOT NULL DEFAULT false,
   sec_received   boolean NOT NULL DEFAULT false,
   scores_ready   boolean NOT NULL DEFAULT false,
   ai_triggered   boolean NOT NULL DEFAULT false,

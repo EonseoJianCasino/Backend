@@ -45,6 +45,7 @@ public class LogicStatusServiceImpl {
             // 1) 채널 플래그 마킹 (조건부 UPDATE)
             switch (channel) {
                 case WEB -> repo.markWebReceived(testId);
+                case WEB_SUB -> repo.markWebSubReceived(testId);
                 case SECURITY -> repo.markSecReceived(testId);
             }
 

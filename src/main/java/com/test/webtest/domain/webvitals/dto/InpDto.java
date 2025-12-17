@@ -1,4 +1,4 @@
-package com.test.webtest.domain.webvitals.sub.dto;
+package com.test.webtest.domain.webvitals.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
@@ -8,36 +8,35 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor
-public class LcpDto {
+public class InpDto {
     private String name;
     private Double value;
     private String rating;
-    private List<LcpEntry> entries;
+    private List<InpEntry> entries;
 
     @Getter
     @NoArgsConstructor
-    public static class LcpEntry {
+    public static class InpEntry {
         private String name;
 
         @JsonProperty("entryType")
         private String entryType;
 
         @JsonProperty("startTime")
-        private Integer startTime;
+        private Double startTime;
 
         private Integer duration;
 
-        private Integer size;
+        @JsonProperty("interactionId")
+        private Integer interactionId;
 
-        @JsonProperty("renderTime")
-        private Integer renderTime;
+        @JsonProperty("processingStart")
+        private Double processingStart;
 
-        @JsonProperty("loadTime")
-        private Integer loadTime;
+        @JsonProperty("processingEnd")
+        private Double processingEnd;
 
-        private String id;
-
-        private String url;
+        private Boolean cancelable;
     }
 }
 
