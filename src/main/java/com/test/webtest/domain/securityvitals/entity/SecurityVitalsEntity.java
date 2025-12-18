@@ -67,7 +67,7 @@ public class SecurityVitalsEntity {
     @Column(name = "cookie_httponly_all")
     private Boolean cookieHttpOnlyAll;
 
-    @Column(name = "cookie_samesite_policy", length = 10)
+    @Column(name = "cookie_samesite_policy", length = 32)
     private String cookieSameSitePolicy; // Strict/Lax/None/Unspecified
 
     @Column(name = "ssl_valid")
