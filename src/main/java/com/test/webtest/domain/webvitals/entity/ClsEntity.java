@@ -39,10 +39,10 @@ public class ClsEntity {
     @Column(name = "had_recent_input")
     private Boolean hadRecentInput;
 
-    @Column(name = "sources")
+    @Column(name = "sources", columnDefinition = "text")
     private String sources;
 
-    @Column(name = "previous_rect")
+    @Column(name = "previous_rect", columnDefinition = "text")
     private String previousRect;
 
     @CreationTimestamp
