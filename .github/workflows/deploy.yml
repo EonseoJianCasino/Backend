@@ -1,4 +1,3 @@
-# .github/workflows/deploy.yml
 name: Deploy to EC2 via SSM
 
 on:
@@ -27,16 +26,30 @@ jobs:
             --comment "webtest deploy" \
             --parameters commands='[
               "set -e",
-              "cd /home/ubuntu/webtest",
-              "git pull origin main || true",
 
-              "set -a",
-              "source ./.env",
-              "set +a",
+              "APP_DIR=/srv/webtest/Backend",
+              "REPO_URL=https://github.com/EonseoJianCasino/Backend.git",
 
-              "echo \"$GHCR_TOKEN\" | docker login ghcr.io -u \"$GHCR_USER\" --password-stdin",
-              "docker compose -f docker-compose.prod.yml pull",
-              "docker compose -f docker-compose.prod.yml up -d",
+              "# 0) 기본 패키지(필요 시) - git 없으면 설치",
+              "command -v git >/dev/null 2>&1 || sudo yum install -y git",
 
-              "docker compose -f docker-compose.monitoring.yml up -d || true"
+              "# 1) 레포 없으면 클론, 있으면 최신화",
+              "if [ ! -d \"$APP_DIR/.git\" ]; then sudo mkdir -p /srv/webtest && sudo chown -R ssm-user:ssm-user /srv/webtest; cd /srv/webtest; git clone \"$REPO_URL\" Backend; fi",
+              "cd \"$APP_DIR\"",
+              "git fetch --all",
+              "git reset --hard origin/main",
+
+              "# 2) env 파일 존재 확인 (없으면 배포 중단)",
+              "test -f .env.prod",
+
+              "# 3) GHCR 로그인",
+              "echo \"${{ secrets.GHCR_TOKEN }}\" | docker login ghcr.io -u \"${{ secrets.GHCR_USER }}\" --password-stdin",
+
+              "# 4) 배포 (EC2 환경이 docker-compose 기반이면 docker-compose 사용)",
+              "docker-compose -f docker-compose.prod.yml pull",
+              "docker-compose -f docker-compose.prod.yml up -d",
+              "docker-compose -f docker-compose.prod.yml ps",
+
+              "# 5) 모니터링은 파일 존재할 때만",
+              "if [ -f docker-compose.monitoring.yml ]; then docker-compose -f docker-compose.monitoring.yml up -d || true; fi"
             ]'
