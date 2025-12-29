@@ -18,6 +18,8 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./infra/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/snippets:/etc/nginx/snippets:ro
       - ./infra/nginx/ssl:/etc/letsencrypt
     restart: unless-stopped
