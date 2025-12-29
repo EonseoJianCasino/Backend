@@ -1,3 +1,4 @@
+# .github/workflows/deploy.yml
 name: Deploy to EC2 via SSM
 
 on:
@@ -19,6 +20,17 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Send deploy command (SSM)
+        env:
+          # 파일로 내려쓸 멀티라인 시크릿들
+          ENV_PROD: ${{ secrets.ENV_PROD }}
+          COMPOSE_PROD: ${{ secrets.COMPOSE_PROD }}
+          NGINX_CONF: ${{ secrets.NGINX_CONF }}
+          NGINX_DEFAULT_CONF: ${{ secrets.NGINX_DEFAULT_CONF }}
+          NGINX_PROXY_HEADERS: ${{ secrets.NGINX_PROXY_HEADERS }}
+
+          # GHCR 로그인
+          GHCR_USER: ${{ secrets.GHCR_USER }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
         run: |
           aws ssm send-command \
             --instance-ids "${{ secrets.SSM_INSTANCE_ID }}" \
@@ -27,29 +39,37 @@ jobs:
             --parameters commands='[
               "set -e",
 
-              "APP_DIR=/srv/webtest/Backend",
-              "REPO_URL=https://github.com/EonseoJianCasino/Backend.git",
+              "# 0) 작업 디렉토리 준비(멱등)",
+              "sudo mkdir -p /srv/webtest",
+              "sudo chown -R ssm-user:ssm-user /srv/webtest",
+              "cd /srv/webtest",
 
-              "# 0) 기본 패키지(필요 시) - git 없으면 설치",
-              "command -v git >/dev/null 2>&1 || sudo yum install -y git",
+              "# 1) 기존 컨테이너 내리기(파일 바뀌었을 수 있으니)",
+              "if [ -f docker-compose.prod.yml ]; then docker compose -f docker-compose.prod.yml down || true; fi",
 
-              "# 1) 레포 없으면 클론, 있으면 최신화",
-              "if [ ! -d \"$APP_DIR/.git\" ]; then sudo mkdir -p /srv/webtest && sudo chown -R ssm-user:ssm-user /srv/webtest; cd /srv/webtest; git clone \"$REPO_URL\" Backend; fi",
-              "cd \"$APP_DIR\"",
-              "git fetch --all",
-              "git reset --hard origin/main",
+              "# 2) 설정 파일만 정리 (SSL은 보존)",
+              "rm -f /srv/webtest/.env.prod /srv/webtest/docker-compose.prod.yml",
+              "rm -rf /srv/webtest/nginx",
+              "mkdir -p /srv/webtest/nginx/conf.d /srv/webtest/nginx/snippets",
+              "sudo mkdir -p /srv/webtest/infra/nginx/ssl",
+              "sudo chown -R ssm-user:ssm-user /srv/webtest/infra",
 
-              "# 2) env 파일 존재 확인 (없으면 배포 중단)",
-              "test -f .env.prod",
+              "# 3) GitHub Secrets 내용을 파일로 생성",
+              "cat > /srv/webtest/.env.prod <<''EOF''\n${ENV_PROD}\nEOF",
+              "chmod 600 /srv/webtest/.env.prod",
 
-              "# 3) GHCR 로그인",
-              "echo \"${{ secrets.GHCR_TOKEN }}\" | docker login ghcr.io -u \"${{ secrets.GHCR_USER }}\" --password-stdin",
+              "cat > /srv/webtest/docker-compose.prod.yml <<''EOF''\n${COMPOSE_PROD}\nEOF",
 
-              "# 4) 배포 (EC2 환경이 docker-compose 기반이면 docker-compose 사용)",
-              "docker-compose -f docker-compose.prod.yml pull",
-              "docker-compose -f docker-compose.prod.yml up -d",
-              "docker-compose -f docker-compose.prod.yml ps",
+              "cat > /srv/webtest/nginx/nginx.conf <<''EOF''\n${NGINX_CONF}\nEOF",
+              "cat > /srv/webtest/nginx/conf.d/default.conf <<''EOF''\n${NGINX_DEFAULT_CONF}\nEOF",
+              "cat > /srv/webtest/nginx/snippets/proxy_headers.conf <<''EOF''\n${NGINX_PROXY_HEADERS}\nEOF",
 
-              "# 5) 모니터링은 파일 존재할 때만",
-              "if [ -f docker-compose.monitoring.yml ]; then docker-compose -f docker-compose.monitoring.yml up -d || true; fi"
+              "# 4) GHCR 로그인 + 최신 이미지 반영",
+              "echo \"$GHCR_TOKEN\" | docker login ghcr.io -u \"$GHCR_USER\" --password-stdin",
+              "docker compose -f /srv/webtest/docker-compose.prod.yml pull",
+              "docker compose -f /srv/webtest/docker-compose.prod.yml up -d",
+
+              "# 5) 상태 확인",
+              "docker ps",
+              "docker compose -f /srv/webtest/docker-compose.prod.yml ps"
             ]'
