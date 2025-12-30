@@ -19,24 +19,32 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Send deploy command (SSM)
+      - name: Send deploy command (SSM) and wait result
         env:
-          # 파일로 내려쓸 멀티라인 시크릿들
+          # 멀티라인 시크릿(원문)
           ENV_PROD: ${{ secrets.ENV_PROD }}
-          COMPOSE_PROD: ${{ secrets.COMPOSE_PROD }}
+          DOCKER_COMPOSE_PROD: ${{ secrets.DOCKER_COMPOSE_PROD }}
           NGINX_CONF: ${{ secrets.NGINX_CONF }}
           NGINX_DEFAULT_CONF: ${{ secrets.NGINX_DEFAULT_CONF }}
-          NGINX_PROXY_HEADERS: ${{ secrets.NGINX_PROXY_HEADERS }}
+          NGINX_PROXY_HEADERS_CONF: ${{ secrets.NGINX_PROXY_HEADERS_CONF }}
 
           # GHCR 로그인
           GHCR_USER: ${{ secrets.GHCR_USER }}
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
         run: |
-          aws ssm send-command \
-            --instance-ids "${{ secrets.SSM_INSTANCE_ID }}" \
-            --document-name "AWS-RunShellScript" \
-            --comment "webtest deploy" \
-            --parameters commands='[
+          set -euo pipefail
+
+          # 1) 멀티라인 시크릿을 base64로 인코딩(개행/따옴표 문제 회피)
+          ENV_PROD_B64="$(printf '%s' "$ENV_PROD" | base64 -w0)"
+          COMPOSE_PROD_B64="$(printf '%s' "$DOCKER_COMPOSE_PROD" | base64 -w0)"
+          NGINX_CONF_B64="$(printf '%s' "$NGINX_CONF" | base64 -w0)"
+          NGINX_DEFAULT_CONF_B64="$(printf '%s' "$NGINX_DEFAULT_CONF" | base64 -w0)"
+          NGINX_PROXY_HEADERS_CONF_B64="$(printf '%s' "$NGINX_PROXY_HEADERS_CONF" | base64 -w0)"
+
+          # 2) SSM에 보낼 commands JSON 생성
+          COMMANDS_JSON=$(cat <<JSON
+          {
+            "commands": [
               "set -e",
 
               "# 0) 작업 디렉토리 준비(멱등)",
@@ -44,8 +52,11 @@ jobs:
               "sudo chown -R ssm-user:ssm-user /srv/webtest",
               "cd /srv/webtest",
 
+              "# (선택) Docker 데몬이 꺼져 있으면 켬",
+              "sudo systemctl start docker || true",
+
               "# 1) 기존 컨테이너 내리기(파일 바뀌었을 수 있으니)",
-              "if [ -f docker-compose.prod.yml ]; then docker compose -f docker-compose.prod.yml down || true; fi",
+              "if [ -f /srv/webtest/docker-compose.prod.yml ]; then docker compose -f /srv/webtest/docker-compose.prod.yml down || true; fi",
 
               "# 2) 설정 파일만 정리 (SSL은 보존)",
               "rm -f /srv/webtest/.env.prod /srv/webtest/docker-compose.prod.yml",
@@ -54,22 +65,62 @@ jobs:
               "sudo mkdir -p /srv/webtest/infra/nginx/ssl",
               "sudo chown -R ssm-user:ssm-user /srv/webtest/infra",
 
-              "# 3) GitHub Secrets 내용을 파일로 생성",
-              "cat > /srv/webtest/.env.prod <<''EOF''\n${ENV_PROD}\nEOF",
+              "# 3) GitHub Secrets(base64) -> 파일 생성",
+              "echo '$ENV_PROD_B64' | base64 -d > /srv/webtest/.env.prod",
               "chmod 600 /srv/webtest/.env.prod",
 
-              "cat > /srv/webtest/docker-compose.prod.yml <<''EOF''\n${DOCKER_COMPOSE_PROD}\nEOF",
+              "echo '$COMPOSE_PROD_B64' | base64 -d > /srv/webtest/docker-compose.prod.yml",
 
-              "cat > /srv/webtest/nginx/nginx.conf <<''EOF''\n${NGINX_CONF}\nEOF",
-              "cat > /srv/webtest/nginx/conf.d/default.conf <<''EOF''\n${NGINX_DEFAULT_CONF}\nEOF",
-              "cat > /srv/webtest/nginx/snippets/proxy_headers.conf <<''EOF''\n${NGINX_PROXY_HEADERS}\nEOF",
+              "echo '$NGINX_CONF_B64' | base64 -d > /srv/webtest/nginx/nginx.conf",
+              "echo '$NGINX_DEFAULT_CONF_B64' | base64 -d > /srv/webtest/nginx/conf.d/default.conf",
+              "echo '$NGINX_PROXY_HEADERS_CONF_B64' | base64 -d > /srv/webtest/nginx/snippets/proxy_headers.conf",
+
+              "# 3-1) 파일 생성 확인(디버깅)",
+              "ls -al /srv/webtest",
+              "echo '--- docker-compose.prod.yml (head) ---'; head -n 40 /srv/webtest/docker-compose.prod.yml || true",
+              "echo '--- .env.prod (masked head) ---'; head -n 20 /srv/webtest/.env.prod | sed 's/=.*/=***MASKED***/' || true",
+              "echo '--- nginx.conf (head) ---'; head -n 30 /srv/webtest/nginx/nginx.conf || true",
 
               "# 4) GHCR 로그인 + 최신 이미지 반영",
-              "echo \"$GHCR_TOKEN\" | docker login ghcr.io -u \"$GHCR_USER\" --password-stdin",
+              "echo '$GHCR_TOKEN' | docker login ghcr.io -u '$GHCR_USER' --password-stdin",
               "docker compose -f /srv/webtest/docker-compose.prod.yml pull",
               "docker compose -f /srv/webtest/docker-compose.prod.yml up -d",
 
               "# 5) 상태 확인",
               "docker ps",
               "docker compose -f /srv/webtest/docker-compose.prod.yml ps"
-            ]'
+            ]
+          }
+          JSON
+          )
+
+          # 3) send-command 실행 후 command-id 추출
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "${{ secrets.SSM_INSTANCE_ID }}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "webtest deploy" \
+            --parameters "$COMMANDS_JSON" \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "SSM CommandId: $COMMAND_ID"
+
+          # 4) 실제 실행 완료까지 대기
+          aws ssm wait command-executed \
+            --command-id "$COMMAND_ID" \
+            --instance-id "${{ secrets.SSM_INSTANCE_ID }}"
+
+          # 5) 실행 결과 출력 + 실패면 워크플로우 실패 처리
+          INVOCATION=$(aws ssm get-command-invocation \
+            --command-id "$COMMAND_ID" \
+            --instance-id "${{ secrets.SSM_INSTANCE_ID }}" \
+            --output json)
+
+          echo "$INVOCATION" | jq -r '.StandardOutputContent'
+          echo "$INVOCATION" | jq -r '.StandardErrorContent' >&2
+
+          STATUS=$(echo "$INVOCATION" | jq -r '.Status')
+          if [ "$STATUS" != "Success" ]; then
+            echo "SSM command failed. Status=$STATUS" >&2
+            exit 1
+          fi
