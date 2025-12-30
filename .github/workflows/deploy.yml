@@ -58,7 +58,7 @@ jobs:
               "cat > /srv/webtest/.env.prod <<''EOF''\n${ENV_PROD}\nEOF",
               "chmod 600 /srv/webtest/.env.prod",
 
-              "cat > /srv/webtest/docker-compose.prod.yml <<''EOF''\n${COMPOSE_PROD}\nEOF",
+              "cat > /srv/webtest/docker-compose.prod.yml <<''EOF''\n${DOCKER_COMPOSE_PROD}\nEOF",
 
               "cat > /srv/webtest/nginx/nginx.conf <<''EOF''\n${NGINX_CONF}\nEOF",
               "cat > /srv/webtest/nginx/conf.d/default.conf <<''EOF''\n${NGINX_DEFAULT_CONF}\nEOF",
