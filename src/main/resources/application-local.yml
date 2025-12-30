@@ -1,21 +1,51 @@
 # application-local.yml
 spring:
+  config:
+    activate:
+      on-profile: local
+
+  jackson:
+    serialization:
+      INDENT_OUTPUT: true       # 로컬에서만 예쁘게 출력
+
   datasource:
-    url: jdbc:postgresql://127.0.0.1:55432/webtest
-    username: dev
-    password: dev1234
-    driver-class-name: org.postgresql.Driver  # ← 명시!
+    url: jdbc:postgresql://db:5432/webtest   # 도커 compose 네트워크 기준
+    username: ${DB_USER:dev}
+    password: ${DB_PASSWORD:dev1234}
+    driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
       minimum-idle: 2
       connection-timeout: 2000
+
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update            # schema.sql에만 테이블 생성 맡김
     properties:
       hibernate:
         format_sql: true
         jdbc.time_zone: UTC
+
+  sql:
+    init:
+      mode: never
+  flyway:
+    enabled: false
+
+management:
+  metrics:
+    tags:
+      env: local                # 로컬 태그 명시
+
 logging:
   level:
-    root: INFO
+    org.springframework.jdbc.datasource.init: INFO
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace
+
+web:
+  cors:
+    allowed-origins:
+      - "http://localhost:5173"
+    allowed-extension-origins:
+      - "chrome-extension://*"

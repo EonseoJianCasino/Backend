@@ -4,11 +4,24 @@ spring:
     username: sa
     password:
     driver-class-name: org.h2.Driver
-  flyway:
-    enabled: true
+
   jpa:
     hibernate:
       ddl-auto: validate
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
+        dialect: org.hibernate.dialect.H2Dialect  # H2 명시
+        jdbc.time_zone: UTC
+    defer-datasource-initialization: true
+
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/schema.sql
+
+  flyway:
+    enabled: false
+
+logging:
+  level:
+    root: WARN

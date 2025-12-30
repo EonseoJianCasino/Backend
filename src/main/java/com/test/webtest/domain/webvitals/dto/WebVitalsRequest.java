@@ -1,7 +1,15 @@
 package com.test.webtest.domain.webvitals.dto;
 
-import jakarta.validation.constraints.NotBlank;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.PositiveOrZero;
+import lombok.Getter;
 
-public record WebVitalsRequest(
-        @NotBlank String url
-) {}
+@Getter
+public class WebVitalsRequest {
+    // 대문자 키 그대로 받음 (API 명세 준수)
+    @JsonProperty("LCP") @PositiveOrZero private Double LCP;
+    @JsonProperty("CLS") @PositiveOrZero private Double CLS;
+    @JsonProperty("INP") @PositiveOrZero private Double INP;
+    @JsonProperty("FCP") @PositiveOrZero private Double FCP;
+    @JsonProperty("TTFB") @PositiveOrZero private Double TTFB;
+}

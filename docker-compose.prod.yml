@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+  app:
+    image: ghcr.io/eonseojiancasino/webtest-backend:latest
+    env_file:
+      - .env.prod
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: webtest-nginx
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/snippets:/etc/nginx/snippets:ro
+      - ./infra/nginx/ssl:/etc/letsencrypt
+    restart: unless-stopped

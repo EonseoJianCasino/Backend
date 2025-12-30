@@ -1,0 +1,75 @@
+# .github/workflows/deploy.yml
+name: Deploy to EC2 via SSM
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Send deploy command (SSM)
+        env:
+          # 파일로 내려쓸 멀티라인 시크릿들
+          ENV_PROD: ${{ secrets.ENV_PROD }}
+          COMPOSE_PROD: ${{ secrets.COMPOSE_PROD }}
+          NGINX_CONF: ${{ secrets.NGINX_CONF }}
+          NGINX_DEFAULT_CONF: ${{ secrets.NGINX_DEFAULT_CONF }}
+          NGINX_PROXY_HEADERS: ${{ secrets.NGINX_PROXY_HEADERS }}
+
+          # GHCR 로그인
+          GHCR_USER: ${{ secrets.GHCR_USER }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+        run: |
+          aws ssm send-command \
+            --instance-ids "${{ secrets.SSM_INSTANCE_ID }}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "webtest deploy" \
+            --parameters commands='[
+              "set -e",
+
+              "# 0) 작업 디렉토리 준비(멱등)",
+              "sudo mkdir -p /srv/webtest",
+              "sudo chown -R ssm-user:ssm-user /srv/webtest",
+              "cd /srv/webtest",
+
+              "# 1) 기존 컨테이너 내리기(파일 바뀌었을 수 있으니)",
+              "if [ -f docker-compose.prod.yml ]; then docker compose -f docker-compose.prod.yml down || true; fi",
+
+              "# 2) 설정 파일만 정리 (SSL은 보존)",
+              "rm -f /srv/webtest/.env.prod /srv/webtest/docker-compose.prod.yml",
+              "rm -rf /srv/webtest/nginx",
+              "mkdir -p /srv/webtest/nginx/conf.d /srv/webtest/nginx/snippets",
+              "sudo mkdir -p /srv/webtest/infra/nginx/ssl",
+              "sudo chown -R ssm-user:ssm-user /srv/webtest/infra",
+
+              "# 3) GitHub Secrets 내용을 파일로 생성",
+              "cat > /srv/webtest/.env.prod <<''EOF''\n${ENV_PROD}\nEOF",
+              "chmod 600 /srv/webtest/.env.prod",
+
+              "cat > /srv/webtest/docker-compose.prod.yml <<''EOF''\n${COMPOSE_PROD}\nEOF",
+
+              "cat > /srv/webtest/nginx/nginx.conf <<''EOF''\n${NGINX_CONF}\nEOF",
+              "cat > /srv/webtest/nginx/conf.d/default.conf <<''EOF''\n${NGINX_DEFAULT_CONF}\nEOF",
+              "cat > /srv/webtest/nginx/snippets/proxy_headers.conf <<''EOF''\n${NGINX_PROXY_HEADERS}\nEOF",
+
+              "# 4) GHCR 로그인 + 최신 이미지 반영",
+              "echo \"$GHCR_TOKEN\" | docker login ghcr.io -u \"$GHCR_USER\" --password-stdin",
+              "docker compose -f /srv/webtest/docker-compose.prod.yml pull",
+              "docker compose -f /srv/webtest/docker-compose.prod.yml up -d",
+
+              "# 5) 상태 확인",
+              "docker ps",
+              "docker compose -f /srv/webtest/docker-compose.prod.yml ps"
+            ]'
