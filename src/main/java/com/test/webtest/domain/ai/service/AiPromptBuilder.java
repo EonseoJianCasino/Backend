@@ -235,7 +235,7 @@ public class AiPromptBuilder {
                         4. `web_elements[].expected_score_gain` is the sum of all deltas in `metric_deltas`, respecting the Web half-score (0~50) weights.
                         5. `security_metrics[].expected_score_gain` equals the delta for that security metric.
                         6. `overall_total_after` is computed from all deltas using the SCORING MODEL (Web half-score weights & Security half-score weights).
-                        7. `major_improvements[].title` ≤ 10 chars, `description` ≤ 20 chars.
+                        7. `major_improvements[].title` ≤ 10 chars, `description` ≤ 20 chars. And for major improvements, id does not have to be limited to pick top 3, you can pick more than 3.
                         8. Output strictly JSON only; use Korean for textual content but keep field names and specs in English.
                         """,
                 testId.toString(),
