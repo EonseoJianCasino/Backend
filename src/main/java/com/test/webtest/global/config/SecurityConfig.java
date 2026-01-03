@@ -14,11 +14,14 @@ import org.springframework.web.cors.*;
 @Configuration
 public class SecurityConfig {
 
-    // 프로퍼티 기반으로 뽑고 싶다면 이렇게
+    // 웹 프론트(운영/테스트용 도메인 + 로컬 개발용)
+    // 프로퍼티 없으면 로컬 개발만 열리게(안전한 기본값)
     @Value("${web.cors.allowed-origins:http://localhost:5173}")
     private List<String> allowedOrigins;
 
-    @Value("${web.cors.allowed-extension-origins:chrome-extension://*}")
+    // 크롬 확장 Origin (id 확정 전엔 dev에서 * 패턴)
+    // prod에서는 반드시 실제 id로 고정 권장
+    @Value("${web.cors.allowed-extension-origins:}")
     private List<String> allowedExtensionOrigins;
 
     @Bean
@@ -42,16 +45,24 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // 1) 웹 프론트 도메인들
-        config.setAllowedOrigins(allowedOrigins);
+        // 1) 정확 일치 Origin (웹 프론트)
+        if (allowedOrigins != null) {
+            allowedOrigins.stream()
+                .filter(s -> s != null && !s.isBlank())
+                .forEach(config::addAllowedOrigin);
+        }
 
-        // 2) 크롬 확장 도메인 패턴들
-        allowedExtensionOrigins.forEach(config::addAllowedOriginPattern);
+        // 2) 패턴 Origin (확장프로그램)
+        if (allowedExtensionOrigins != null) {
+            allowedExtensionOrigins.stream()
+                .filter(s -> s != null && !s.isBlank())
+                .forEach(config::addAllowedOriginPattern);
+        }
 
         // 3) 공통 설정
-        config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","PATCH","OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.addAllowedHeader("*");
-        config.setAllowCredentials(false);  // 지금 정책대로 쿠키/인증정보 안 쓸 거면 false 유지
+        config.setAllowCredentials(false);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", config);

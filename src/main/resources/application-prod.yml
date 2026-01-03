@@ -39,6 +39,7 @@ logging:
 web:
   cors:
     allowed-origins:
-      - "https://dashboard.webtest.com"
+      - "https://webanalyzer.site"
+      - "http://localhost:5173"
     allowed-extension-origins:
-      - "chrome-extension://<실제-확장-ID>"
+      - "chrome-extension://*"
