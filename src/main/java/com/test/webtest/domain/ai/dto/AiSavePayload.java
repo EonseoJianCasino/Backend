@@ -20,6 +20,7 @@ public class AiSavePayload {
     }
 
     public static class WebElement {
+        public int rank;
         public String element_name;
         public String status;  // 양호|주의|긴급
         public String benefit_summary;
@@ -37,6 +38,7 @@ public class AiSavePayload {
     }
 
     public static class SecurityMetric {
+        public int rank;
         public String metric_name;
         public String status;  // 양호|주의|긴급
         public String benefit_summary;

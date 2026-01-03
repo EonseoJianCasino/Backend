@@ -19,6 +19,9 @@ public class AiWebElement {
     @Column(name = "test_id", nullable = false)
     private UUID testId;
 
+    @Column(nullable = false)
+    private int rank;
+
     @Column(name = "element_name", length = 50)
     private String elementName;
 
@@ -42,9 +45,10 @@ public class AiWebElement {
 
     protected AiWebElement() {}
 
-    public static AiWebElement of(UUID testId, String elementName, String status, String benefitSummary, Integer expectedScoreGain, String benefitDetail) {
+    public static AiWebElement of(UUID testId, int rank, String elementName, String status, String benefitSummary, Integer expectedScoreGain, String benefitDetail) {
         AiWebElement e = new AiWebElement();
         e.testId = testId;
+        e.rank = rank;
         e.elementName = elementName;
         e.status = status;
         e.benefitSummary = benefitSummary;

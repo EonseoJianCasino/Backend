@@ -192,6 +192,7 @@ public class AiPromptBuilder {
                           ],
                           "web_elements": [
                             {
+                              "rank": int,
                               "element_name": "string<=15chars",
                               "status": "양호|주의|긴급",
                               "benefit_summary": "예상 효과(한글)",
@@ -204,12 +205,13 @@ public class AiPromptBuilder {
                                   "delta": int
                                 }
                               ],
-                          "related_metrics": ["LCP", ...],
+                              "related_metrics": ["LCP", "CLS", "INP", "FCP", "TTFB"],
                               "benefit_detail": "세부 실행 방안(한글)"
                             }
                           ],
                           "security_metrics": [
                             {
+                              "rank": int,
                               "metric_name": "HSTS|FRAME-ANCESTORS|SSL|XCTO|REFERRER-POLICY|COOKIES|CSP",
                               "status": "양호|주의|긴급",
                               "benefit_summary": "효과 설명(한글)",
@@ -229,14 +231,15 @@ public class AiPromptBuilder {
                         }
 
                         [INSTRUCTIONS]
-                        1. Pick the top 3 `top_priorities` across both web elements and security metrics by total impact.
-                        2. Web items are written per element; security items are written per metric.
-                        3. Do not exceed remaining room (100 - current_score) for any metric; the sum of deltas for the same metric must not exceed the remaining room.
-                        4. `web_elements[].expected_score_gain` is the sum of all deltas in `metric_deltas`, respecting the Web half-score (0~50) weights.
-                        5. `security_metrics[].expected_score_gain` equals the delta for that security metric.
-                        6. `overall_total_after` is computed from all deltas using the SCORING MODEL (Web half-score weights & Security half-score weights).
-                        7. `major_improvements[].title` ≤ 10 chars, `description` ≤ 20 chars.
-                        8. Output strictly JSON only; use Korean for textual content but keep field names and specs in English.
+                        1. `top_priorities` must be ranked (rank 1, 2, 3...) across all top priorities. Pick the top 3 `top_priorities` across both web elements and security metrics by total impact.
+                        2. `web_elements` and `security_metrics` are equal-level improvement plans that should be ranked together. Assign a `rank` to each item in both arrays, where rank 1 is the highest priority. The ranking should be unified across both `web_elements` and `security_metrics` (e.g., if a web_element has rank 1, the next highest priority item, whether web_element or security_metric, should have rank 2).
+                        3. Web items are written per element; security items are written per metric.
+                        4. Do not exceed remaining room (100 - current_score) for any metric; the sum of deltas for the same metric must not exceed the remaining room.
+                        5. `web_elements[].expected_score_gain` is the sum of all deltas in `metric_deltas`, respecting the Web half-score (0~50) weights.
+                        6. `security_metrics[].expected_score_gain` equals the delta for that security metric.
+                        7. `overall_total_after` is computed from all deltas using the SCORING MODEL (Web half-score weights & Security half-score weights).
+                        8. `major_improvements[].title` ≤ 10 chars, `description` ≤ 20 chars. And for major improvements, id does not have to be limited to pick top 3, you can pick more than 3.
+                        9. Output strictly JSON only; use Korean for textual content but keep field names and specs in English.
                         """,
                 testId.toString(),
                 currentTotal,

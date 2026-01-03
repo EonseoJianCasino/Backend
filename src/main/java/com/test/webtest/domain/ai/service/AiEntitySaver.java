@@ -106,6 +106,7 @@ public class AiEntitySaver {
             for (AiSavePayload.WebElement element : payload.web_elements) {
                 AiWebElement entity = AiWebElement.of(
                         testId,
+                        element.rank,
                         element.element_name,
                         element.status,
                         element.benefit_summary,
@@ -143,6 +144,7 @@ public class AiEntitySaver {
             for (AiSavePayload.SecurityMetric metric : payload.security_metrics) {
                 AiSecurityMetric entity = AiSecurityMetric.of(
                         testId,
+                        metric.rank,
                         metric.metric_name,
                         metric.status,
                         metric.benefit_summary,
