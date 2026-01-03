@@ -21,5 +21,5 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - ./nginx/snippets:/etc/nginx/snippets:ro
-      - ./infra/nginx/ssl:/etc/letsencrypt
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     restart: unless-stopped
