@@ -3,10 +3,13 @@ package com.test.webtest.global.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.netty.http.client.HttpClient;
 
 import java.net.URI;
+import java.time.Duration;
 
 @Configuration
 public class WebClientConfig {
@@ -19,8 +22,12 @@ public class WebClientConfig {
 
     @Bean
     public WebClient geminiWebClient() {
+        HttpClient httpClient = HttpClient.create()
+                .responseTimeout(Duration.ofSeconds(60));
+
         return WebClient.builder()
                 .baseUrl(baseUrl)
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .filter((request, next) -> {
                     URI uri = request.url();
                     String query = uri.getQuery();

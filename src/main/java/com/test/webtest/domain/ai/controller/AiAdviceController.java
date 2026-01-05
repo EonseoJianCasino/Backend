@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -37,6 +38,13 @@ public class AiAdviceController {
             @PathVariable UUID testId) {
         TopPrioritiesResponse data = aiPersistService.getTopPriorities(testId);
         return ResponseEntity.ok(ApiResponse.ok("AI 우선순위 정보를 조회했습니다.", data));
+    }
+
+    @PostMapping("/{testId}/ai/retry")
+    public ResponseEntity<ApiResponse<String>> retryAiCall(
+            @PathVariable UUID testId) {
+        aiPersistService.invokeAsyncWithRetry(testId, true);
+        return ResponseEntity.ok(ApiResponse.ok("AI 호출 재시도가 시작되었습니다.", "재시도 요청이 처리되었습니다."));
     }
 
 }

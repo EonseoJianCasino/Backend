@@ -7,10 +7,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.core.Exceptions;
+import reactor.netty.http.client.PrematureCloseException;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 @Service
 @Slf4j
@@ -48,12 +51,69 @@ public class AiGeminiService {
 
             return new AiResponse(extractText(resp));
         } catch (WebClientResponseException e) {
-            log.error("[GEMINI][FAIL] status={} body={}", e.getStatusCode(), e.getResponseBodyAsString());
-            throw new AiCallFailedException(e);
+            // 즉시 실패 (4xx, 5xx 등) - 재시도 안 함
+            log.error("[GEMINI][FAIL] 즉시 실패 status={} body={}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw new AiCallFailedException(e, false);
         } catch (Exception e) {
-            log.error("[GEMINI][FAIL] 예상치 못한 예외 발생: {}", e.getMessage(), e);
-            throw new AiCallFailedException(e);
+            // 타임아웃 여부 확인
+            boolean isTimeout = isTimeoutException(e);
+            if (isTimeout) {
+                log.warn("[GEMINI][TIMEOUT] 60초 타임아웃 발생: {}", e.getMessage());
+                throw new AiCallFailedException("AI 서비스 응답 타임아웃 (60초)", e, true);
+            } else {
+                // 기타 즉시 실패 (네트워크 연결 실패 등) - 재시도 안 함
+                log.error("[GEMINI][FAIL] 즉시 실패: {}", e.getMessage(), e);
+                throw new AiCallFailedException(e, false);
+            }
         }
+    }
+
+    private boolean isTimeoutException(Exception e) {
+        // 타임아웃 예외 체크
+        if (e instanceof TimeoutException) {
+            return true;
+        }
+        
+        // 예외 메시지로 타임아웃 확인
+        String message = e.getMessage();
+        if (message != null && (message.contains("timeout") || message.contains("Timeout") || 
+            message.contains("ReadTimeout") || message.contains("ResponseTimeout"))) {
+            return true;
+        }
+        
+        // Reactor의 타임아웃 예외 체크
+        Throwable cause = e.getCause();
+        while (cause != null) {
+            if (cause instanceof TimeoutException) {
+                return true;
+            }
+            String causeClassName = cause.getClass().getName();
+            if (causeClassName.contains("TimeoutException") || 
+                causeClassName.contains("ReadTimeout") ||
+                causeClassName.contains("ResponseTimeout")) {
+                return true;
+            }
+            if (cause instanceof PrematureCloseException) {
+                return false; // 연결 종료는 타임아웃이 아님
+            }
+            String causeMessage = cause.getMessage();
+            if (causeMessage != null && (causeMessage.contains("timeout") || 
+                causeMessage.contains("Timeout") || causeMessage.contains("ReadTimeout"))) {
+                return true;
+            }
+            cause = cause.getCause();
+        }
+        
+        // Reactor Exceptions의 unwrap으로 확인
+        Throwable unwrapped = Exceptions.unwrap(e);
+        if (unwrapped instanceof TimeoutException) {
+            return true;
+        }
+        if (unwrapped != null && unwrapped.getClass().getName().contains("TimeoutException")) {
+            return true;
+        }
+        
+        return false;
     }
 
     @SuppressWarnings("unchecked")
