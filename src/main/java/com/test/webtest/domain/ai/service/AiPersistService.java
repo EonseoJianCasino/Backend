@@ -52,12 +52,12 @@ public class AiPersistService {
     try{
       generateAndSave(testId);
     } catch(AiCallFailedException ex) {
-      log.warn("[AI][ASYNC][FAIL] Gemini 호출 실패 testId={} msg={}", testId, ex.getMessage());
+      log.warn("[AI][ASYNC][FAIL] Gemini 호출 실패 testId={} msg={}", testId, ex.getMessage(), ex);
 
       longPollingManager.completeError(
               new WaitKey(testId, LongPollingTopic.AI_READY),
               ErrorCode.AI_CALL_FAILED,
-              ex.getMessage()
+              ex.getMessage() != null ? ex.getMessage() : "AI 서비스 호출에 실패했습니다."
       );
     } catch (Exception ex) {
       log.error("[AI][ASYNC][FAIL] 예기치 못한 오류 testId={} ex={}", testId, ex.toString());

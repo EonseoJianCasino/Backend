@@ -48,7 +48,10 @@ public class AiGeminiService {
 
             return new AiResponse(extractText(resp));
         } catch (WebClientResponseException e) {
-            log.error("[GEMINI] status={} body={}", e.getStatusCode(), e.getResponseBodyAsString());
+            log.error("[GEMINI][FAIL] status={} body={}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw new AiCallFailedException(e);
+        } catch (Exception e) {
+            log.error("[GEMINI][FAIL] 예상치 못한 예외 발생: {}", e.getMessage(), e);
             throw new AiCallFailedException(e);
         }
     }
