@@ -21,6 +21,7 @@ public class AiSchemas {
         Map<String, Object> webElement = Map.of(
                 "type", "object",
                 "properties", Map.of(
+                        "rank", Map.of("type", "integer"),
                         "element_name", Map.of("type", "string"),
                         "status", Map.of(
                                 "type", "string",
@@ -31,12 +32,13 @@ public class AiSchemas {
                         "related_metrics", Map.of("type", "array", "items", Map.of("type", "string")),
                         "benefit_detail", Map.of("type", "string")
                 ),
-                "required", List.of("element_name", "status", "benefit_summary", "expected_score_gain", "metric_deltas", "related_metrics", "benefit_detail")
+                "required", List.of("rank", "element_name", "status", "benefit_summary", "expected_score_gain", "metric_deltas", "related_metrics", "benefit_detail")
         );
 
         Map<String, Object> securityMetric = Map.of(
                 "type", "object",
                 "properties", Map.of(
+                        "rank", Map.of("type", "integer"),
                         "metric_name", Map.of("type", "string"),
                         "status", Map.of(
                                 "type", "string",
@@ -46,7 +48,7 @@ public class AiSchemas {
                         "expected_score_gain", Map.of("type", "integer"),
                         "benefit_detail", Map.of("type", "string")
                 ),
-                "required", List.of("metric_name", "status", "benefit_summary", "delta", "expected_score_gain", "benefit_detail")
+                "required", List.of("rank", "metric_name", "status", "benefit_summary", "delta", "expected_score_gain", "benefit_detail")
         );
 
         Map<String, Object> majorImprovement = Map.of(
