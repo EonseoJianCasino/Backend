@@ -35,4 +35,9 @@ public class ApiResponse <T>{
         return success(HttpStatus.CREATED, message, data);
     }
 
+    // 202 ACCEPTED
+    public static <T> ApiResponse<T> accepted(String message, T data) {
+        return success(HttpStatus.ACCEPTED, message, data);
+    }
+
 }

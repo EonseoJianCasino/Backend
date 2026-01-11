@@ -1,6 +1,7 @@
 package com.test.webtest.domain.ai.service;
 
 import com.test.webtest.domain.ai.repository.AiAnalysisSummaryRepository;
+import com.test.webtest.domain.logicstatus.repository.LogicStatusRepository;
 import com.test.webtest.global.error.exception.AiCallFailedException;
 import com.test.webtest.global.error.model.ErrorCode;
 import com.test.webtest.global.longpoll.LongPollingManager;
@@ -31,6 +32,9 @@ class AiPersistServiceTest {
 
     @Mock
     AiAnalysisSummaryRepository summaryRepository;
+
+    @Mock
+    LogicStatusRepository logicStatusRepository;
 
     @Mock
     LongPollingManager longPollingManager;

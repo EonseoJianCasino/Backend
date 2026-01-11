@@ -7,6 +7,7 @@ import com.test.webtest.domain.scores.dto.TotalScoreResponse;
 import com.test.webtest.domain.scores.service.ScoresService;
 import com.test.webtest.global.api.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -43,8 +44,15 @@ public class AiAdviceController {
     @PostMapping("/{testId}/ai/retry")
     public ResponseEntity<ApiResponse<String>> retryAiCall(
             @PathVariable UUID testId) {
-        aiPersistService.invokeAsyncWithRetry(testId, true);
-        return ResponseEntity.ok(ApiResponse.ok("AI 호출 재시도가 시작되었습니다.", "재시도 요청이 처리되었습니다."));
+        boolean started = aiPersistService.requestRetryIfNotRunning(testId);
+        if (!started) {
+            return ResponseEntity
+                    .status(HttpStatus.ACCEPTED)
+                    .body(ApiResponse.accepted("이미 AI 작업이 진행 중입니다.", "already_running"));
+        }
+        return ResponseEntity
+                .status(HttpStatus.ACCEPTED)
+                .body(ApiResponse.accepted("AI 호출 재시도가 시작되었습니다.", "retry_started"));
     }
 
 }

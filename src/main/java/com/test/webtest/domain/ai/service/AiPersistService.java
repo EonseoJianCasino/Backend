@@ -61,6 +61,23 @@ public class AiPersistService {
     invokeAsyncWithRetry(testId, false);
   }
 
+  /**
+   * 프론트의 중복 클릭/네트워크 재전송 등으로 POST /ai/retry가 여러 번 들어와도
+   * testId 단위로 "이미 RUNNING이면 새 작업을 만들지 않는" 멱등성을 보장한다.
+   *
+   * @return true면 이번 요청이 실제로 새 AI 작업을 시작했고, false면 이미 실행 중이라 무시됨.
+   */
+  @Transactional
+  public boolean requestRetryIfNotRunning(UUID testId) {
+    boolean started = !logicStatusRepository.markAiRunning(testId).isEmpty();
+    if (!started) return false;
+
+    // Spring 프록시를 통해 호출하여 @Async와 @Transactional이 동작하도록 함
+    AiPersistService self = applicationContext.getBean(AiPersistService.class);
+    self.invokeAsyncWithRetry(testId, true);
+    return true;
+  }
+
   @Async("logicExecutor")
   @Transactional
   public void invokeAsyncWithRetry(UUID testId, boolean isRetry) {
@@ -84,6 +101,9 @@ public class AiPersistService {
         } else {
           log.warn("[AI][ASYNC][FAIL] 즉시 실패 testId={} msg={}", testId, ex.getMessage(), ex);
         }
+        // 실패로 종료되는 경우 RUNNING 플래그를 내려서 다음 재시도가 가능하게 함
+        try { logicStatusRepository.clearAiRunning(testId); } catch (Exception ignore) {}
+
         longPollingManager.completeError(
                 new WaitKey(testId, LongPollingTopic.AI_READY),
                 ErrorCode.AI_CALL_FAILED,
@@ -92,6 +112,9 @@ public class AiPersistService {
       }
     } catch (Exception ex) {
       log.error("[AI][ASYNC][FAIL] 예기치 못한 오류 testId={} isRetry={} ex={}", testId, isRetry, ex.toString());
+
+      // 예기치 못한 오류로 종료되는 경우도 RUNNING 플래그를 내려서 다음 재시도가 가능하게 함
+      try { logicStatusRepository.clearAiRunning(testId); } catch (Exception ignore) {}
 
       longPollingManager.completeError(
               new WaitKey(testId, LongPollingTopic.AI_READY),
