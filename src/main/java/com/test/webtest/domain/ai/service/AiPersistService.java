@@ -10,6 +10,7 @@ import com.test.webtest.domain.logicstatus.repository.LogicStatusRepository;
 import com.test.webtest.global.error.exception.AiCallFailedException;
 import com.test.webtest.global.error.model.ErrorCode;
 import com.test.webtest.global.error.exception.AiResultNotFoundException;
+import com.test.webtest.global.error.exception.EntityNotFoundException;
 import com.test.webtest.global.logging.Monitored;
 import com.test.webtest.global.longpoll.LongPollingManager;
 import com.test.webtest.global.longpoll.LongPollingTopic;
@@ -69,6 +70,9 @@ public class AiPersistService {
    */
   @Transactional
   public boolean requestRetryIfNotRunning(UUID testId) {
+    if (!logicStatusRepository.existsById(testId)) {
+      throw EntityNotFoundException.of(ErrorCode.TEST_NOT_FOUND);
+    }
     boolean started = !logicStatusRepository.markAiRunning(testId).isEmpty();
     if (!started) return false;
 
@@ -164,6 +168,8 @@ public class AiPersistService {
     } else {
 
         log.info("[AI][SAVE][FAIL] markAiReady returned empty rows (already ready or not triggered), testId={}", testId);
+        // 안전망: 어떤 이유로든 READY 마킹이 안 됐으면 RUNNING 플래그라도 내려서 다음 시도가 가능하게 함
+        try { logicStatusRepository.clearAiRunning(testId); } catch (Exception ignore) {}
     }
   }
 

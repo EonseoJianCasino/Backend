@@ -76,6 +76,7 @@ public interface LogicStatusRepository extends JpaRepository<LogicStatusEntity, 
     @Query(value = """
         UPDATE logic_status
            SET ai_running = TRUE,
+               ai_triggered = TRUE,
                ai_ready = FALSE,
                updated_at = now()
          WHERE test_id = :testId
