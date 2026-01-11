@@ -19,6 +19,9 @@ public class AiSecurityMetric {
     @Column(name = "test_id", nullable = false)
     private UUID testId;
 
+    @Column(nullable = false)
+    private int rank;
+
     @Column(name = "metric_name", length = 50)
     private String metricName;
 
@@ -42,9 +45,10 @@ public class AiSecurityMetric {
 
     protected AiSecurityMetric() {}
 
-    public static AiSecurityMetric of(UUID testId, String metricName, String status, String benefitSummary, Integer delta, Integer expectedScoreGain, String benefitDetail) {
+    public static AiSecurityMetric of(UUID testId, int rank, String metricName, String status, String benefitSummary, Integer delta, Integer expectedScoreGain, String benefitDetail) {
         AiSecurityMetric m = new AiSecurityMetric();
         m.testId = testId;
+        m.rank = rank;
         m.metricName = metricName;
         m.status = status;
         m.benefitSummary = benefitSummary;

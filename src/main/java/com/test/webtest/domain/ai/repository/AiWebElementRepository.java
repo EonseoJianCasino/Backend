@@ -12,6 +12,7 @@ import java.util.UUID;
 @Repository
 public interface AiWebElementRepository extends JpaRepository<AiWebElement, Long> {
     List<AiWebElement> findByTestId(UUID testId);
+    List<AiWebElement> findByTestIdOrderByRankAsc(UUID testId);
 
     @Modifying
     @Query("DELETE FROM AiWebElement e WHERE e.testId = :testId")

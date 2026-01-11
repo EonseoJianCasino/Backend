@@ -12,6 +12,7 @@ import java.util.UUID;
 @Repository
 public interface AiSecurityMetricRepository extends JpaRepository<AiSecurityMetric, Long> {
     List<AiSecurityMetric> findByTestId(UUID testId);
+    List<AiSecurityMetric> findByTestIdOrderByRankAsc(UUID testId);
 
     @Modifying
     @Query("DELETE FROM AiSecurityMetric m WHERE m.testId = :testId")

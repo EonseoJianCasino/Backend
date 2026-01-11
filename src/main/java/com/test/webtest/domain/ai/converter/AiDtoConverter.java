@@ -75,13 +75,13 @@ public class AiDtoConverter {
     public AiAnalysisResponse getAnalysis(UUID testId) {
         Optional<AiAnalysisSummary> summaryOpt = summaryRepo.findByTestId(testId);
 
-        // web_elements 변환
-        List<AiAnalysisResponse.WebElementDto> webElements = webElementRepo.findByTestId(testId).stream()
+        // web_elements 변환 (rank 순으로 정렬)
+        List<AiAnalysisResponse.WebElementDto> webElements = webElementRepo.findByTestIdOrderByRankAsc(testId).stream()
                 .map(this::toWebElementDto)
                 .toList();
 
-        // security_metrics 변환
-        List<AiAnalysisResponse.SecurityMetricDto> securityMetrics = securityMetricRepo.findByTestId(testId).stream()
+        // security_metrics 변환 (rank 순으로 정렬)
+        List<AiAnalysisResponse.SecurityMetricDto> securityMetrics = securityMetricRepo.findByTestIdOrderByRankAsc(testId).stream()
                 .map(this::toSecurityMetricDto)
                 .toList();
 
@@ -128,6 +128,7 @@ public class AiDtoConverter {
                 .toList();
 
         return new AiAnalysisResponse.WebElementDto(
+                entity.getRank(),
                 entity.getElementName(),  // name
                 entity.getStatus(),
                 entity.getBenefitSummary(),
@@ -139,6 +140,7 @@ public class AiDtoConverter {
 
     private AiAnalysisResponse.SecurityMetricDto toSecurityMetricDto(AiSecurityMetric entity) {
         return new AiAnalysisResponse.SecurityMetricDto(
+                entity.getRank(),
                 entity.getMetricName(),  // name
                 entity.getStatus(),
                 entity.getBenefitSummary(),

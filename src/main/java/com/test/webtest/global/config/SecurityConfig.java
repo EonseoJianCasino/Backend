@@ -2,32 +2,23 @@ package com.test.webtest.global.config;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.*;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 public class SecurityConfig {
 
-    // 웹 프론트(운영/테스트용 도메인 + 로컬 개발용)
-    // 프로퍼티 없으면 로컬 개발만 열리게(안전한 기본값)
-    @Value("${web.cors.allowed-origins:http://localhost:5173}")
-    private List<String> allowedOrigins;
-
-    // 크롬 확장 Origin (id 확정 전엔 dev에서 * 패턴)
-    // prod에서는 반드시 실제 id로 고정 권장
-    @Value("${web.cors.allowed-extension-origins:}")
-    private List<String> allowedExtensionOrigins;
-
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
+            .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
@@ -45,24 +36,18 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // 1) 정확 일치 Origin (웹 프론트)
-        if (allowedOrigins != null) {
-            allowedOrigins.stream()
-                .filter(s -> s != null && !s.isBlank())
-                .forEach(config::addAllowedOrigin);
-        }
+        // 모든 Origin 허용(패턴 기반)
+        config.addAllowedOriginPattern("*");
 
-        // 2) 패턴 Origin (확장프로그램)
-        if (allowedExtensionOrigins != null) {
-            allowedExtensionOrigins.stream()
-                .filter(s -> s != null && !s.isBlank())
-                .forEach(config::addAllowedOriginPattern);
-        }
-
-        // 3) 공통 설정
+        // 메서드/헤더 전부 허용
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.addAllowedHeader("*");
+
+        // 쿠키/인증정보 미사용이면 false 유지 (전체 허용과 궁합이 좋음)
         config.setAllowCredentials(false);
+
+        // (선택) 브라우저가 읽어야 하는 커스텀 헤더가 있으면 노출
+        // config.setExposedHeaders(List.of("X-Trace-Id"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", config);

@@ -24,6 +24,7 @@ public record AiAnalysisResponse(
     }
 
     public record WebElementDto(
+            Integer rank,
             String name,
             String status,
             String benefitSummary,
@@ -41,6 +42,7 @@ public record AiAnalysisResponse(
     }
 
     public record SecurityMetricDto(
+            Integer rank,
             String name,
             String status,
             String benefitSummary,
