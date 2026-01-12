@@ -36,10 +36,3 @@ logging:
   level:
     root: WARN
 
-web:
-  cors:
-    allowed-origins:
-      - "https://webanalyzer.site"
-      - "http://localhost:5173"
-    allowed-extension-origins:
-      - "chrome-extension://*"
