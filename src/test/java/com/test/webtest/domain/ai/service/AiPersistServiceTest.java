@@ -1,7 +1,9 @@
 package com.test.webtest.domain.ai.service;
 
 import com.test.webtest.domain.ai.repository.AiAnalysisSummaryRepository;
+import com.test.webtest.domain.logicstatus.repository.LogicStatusRepository;
 import com.test.webtest.global.error.exception.AiCallFailedException;
+import com.test.webtest.global.error.exception.EntityNotFoundException;
 import com.test.webtest.global.error.model.ErrorCode;
 import com.test.webtest.global.longpoll.LongPollingManager;
 import com.test.webtest.global.longpoll.LongPollingTopic;
@@ -16,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -31,6 +34,9 @@ class AiPersistServiceTest {
 
     @Mock
     AiAnalysisSummaryRepository summaryRepository;
+
+    @Mock
+    LogicStatusRepository logicStatusRepository;
 
     @Mock
     LongPollingManager longPollingManager;
@@ -74,5 +80,18 @@ class AiPersistServiceTest {
         assertThat(key.getTopic()).isEqualTo(LongPollingTopic.AI_READY);
         assertThat(code).isEqualTo(ErrorCode.AI_CALL_FAILED);
         assertThat(msg).contains("테스트용 실패");
+    }
+
+    @Test
+    void requestRetryIfNotRunning_에서_logicStatus가_없으면_404_TEST_NOT_FOUND_예외를_던진다() {
+        // given
+        UUID testId = UUID.randomUUID();
+        when(logicStatusRepository.existsById(testId)).thenReturn(false);
+
+        // when & then
+        assertThatThrownBy(() -> aiPersistService.requestRetryIfNotRunning(testId))
+                .isInstanceOf(EntityNotFoundException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.TEST_NOT_FOUND);
     }
 }

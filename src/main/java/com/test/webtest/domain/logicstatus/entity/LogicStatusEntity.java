@@ -39,6 +39,9 @@ public class LogicStatusEntity {
     @Column(name = "ai_triggered", nullable = false)
     private boolean aiTriggered;
 
+    @Column(name = "ai_running", nullable = false)
+    private boolean aiRunning;
+
     @Column(name = "ai_ready", nullable = false)
     private boolean aiReady;
 
@@ -58,6 +61,7 @@ public class LogicStatusEntity {
                 .secReceived(false)
                 .scoresReady(false)
                 .aiTriggered(false)
+                .aiRunning(false)
                 .aiReady(false)
                 .build();
     }

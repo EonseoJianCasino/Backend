@@ -9,7 +9,7 @@ spring:
       INDENT_OUTPUT: true       # 로컬에서만 예쁘게 출력
 
   datasource:
-    url: jdbc:postgresql://db:5432/webtest   # 도커 compose 네트워크 기준
+    url: jdbc:postgresql://db:5432/webtest   # 도커 compose 네트워크 기준 *intellij에서 안되면 url: jdbc:postgresql://localhost:55432/webtest 로 바꾸기
     username: ${DB_USER:dev}
     password: ${DB_PASSWORD:dev1234}
     driver-class-name: org.postgresql.Driver

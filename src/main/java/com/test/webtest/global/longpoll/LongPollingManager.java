@@ -24,7 +24,17 @@ public class LongPollingManager {
             if (set.isEmpty()) waiters.remove(key);
         };
 
-        dr.onTimeout(() -> {dr.setResult(ResponseEntity.noContent().build()); cleanup.run();});
+        dr.onTimeout(() -> {
+            // NOTE: 204(No Content)는 응답 바디를 가질 수 없으므로, 프론트 안내는 헤더로 전달한다.
+            // 프론트는 이 헤더를 읽어 다음 /wait 호출의 timeoutSec을 90으로 늘리도록 안내할 수 있다.
+            dr.setResult(ResponseEntity
+                    .noContent()
+                    .header("X-Wait-Timeout-Millis", String.valueOf(timeoutMillis))
+                    .header("X-Wait-Recommend-Timeout-Sec", "90")
+                    .header("X-Wait-Guide", "롱폴링 타임아웃. 다음 /wait 호출에서 timeoutSec=90으로 늘려 재호출하세요.")
+                    .build());
+            cleanup.run();
+        });
         dr.onError(ex -> {dr.setResult(ResponseEntity.internalServerError().body(ex.getMessage())); cleanup.run();});
         dr.onCompletion(cleanup);
 
