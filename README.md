@@ -9,6 +9,6 @@ Docker Desktop 실행
 # 도커 볼륨 삭제
 docker compose down -v
 
-# 도커 실행 (로그에 tomcat 8080 출력되면 정상 실행)
-docker compose up --build
+# 도커 로컬 실행 (로그에 tomcat 8080 출력되면 정상 실행)
+docker-compose -f docker-compose.local.yml up
 ```
