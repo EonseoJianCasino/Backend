@@ -34,7 +34,7 @@ services:
     restart: unless-stopped
 
   redis:
-    image: redis:7-apline
+    image: redis:7-alpine
     container_name: redis
     ports:
       - "6379:6379"
@@ -90,3 +90,4 @@ services:
 volumes:
   db-data:
     name: webtest-db-data
+  redis_data:

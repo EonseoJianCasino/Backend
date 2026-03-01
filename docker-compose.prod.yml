@@ -15,7 +15,7 @@ services:
       - redis
 
   redis:
-    image: redis:7-apline
+    image: redis:7-alpine
     container_name: redis
     ports:
       - "6379:6379"
