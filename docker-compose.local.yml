@@ -10,6 +10,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
     env_file:
       - ./.env
     environment:
@@ -20,6 +22,8 @@ services:
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     ports:
       - "8080:8080"               # 필요 없으면 꺼도 됨(nginx만 통해 접근할 거면 제거)
     healthcheck:
@@ -28,6 +32,21 @@ services:
       timeout: 3s
       retries: 10
     restart: unless-stopped
+
+  redis:
+    image: redis:7-apline
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: [ "redis-server", "--requirepass" "${REDIS_PASSWORD}" "--appendonly", "yes" ]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   db:
     image: postgres:16
